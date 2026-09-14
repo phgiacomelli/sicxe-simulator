@@ -11,6 +11,24 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_program(CLANG_FORMAT clang-format)
+
+if(CLANG_FORMAT)
+    file(GLOB_RECURSE FORMAT_FILES
+        "${CMAKE_SOURCE_DIR}/src/*.cpp"
+        "${CMAKE_SOURCE_DIR}/src/*.hpp"
+        "${CMAKE_SOURCE_DIR}/src/*.h"
+        "${CMAKE_SOURCE_DIR}/tests/*.cpp"
+        "${CMAKE_SOURCE_DIR}/tests/*.hpp"
+        "${CMAKE_SOURCE_DIR}/tests/*.h"
+    )
+
+    add_custom_target(format
+        COMMAND ${CLANG_FORMAT} -i ${FORMAT_FILES}
+        COMMENT "Formatting C++ source files"
+    )
+endif()
+
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 qt_standard_project_setup()

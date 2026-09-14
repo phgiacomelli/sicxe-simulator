@@ -6,8 +6,7 @@
 #include "Memory.hpp"
 #include "RegisterFile.hpp"
 
-class Machine
-{
+class Machine {
 private:
     Memory memory_;
     RegisterFile registers_;

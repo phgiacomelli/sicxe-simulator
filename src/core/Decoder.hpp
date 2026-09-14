@@ -1,7 +1,6 @@
 #pragma once
 
-class Decoder
-{
+class Decoder {
 public:
     Decoder() = default;
 };

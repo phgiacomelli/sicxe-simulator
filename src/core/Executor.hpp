@@ -1,7 +1,6 @@
 #pragma once
 
-class Executor
-{
+class Executor {
 public:
     Executor() = default;
 };

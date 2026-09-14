@@ -1,11 +1,10 @@
 #pragma once
 
-#include <QMainWindow>
-
 #include "core/Machine.hpp"
 
-class MainWindow : public QMainWindow
-{
+#include <QMainWindow>
+
+class MainWindow : public QMainWindow {
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 

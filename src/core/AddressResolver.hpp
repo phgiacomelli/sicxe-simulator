@@ -1,7 +1,6 @@
 #pragma once
 
-class AddressResolver
-{
+class AddressResolver {
 public:
     AddressResolver() = default;
 };

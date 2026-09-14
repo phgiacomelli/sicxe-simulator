@@ -1,19 +1,14 @@
 #include "Machine.hpp"
 
-namespace
-{
+namespace {
 constexpr std::size_t SicXeMemorySize = 1U << 20;
 }
 
-Machine::Machine()
-    : memory_(SicXeMemorySize)
-{
+Machine::Machine() : memory_(SicXeMemorySize) {
 }
 
-void Machine::reset()
-{
+void Machine::reset() {
 }
 
-void Machine::step()
-{
+void Machine::step() {
 }
