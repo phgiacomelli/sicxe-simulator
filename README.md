@@ -17,10 +17,19 @@ de Programação de Sistemas.
 - modos de endereçamento;
 - interface gráfica para visualização da execução.
 
-
 ## Build
 
 ```bash
 cmake -S . -B build
 cmake --build build
 ./build/SICXESimulator
+```
+
+## Code Style
+
+O projeto usa `clang-format` com as regras definidas em `.clang-format`.
+Para formatar todos os arquivos C++ manualmente:
+
+```bash
+cmake --build build --target format
+```
