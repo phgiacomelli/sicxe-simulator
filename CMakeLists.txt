@@ -67,3 +67,36 @@ target_link_libraries(SICXESimulator
     PRIVATE
         Qt6::Widgets
 )
+
+
+include(FetchContent)
+
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0
+)
+
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_executable(SICXESimulatorTests
+    tests/MemoryTest.cpp
+    src/core/Memory.cpp
+    src/core/Memory.hpp
+)
+
+target_include_directories(SICXESimulatorTests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(SICXESimulatorTests
+    PRIVATE
+        GTest::gtest_main
+)
+
+include(GoogleTest)
+
+gtest_discover_tests(SICXESimulatorTests)
