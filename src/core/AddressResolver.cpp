@@ -8,8 +8,9 @@ ResolveResult resolved(ResolvedOperand operand) {
     return ResolveResult{std::move(operand)};
 }
 
-ResolveResult fault(ResolveFaultCode code, std::int64_t calculatedAddress = 0) {
-    return ResolveResult{ResolveFault{code, calculatedAddress}};
+ResolveResult fault(ResolveFaultCode code,
+                    std::optional<std::int64_t> offendingValue = std::nullopt) {
+    return ResolveResult{ResolveFault{code, offendingValue}};
 }
 
 bool isAddressInMemory(std::int64_t address, const Memory& memory) {
@@ -22,15 +23,13 @@ ResolveResult resolveFormat2(const DecodedInstruction& instruction) {
         return fault(ResolveFaultCode::InvalidRegister, instruction.r1);
     }
 
-    RegisterOperands operands{*r1};
     switch (instruction.opcode) {
         case Opcode::CLEAR:
         case Opcode::TIXR:
-            return resolved(ResolvedOperand{operands});
+            return resolved(ResolvedOperand{SingleRegisterOperand{*r1}});
         case Opcode::SHIFTL:
         case Opcode::SHIFTR:
-            operands.encodedNibble = instruction.r2;
-            return resolved(ResolvedOperand{operands});
+            return resolved(ResolvedOperand{RegisterAndNibbleOperand{*r1, instruction.r2}});
         case Opcode::ADDR:
         case Opcode::COMPR:
         case Opcode::DIVR:
@@ -41,8 +40,7 @@ ResolveResult resolveFormat2(const DecodedInstruction& instruction) {
             if (!r2.has_value()) {
                 return fault(ResolveFaultCode::InvalidRegister, instruction.r2);
             }
-            operands.r2 = *r2;
-            return resolved(ResolvedOperand{operands});
+            return resolved(ResolvedOperand{RegisterPairOperands{*r1, *r2}});
         }
         default:
             return fault(ResolveFaultCode::InvalidInstruction);

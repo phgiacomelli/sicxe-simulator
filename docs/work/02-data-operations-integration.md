@@ -10,11 +10,8 @@ Leia, nesta ordem:
 
 1. [arquitetura da VM](../architecture.md);
 2. [resolução de operandos](../addressing.md);
-3. [especificação do pacote 2](02-data-operations.md).
-
-O contrato de `ExecutionEffect` e `ExecuteFault` ainda precisa ser aprovado com
-os responsáveis pelos pacotes 3 e 4. Estabilize esse contrato antes de escrever
-as implementações finais das 18 instruções.
+3. [contratos de execução](../execution-contracts.md);
+4. [especificação do pacote 2](02-data-operations.md).
 
 ## Entradas disponíveis
 
@@ -34,7 +31,9 @@ desses campos termina no `AddressResolver`.
 
 | Variante | Uso no pacote 2 |
 | --- | --- |
-| `RegisterOperands` | `CLEAR` e `RMO` |
+| `SingleRegisterOperand` | `CLEAR` |
+| `RegisterPairOperands` | `RMO` |
+| `RegisterAndNibbleOperand` | incompatível com o pacote 2 |
 | `ImmediateValue` | loads de palavra, `LDCH`, `AND` e `OR` |
 | `MemoryAddress` | loads, stores, `LDCH`, `STCH`, `AND` e `OR` |
 | `NoOperand` | incompatível com todas as instruções do pacote 2 |
@@ -61,13 +60,13 @@ Nos operandos de formato 2:
 
 - `CLEAR` usa somente `r1`;
 - `RMO` lê `r1` e produz a escrita `r2 ← r1`;
-- `r2` ausente em `RMO` é falha de execução.
+- `RMO` recebe sempre `r1` e `r2` em `RegisterPairOperands`.
 
 ## Matriz das operações
 
 | Família | Origem aceita | Destino | Largura |
 | --- | --- | --- | --- |
-| `CLEAR` | `RegisterOperands::r1` | registrador `r1` | 24 bits |
+| `CLEAR` | `SingleRegisterOperand::r1` | registrador `r1` | 24 bits |
 | `RMO` | registrador `r1` | registrador `r2` | 24 bits |
 | `LDA/LDB/LDL/LDS/LDT/LDX` | imediato ou memória | registrador do opcode | 24 bits |
 | `STA/STB/STL/STS/STT/STX` | registrador do opcode | memória | 3 bytes |
@@ -122,7 +121,7 @@ Além dos casos obrigatórios do pacote 2, verifique:
 - que memória e registradores permanecem idênticos antes e depois da função;
 - que o efeito contém somente o destino esperado;
 - que `nextPc` é exatamente `postFetchPc`;
-- que `NoOperand`, `RegisterOperands` indevido e imediato em store falham;
+- que `NoOperand`, variantes de registrador indevidas e imediato em store falham;
 - que uma leitura de palavra nos dois últimos bytes da memória falha;
 - que `LDCH` e `STCH` funcionam no último endereço válido;
 - que padrões com bit de sinal, como `0x800000` e `0xFFFFFF`, são preservados;
@@ -137,7 +136,6 @@ Crie os arquivos sugeridos em `src/core/execution/` e registre fontes e testes
 no `CMakeLists.txt`. Não implemente as operações em `Executor.cpp`, pois esse
 arquivo pertence ao dispatcher do pacote 4.
 
-Se uma mudança nos contratos de `Architecture.hpp` ou `Operand.hpp` for
-necessária, combine-a antes com os responsáveis pelos pacotes 1, 3 e 4 e
-registre a decisão no pull request.
-
+Se uma mudança nos contratos de `Architecture.hpp`, `Operand.hpp` ou
+`ExecutionEffect.hpp` for necessária, combine-a antes com os responsáveis pelos
+pacotes 1, 3 e 4 e registre a decisão no pull request.

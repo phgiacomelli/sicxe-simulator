@@ -123,9 +123,13 @@ Ainda não implementado.
 
 Será responsável pela semântica das 38 instruções reconhecidas. Receberá uma
 instrução decodificada e um operando já resolvido, calculará o resultado e
-informará quais alterações devem ser aplicadas.
+informará quais alterações devem ser aplicadas por meio de um
+`ExecutionEffect`. Falhas esperadas serão devolvidas como `ExecuteFault`, sem
+efeitos parciais.
 
 A lógica de endereçamento não deverá ser repetida dentro das operações.
+Os contratos compartilhados estão definidos em `src/core/ExecutionEffect.hpp` e
+documentados em [execution-contracts.md](execution-contracts.md).
 
 ### `Machine`
 

@@ -26,12 +26,14 @@ pelo decoder: `A`, `X`, `L`, `B`, `S`, `T`, `PC` e `SW`. O registrador `F`
 continua armazenado pelo `RegisterFile`, porém não participa dos operandos do
 conjunto atual de instruções.
 
-`Operand.hpp` define quatro resultados bem-sucedidos:
+`Operand.hpp` define seis resultados bem-sucedidos:
 
 | Tipo | Significado |
 | --- | --- |
 | `NoOperand` | instrução sem operando, atualmente `RSUB` |
-| `RegisterOperands` | registradores ou nibble codificado do formato 2 |
+| `SingleRegisterOperand` | um registrador do formato 2 |
+| `RegisterPairOperands` | dois registradores do formato 2 |
+| `RegisterAndNibbleOperand` | registrador e nibble codificado de shift |
 | `ImmediateValue` | valor calculado, sem leitura final de memória |
 | `MemoryAddress` | localização que poderá ser lida ou escrita pelo executor |
 
@@ -118,8 +120,9 @@ pertencer à memória.
 | `AddressOutOfRange` | resultado negativo ou fora da memória |
 | `IndirectReadOutOfRange` | os três bytes do ponteiro cruzariam o fim da memória |
 
-`ResolveFault::calculatedAddress` preserva o valor que causou a falha, inclusive
-valores negativos produzidos por deslocamento PC-relative.
+`ResolveFault::offendingValue` preserva, quando aplicável, o valor que causou a
+falha. Isso inclui códigos de registrador inválidos e endereços negativos
+produzidos por deslocamento PC-relative.
 
 ## Exemplos
 
@@ -130,4 +133,3 @@ Com `B=0x2000` e deslocamento `0x120`, o endereço base-relative é `0x2120`.
 
 No modo indireto, se o endereço calculado for `0x0100` e os bytes nessa posição
 forem `00 20 00`, o operando resolvido é `MemoryAddress{0x2000}`.
-

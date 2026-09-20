@@ -43,4 +43,5 @@ enum class ConditionCode : std::uint8_t {
     Greater,
 };
 
+inline constexpr std::uint32_t WordMask = 0x00FFFFFF;
 inline constexpr std::uint32_t ConditionCodeMask = 0x000003;

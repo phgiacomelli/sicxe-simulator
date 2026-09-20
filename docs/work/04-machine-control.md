@@ -15,6 +15,8 @@ J JEQ JGT JLT JSUB RSUB
 ## Dependências
 
 - Tipos e `AddressResolver` do pacote 1.
+- `ExecutionEffect`, `ExecuteFault` e regra do PC pós-fetch entregues pelo
+  pacote 1.
 - Operações dos pacotes 2 e 3.
 - `Decoder`, `Memory` e `RegisterFile` existentes.
 
@@ -35,7 +37,6 @@ src/core/Machine.hpp
 Arquivos sugeridos:
 
 ```text
-src/core/ExecutionEffect.hpp
 src/core/MachineFault.hpp
 src/core/execution/ControlOperations.cpp
 src/core/execution/ControlOperations.hpp

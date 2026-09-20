@@ -126,12 +126,14 @@ resultado fora da memória é falha; não deve ocorrer wrap silencioso.
 - [x] `RegisterFile` e CC possuem testes próprios.
 - [x] Nenhum método do resolver modifica estado arquitetural.
 - [x] `docs/addressing.md` descreve o cálculo sem copiar a implementação.
-- [ ] CI verde e pendências registradas no PR.
+- [x] Contratos de execução e PC pós-fetch possuem testes de invariantes.
+- [x] CI verde e pendências registradas no PR.
 
 ## Estado da implementação
 
-Implementação concluída na branch `feat/address-resolver`, pendente de revisão
-dos contratos compartilhados e validação da CI no pull request.
+Implementação concluída na branch `feat/address-resolver`. Os contratos
+compartilhados estão prontos para revisão pelos responsáveis dos pacotes 2, 3 e
+4; a integração depende dessa aprovação.
 
 Decisões tomadas:
 
@@ -143,8 +145,11 @@ Decisões tomadas:
 - o CC usa os dois bits inferiores de `SW`, com `11` reservado;
 - todo cálculo usa tipo intermediário largo e é validado contra a memória;
 - uma leitura indireta valida separadamente a palavra de três bytes e o
-  endereço contido nela.
+  endereço contido nela;
+- `ExecutionEffect` representa alterações pretendidas sem aplicá-las;
+- `ExecuteFault` representa falhas esperadas sem efeitos parciais;
+- `computePostFetchPc` calcula o próximo PC sem wrap arquitetural.
 
 Não foram encontradas divergências entre a documentação do decoder e o código.
-Permanecem fora deste pacote `ExecutionEffect`, `ExecuteFault`, semântica dos
-opcodes e commit de alterações pela `Machine`.
+Permanecem fora deste pacote a semântica dos opcodes e o commit de alterações
+pela `Machine`.

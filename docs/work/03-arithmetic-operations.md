@@ -19,6 +19,9 @@ TIX TIXR
 - `ResolvedOperand`, helpers de registradores e CC do pacote 1.
 - Contrato de `ExecutionEffect` aprovado com os pacotes 2 e 4.
 
+O efeito, as falhas e a regra do PC entregues pelo pacote 1 estão em
+[contratos de execução](../execution-contracts.md).
+
 ## Ownership
 
 Arquivos sugeridos:
