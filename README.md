@@ -35,7 +35,11 @@ fazem parte desta etapa.
   falhas de decodificação.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
-  implementações
+  implementações.
+- [Pacotes de trabalho](docs/work/README.md): divisão detalhada entre os seis
+  integrantes.
+- [Como contribuir](CONTRIBUTING.md): fluxo de branches, commits, revisão e
+  critérios para integrar mudanças.
 
 ## Build
 

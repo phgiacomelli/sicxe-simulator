@@ -73,6 +73,9 @@ Em seguida, implementar e testar:
 
 ## Trabalho restante
 
+O trabalho restante foi dividido em seis pacotes. A descrição completa de cada
+um está no [índice dos pacotes de trabalho](work/README.md).
+
 ### Operações de transferência e lógica
 
 `CLEAR`, `RMO`, loads, stores, `LDCH`, `STCH`, `AND` e `OR`.
@@ -115,3 +118,14 @@ Em seguida, implementar e testar:
 - testes da interface;
 - build reproduzível a partir de um checkout limpo.
 
+## Ordem de integração
+
+1. O pacote 1 estabiliza os tipos arquiteturais e o operando resolvido.
+2. Os pacotes 2 e 3 implementam famílias independentes do executor.
+3. O pacote 4 integra as famílias ao ciclo da máquina.
+4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas.
+5. O pacote 6 conclui a interface e a aceitação ponta a ponta.
+
+Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
+dependências estarem integradas, mas o merge funcional deve respeitar essa
+ordem.

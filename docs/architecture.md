@@ -8,6 +8,26 @@ cada módulo e o fluxo planejado para a execução de uma instrução.
 A VM executará programas SIC/XE já codificados. Tradução de assembly, geração
 de código objeto, linking e relocação não pertencem a este projeto.
 
+## Fronteira entre VM e montador
+
+O ponto de entrada da VM é uma sequência de bytes de código de máquina já
+codificados. Esses bytes podem ser fornecidos diretamente por um arquivo binário
+bruto ou escritos em representação hexadecimal; as duas formas representam a
+mesma entrada para a máquina.
+
+```text
+assembly -- responsabilidade do montador --> bytes codificados
+bytes codificados -- responsabilidade da VM --> estado da máquina
+```
+
+A VM pode carregar os bytes na memória, decodificá-los e executá-los. Ela não
+deve interpretar código-fonte assembly, mnemônicos, diretivas, labels, tabelas de
+símbolos ou registros de formato objeto, nem realizar linking ou relocação.
+
+Neste projeto, **arquivo binário bruto** significa apenas uma sequência de bytes
+copiada para a memória. Esse termo não é sinônimo de arquivo objeto, que poderia
+conter registros e informações a serem interpretados por um loader.
+
 ## Visão geral
 
 O fluxo completo será:
