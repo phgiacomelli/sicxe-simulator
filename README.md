@@ -4,9 +4,9 @@ Simulador da arquitetura SIC/XE desenvolvido para a disciplina
 de Programação de Sistemas.
 
 O projeto está sendo construído em etapas. No estado atual, a memória, o
-arquivo de registradores e o decoder de instruções já possuem implementação.
-A resolução de endereços, a execução das instruções e o ciclo completo da
-máquina ainda serão implementados.
+arquivo de registradores, o decoder de instruções e a resolução de operandos já
+possuem implementação. A execução das instruções e o ciclo completo da máquina
+ainda serão implementados.
 
 ## Tecnologias
 
@@ -33,6 +33,8 @@ fazem parte desta etapa.
   uma instrução.
 - [Decoder](docs/decoder.md): formatos reconhecidos, validações, resultados e
   falhas de decodificação.
+- [Endereçamento](docs/addressing.md): operandos tipados, cálculos de endereço,
+  Condition Code e falhas de resolução.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
   implementações.

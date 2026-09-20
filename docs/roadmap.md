@@ -35,7 +35,10 @@ Não fazem parte desta etapa:
 
 - registradores arquiteturais;
 - normalização de escritas para 24 ou 48 bits;
-- reset dos valores.
+- reset dos valores;
+- acesso tipado aos registradores inteiros;
+- representação e atualização do Condition Code;
+- testes unitários.
 
 ### Decoder
 
@@ -46,30 +49,21 @@ Não fazem parte desta etapa:
 - falhas estruturadas;
 - testes unitários.
 
+### Resolução de operandos
+
+- operandos tipados para registradores, imediato, memória e ausência de
+  operando;
+- endereçamento SIC, direto, PC-relative, base-relative e formato 4;
+- indexação, imediato e indireto;
+- validação de limites sem wrap;
+- falhas estruturadas;
+- testes unitários.
+
 ## Próximo incremento
 
-Implementar o `AddressResolver`.
-
-O incremento deve introduzir um resultado tipado capaz de representar:
-
-- ausência de operando;
-- operandos de registradores;
-- valor imediato;
-- endereço de memória;
-- falha de endereço.
-
-Em seguida, implementar e testar:
-
-1. formato 2 e instrução sem operando;
-2. SIC direto e indexado;
-3. formato 3 direto;
-4. relativo ao PC, incluindo deslocamentos negativos;
-5. relativo à base;
-6. formato 4;
-7. indexação por `X`;
-8. imediato;
-9. indireto;
-10. limites da memória.
+Revisar e aprovar os contratos compartilhados pelo executor e iniciar, em
+paralelo, as operações de transferência/lógica e as operações aritméticas dos
+pacotes 2 e 3. O dispatcher e o commit dos efeitos permanecem no pacote 4.
 
 ## Trabalho restante
 
@@ -111,7 +105,6 @@ um está no [índice dos pacotes de trabalho](work/README.md).
 
 ### Verificação final
 
-- testes do arquivo de registradores;
 - um teste independente por instrução;
 - testes de integração da máquina;
 - pequenos programas completos já codificados;

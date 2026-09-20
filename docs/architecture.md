@@ -74,9 +74,10 @@ Implementado em `src/core/RegisterFile.*`.
 Mantém os registradores `A`, `X`, `L`, `B`, `S`, `T`, `F`, `PC` e `SW`. Escritas
 nos registradores inteiros são limitadas a 24 bits; `F` é limitado a 48 bits.
 
-O arquivo de registradores ainda precisa de testes próprios e de uma forma
-centralizada de ler ou escrever os registradores indicados pelos campos `r1` e
-`r2` das instruções de formato 2.
+Os registradores inteiros aceitos pelo decoder possuem identificação tipada e
+acesso centralizado. O Condition Code ocupa os dois bits inferiores de `SW` e
+pode ser lido ou atualizado preservando os demais bits. O arquivo de
+registradores possui testes próprios para reset, máscaras, acesso tipado e CC.
 
 ### `Decoder`
 
@@ -97,10 +98,11 @@ altera o estado da máquina. As regras completas estão em [decoder.md](decoder.
 
 ### `AddressResolver`
 
-Ainda não implementado.
+Implementado em `src/core/AddressResolver.*`, com os tipos compartilhados em
+`src/core/Architecture.hpp` e `src/core/Operand.hpp`.
 
-Será responsável por transformar os campos entregues pelo decoder em operandos
-utilizáveis pelo executor. Isso inclui:
+Transforma os campos entregues pelo decoder em operandos tipados utilizáveis
+pelo executor. Isso inclui:
 
 - endereçamento SIC;
 - direto;
@@ -111,8 +113,9 @@ utilizáveis pelo executor. Isso inclui:
 - imediato;
 - indireto.
 
-O resolver deverá apenas calcular e validar. Ele não executará instruções nem
-alterará memória ou registradores.
+O resolver calcula e valida sem executar instruções ou alterar memória,
+registradores e PC. As regras, tipos e falhas estão detalhados em
+[addressing.md](addressing.md).
 
 ### `Executor`
 
