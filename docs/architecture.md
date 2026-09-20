@@ -1,0 +1,146 @@
+# Arquitetura da VM SIC/XE
+
+## Objetivo
+
+Este documento apresenta a organização do simulador, a responsabilidade de
+cada módulo e o fluxo planejado para a execução de uma instrução.
+
+A VM executará programas SIC/XE já codificados. Tradução de assembly, geração
+de código objeto, linking e relocação não pertencem a este projeto.
+
+## Visão geral
+
+O fluxo completo será:
+
+```text
+Memory
+  ↓ bytes da instrução
+Decoder
+  ↓ DecodedInstruction
+AddressResolver
+  ↓ operando ou endereço resolvido
+Executor
+  ↓ alterações calculadas
+Machine
+  ↓ estado confirmado
+Interface Qt
+```
+
+Cada estágio tem uma responsabilidade específica. Em particular, decodificar,
+resolver um endereço e executar uma operação são atividades diferentes.
+
+## Módulos
+
+### `Memory`
+
+Implementada em `src/core/Memory.*`.
+
+Responsabilidades atuais:
+
+- armazenar bytes;
+- ler e escrever um byte;
+- ler e escrever palavras de 24 bits;
+- armazenar palavras em ordem big-endian;
+- rejeitar acessos que ultrapassem o espaço alocado;
+- conservar apenas os 24 bits menos significativos de uma palavra escrita.
+
+Uma palavra ocupa três bytes consecutivos. Por exemplo, `0x123456` é armazenada
+como `0x12`, `0x34` e `0x56`, nessa ordem.
+
+### `RegisterFile`
+
+Implementado em `src/core/RegisterFile.*`.
+
+Mantém os registradores `A`, `X`, `L`, `B`, `S`, `T`, `F`, `PC` e `SW`. Escritas
+nos registradores inteiros são limitadas a 24 bits; `F` é limitado a 48 bits.
+
+O arquivo de registradores ainda precisa de testes próprios e de uma forma
+centralizada de ler ou escrever os registradores indicados pelos campos `r1` e
+`r2` das instruções de formato 2.
+
+### `Decoder`
+
+Implementado em `src/core/Decoder.*`, com os tipos compartilhados em
+`src/core/Instruction.hpp`.
+
+O decoder:
+
+- lê até quatro bytes a partir de um endereço;
+- reconhece as 38 instruções pertencentes ao projeto;
+- identifica os formatos SIC, 2, 3 e 4;
+- separa registradores, flags e o campo de operando codificado;
+- valida combinações de flags e campos reservados;
+- devolve uma instrução decodificada ou uma falha estruturada.
+
+Ele não calcula endereços efetivos, não lê o valor final de operandos e não
+altera o estado da máquina. As regras completas estão em [decoder.md](decoder.md).
+
+### `AddressResolver`
+
+Ainda não implementado.
+
+Será responsável por transformar os campos entregues pelo decoder em operandos
+utilizáveis pelo executor. Isso inclui:
+
+- endereçamento SIC;
+- direto;
+- relativo ao PC;
+- relativo à base;
+- formato 4;
+- indexação por `X`;
+- imediato;
+- indireto.
+
+O resolver deverá apenas calcular e validar. Ele não executará instruções nem
+alterará memória ou registradores.
+
+### `Executor`
+
+Ainda não implementado.
+
+Será responsável pela semântica das 38 instruções reconhecidas. Receberá uma
+instrução decodificada e um operando já resolvido, calculará o resultado e
+informará quais alterações devem ser aplicadas.
+
+A lógica de endereçamento não deverá ser repetida dentro das operações.
+
+### `Machine`
+
+Possui apenas a construção inicial da memória. `reset()` e `step()` ainda estão
+vazios.
+
+Ao ser concluída, a máquina coordenará o ciclo:
+
+1. obter o PC atual;
+2. decodificar a instrução;
+3. calcular o PC posterior ao fetch;
+4. resolver o operando;
+5. executar a operação;
+6. validar todas as alterações;
+7. confirmar memória, registradores e PC.
+
+A confirmação deve ocorrer somente depois que a instrução inteira tiver sido
+validada. Assim, uma falha não deixa alterações parciais no estado.
+
+### Interface Qt
+
+A interface atual contém apenas a janela inicial. Futuramente deverá permitir:
+
+- carregar bytes já codificados;
+- escolher o endereço inicial;
+- executar uma instrução;
+- executar continuamente e pausar;
+- resetar a máquina;
+- observar registradores, memória e instrução corrente;
+- visualizar erros da VM.
+
+## Dependências permitidas
+
+As dependências devem seguir esta direção:
+
+```text
+UI → Machine → Decoder / AddressResolver / Executor → Memory / RegisterFile
+```
+
+O núcleo não deve depender de Qt. A interface pode observar e comandar a
+máquina, mas não deve modificar diretamente a memória ou os registradores.
