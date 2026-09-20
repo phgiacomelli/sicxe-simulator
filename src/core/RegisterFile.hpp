@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Architecture.hpp"
+
 #include <cstdint>
 
 class RegisterFile {
@@ -32,6 +34,12 @@ public:
 
     std::uint32_t getSW() const;
     void setSW(std::uint32_t value);
+
+    std::uint32_t read(RegisterId id) const;
+    void write(RegisterId id, std::uint32_t value);
+
+    ConditionCode getConditionCode() const;
+    void setConditionCode(ConditionCode conditionCode);
 
     void reset();
 
