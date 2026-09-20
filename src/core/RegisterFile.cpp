@@ -11,7 +11,7 @@ std::uint32_t RegisterFile::getA() const {
 }
 
 void RegisterFile::setA(std::uint32_t value) {
-    a_ = value & MASK_24;
+    a_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getX() const {
@@ -19,7 +19,7 @@ std::uint32_t RegisterFile::getX() const {
 }
 
 void RegisterFile::setX(std::uint32_t value) {
-    x_ = value & MASK_24;
+    x_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getL() const {
@@ -27,7 +27,7 @@ std::uint32_t RegisterFile::getL() const {
 }
 
 void RegisterFile::setL(std::uint32_t value) {
-    l_ = value & MASK_24;
+    l_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getB() const {
@@ -35,7 +35,7 @@ std::uint32_t RegisterFile::getB() const {
 }
 
 void RegisterFile::setB(std::uint32_t value) {
-    b_ = value & MASK_24;
+    b_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getS() const {
@@ -43,7 +43,7 @@ std::uint32_t RegisterFile::getS() const {
 }
 
 void RegisterFile::setS(std::uint32_t value) {
-    s_ = value & MASK_24;
+    s_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getT() const {
@@ -51,7 +51,7 @@ std::uint32_t RegisterFile::getT() const {
 }
 
 void RegisterFile::setT(std::uint32_t value) {
-    t_ = value & MASK_24;
+    t_ = value & WordMask;
 }
 
 std::uint64_t RegisterFile::getF() const {
@@ -67,7 +67,7 @@ std::uint32_t RegisterFile::getPC() const {
 }
 
 void RegisterFile::setPC(std::uint32_t value) {
-    pc_ = value & MASK_24;
+    pc_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::getSW() const {
@@ -75,58 +75,35 @@ std::uint32_t RegisterFile::getSW() const {
 }
 
 void RegisterFile::setSW(std::uint32_t value) {
-    sw_ = value & MASK_24;
+    sw_ = value & WordMask;
 }
 
 std::uint32_t RegisterFile::read(RegisterId id) const {
-    switch (id) {
-        case RegisterId::A:
-            return getA();
-        case RegisterId::X:
-            return getX();
-        case RegisterId::L:
-            return getL();
-        case RegisterId::B:
-            return getB();
-        case RegisterId::S:
-            return getS();
-        case RegisterId::T:
-            return getT();
-        case RegisterId::PC:
-            return getPC();
-        case RegisterId::SW:
-            return getSW();
-    }
-
-    throw std::invalid_argument("Unknown register identifier");
+    return this->*storageFor(id);
 }
 
 void RegisterFile::write(RegisterId id, std::uint32_t value) {
+    this->*storageFor(id) = value & WordMask;
+}
+
+RegisterFile::RegisterStorage RegisterFile::storageFor(RegisterId id) {
     switch (id) {
         case RegisterId::A:
-            setA(value);
-            return;
+            return &RegisterFile::a_;
         case RegisterId::X:
-            setX(value);
-            return;
+            return &RegisterFile::x_;
         case RegisterId::L:
-            setL(value);
-            return;
+            return &RegisterFile::l_;
         case RegisterId::B:
-            setB(value);
-            return;
+            return &RegisterFile::b_;
         case RegisterId::S:
-            setS(value);
-            return;
+            return &RegisterFile::s_;
         case RegisterId::T:
-            setT(value);
-            return;
+            return &RegisterFile::t_;
         case RegisterId::PC:
-            setPC(value);
-            return;
+            return &RegisterFile::pc_;
         case RegisterId::SW:
-            setSW(value);
-            return;
+            return &RegisterFile::sw_;
     }
 
     throw std::invalid_argument("Unknown register identifier");

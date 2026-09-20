@@ -41,11 +41,9 @@ TEST(AddressResolverTest, ResolvesOneAndTwoRegisterOperands) {
     clear.format = InstructionFormat::Format2;
     clear.r1 = 1;
     const auto clearResult = AddressResolver{}.resolve(clear, 0, memory, registers);
-    const auto* clearOperands = resolvedAs<RegisterOperands>(clearResult);
+    const auto* clearOperands = resolvedAs<SingleRegisterOperand>(clearResult);
     ASSERT_NE(clearOperands, nullptr);
     EXPECT_EQ(clearOperands->r1, RegisterId::X);
-    EXPECT_FALSE(clearOperands->r2.has_value());
-    EXPECT_FALSE(clearOperands->encodedNibble.has_value());
 
     DecodedInstruction addRegisters{};
     addRegisters.opcode = Opcode::ADDR;
@@ -53,11 +51,10 @@ TEST(AddressResolverTest, ResolvesOneAndTwoRegisterOperands) {
     addRegisters.r1 = 0;
     addRegisters.r2 = 4;
     const auto addResult = AddressResolver{}.resolve(addRegisters, 0, memory, registers);
-    const auto* addOperands = resolvedAs<RegisterOperands>(addResult);
+    const auto* addOperands = resolvedAs<RegisterPairOperands>(addResult);
     ASSERT_NE(addOperands, nullptr);
     EXPECT_EQ(addOperands->r1, RegisterId::A);
-    ASSERT_TRUE(addOperands->r2.has_value());
-    EXPECT_EQ(*addOperands->r2, RegisterId::S);
+    EXPECT_EQ(addOperands->r2, RegisterId::S);
 }
 
 TEST(AddressResolverTest, ResolvesContractForEveryFormat2Opcode) {
@@ -95,21 +92,20 @@ TEST(AddressResolverTest, ResolvesContractForEveryFormat2Opcode) {
         instruction.r2 = testCase.shape == OperandShape::RegisterAndNibble ? 15 : 1;
 
         const auto result = AddressResolver{}.resolve(instruction, 0, memory, registers);
-        const auto* operands = resolvedAs<RegisterOperands>(result);
-        ASSERT_NE(operands, nullptr);
-        EXPECT_EQ(operands->r1, RegisterId::A);
-
         if (testCase.shape == OperandShape::TwoRegisters) {
-            ASSERT_TRUE(operands->r2.has_value());
-            EXPECT_EQ(*operands->r2, RegisterId::X);
-            EXPECT_FALSE(operands->encodedNibble.has_value());
+            const auto* operands = resolvedAs<RegisterPairOperands>(result);
+            ASSERT_NE(operands, nullptr);
+            EXPECT_EQ(operands->r1, RegisterId::A);
+            EXPECT_EQ(operands->r2, RegisterId::X);
         } else if (testCase.shape == OperandShape::RegisterAndNibble) {
-            EXPECT_FALSE(operands->r2.has_value());
-            ASSERT_TRUE(operands->encodedNibble.has_value());
-            EXPECT_EQ(*operands->encodedNibble, 15);
+            const auto* operands = resolvedAs<RegisterAndNibbleOperand>(result);
+            ASSERT_NE(operands, nullptr);
+            EXPECT_EQ(operands->r1, RegisterId::A);
+            EXPECT_EQ(operands->encodedNibble, 15);
         } else {
-            EXPECT_FALSE(operands->r2.has_value());
-            EXPECT_FALSE(operands->encodedNibble.has_value());
+            const auto* operands = resolvedAs<SingleRegisterOperand>(result);
+            ASSERT_NE(operands, nullptr);
+            EXPECT_EQ(operands->r1, RegisterId::A);
         }
     }
 }
@@ -125,12 +121,10 @@ TEST(AddressResolverTest, PreservesEncodedShiftNibbleWithoutTreatingItAsARegiste
 
     const auto result = AddressResolver{}.resolve(instruction, 0, memory, registers);
 
-    const auto* operands = resolvedAs<RegisterOperands>(result);
+    const auto* operands = resolvedAs<RegisterAndNibbleOperand>(result);
     ASSERT_NE(operands, nullptr);
     EXPECT_EQ(operands->r1, RegisterId::L);
-    EXPECT_FALSE(operands->r2.has_value());
-    ASSERT_TRUE(operands->encodedNibble.has_value());
-    EXPECT_EQ(*operands->encodedNibble, 15);
+    EXPECT_EQ(operands->encodedNibble, 15);
 }
 
 TEST(AddressResolverTest, ReportsInvalidFormat2Register) {
@@ -147,7 +141,7 @@ TEST(AddressResolverTest, ReportsInvalidFormat2Register) {
     const auto* fault = faultFrom(result);
     ASSERT_NE(fault, nullptr);
     EXPECT_EQ(fault->code, ResolveFaultCode::InvalidRegister);
-    EXPECT_EQ(fault->calculatedAddress, 6);
+    EXPECT_EQ(fault->offendingValue, 6);
 }
 
 TEST(AddressResolverTest, ReportsInvalidFirstFormat2Register) {
@@ -163,7 +157,7 @@ TEST(AddressResolverTest, ReportsInvalidFirstFormat2Register) {
     const auto* fault = faultFrom(result);
     ASSERT_NE(fault, nullptr);
     EXPECT_EQ(fault->code, ResolveFaultCode::InvalidRegister);
-    EXPECT_EQ(fault->calculatedAddress, 7);
+    EXPECT_EQ(fault->offendingValue, 7);
 }
 
 TEST(AddressResolverTest, ResolvesRsubAsOperandless) {
@@ -482,7 +476,7 @@ TEST(AddressResolverTest, ReportsIndirectPointerOutsideMemory) {
     const auto* fault = faultFrom(result);
     ASSERT_NE(fault, nullptr);
     EXPECT_EQ(fault->code, ResolveFaultCode::AddressOutOfRange);
-    EXPECT_EQ(fault->calculatedAddress, 64);
+    EXPECT_EQ(fault->offendingValue, 64);
 }
 
 TEST(AddressResolverTest, ReportsIndirectWordCrossingMemoryEnd) {
@@ -495,7 +489,7 @@ TEST(AddressResolverTest, ReportsIndirectWordCrossingMemoryEnd) {
     const auto* fault = faultFrom(result);
     ASSERT_NE(fault, nullptr);
     EXPECT_EQ(fault->code, ResolveFaultCode::IndirectReadOutOfRange);
-    EXPECT_EQ(fault->calculatedAddress, 62);
+    EXPECT_EQ(fault->offendingValue, 62);
 }
 
 TEST(AddressResolverTest, ValidatesLowerAndUpperAddressLimitsWithoutWrapping) {
@@ -509,12 +503,17 @@ TEST(AddressResolverTest, ValidatesLowerAndUpperAddressLimitsWithoutWrapping) {
     const auto* negativeFault = faultFrom(result);
     ASSERT_NE(negativeFault, nullptr);
     EXPECT_EQ(negativeFault->code, ResolveFaultCode::AddressOutOfRange);
-    EXPECT_EQ(negativeFault->calculatedAddress, -1);
+    EXPECT_EQ(negativeFault->offendingValue, -1);
 
     instruction.p = false;
     instruction.x = true;
-    registers.setX(63);
     instruction.encodedOperand = 0;
+    registers.setX(0);
+    result = AddressResolver{}.resolve(instruction, 0, memory, registers);
+    ASSERT_NE(resolvedAs<MemoryAddress>(result), nullptr);
+    EXPECT_EQ(resolvedAs<MemoryAddress>(result)->address, 0);
+
+    registers.setX(63);
     result = AddressResolver{}.resolve(instruction, 0, memory, registers);
     ASSERT_NE(resolvedAs<MemoryAddress>(result), nullptr);
     EXPECT_EQ(resolvedAs<MemoryAddress>(result)->address, 63);
@@ -524,22 +523,32 @@ TEST(AddressResolverTest, ValidatesLowerAndUpperAddressLimitsWithoutWrapping) {
     const auto* upperFault = faultFrom(result);
     ASSERT_NE(upperFault, nullptr);
     EXPECT_EQ(upperFault->code, ResolveFaultCode::AddressOutOfRange);
-    EXPECT_EQ(upperFault->calculatedAddress, 64);
+    EXPECT_EQ(upperFault->offendingValue, 64);
 }
 
-TEST(AddressResolverTest, ReportsBaseRelativeAddressOutsideMemory) {
+TEST(AddressResolverTest, ValidatesBaseRelativeLowerAndUpperLimits) {
     Memory memory(64);
     RegisterFile registers;
-    registers.setB(63);
-    auto instruction = memoryInstruction(InstructionFormat::Format3, 1);
+    auto instruction = memoryInstruction(InstructionFormat::Format3, 0);
     instruction.b = true;
 
-    const auto result = AddressResolver{}.resolve(instruction, 0, memory, registers);
+    registers.setB(0);
+    auto result = AddressResolver{}.resolve(instruction, 0, memory, registers);
+    ASSERT_NE(resolvedAs<MemoryAddress>(result), nullptr);
+    EXPECT_EQ(resolvedAs<MemoryAddress>(result)->address, 0);
+
+    registers.setB(63);
+    result = AddressResolver{}.resolve(instruction, 0, memory, registers);
+    ASSERT_NE(resolvedAs<MemoryAddress>(result), nullptr);
+    EXPECT_EQ(resolvedAs<MemoryAddress>(result)->address, 63);
+
+    instruction.encodedOperand = 1;
+    result = AddressResolver{}.resolve(instruction, 0, memory, registers);
 
     const auto* fault = faultFrom(result);
     ASSERT_NE(fault, nullptr);
     EXPECT_EQ(fault->code, ResolveFaultCode::AddressOutOfRange);
-    EXPECT_EQ(fault->calculatedAddress, 64);
+    EXPECT_EQ(fault->offendingValue, 64);
 }
 
 TEST(AddressResolverTest, RejectsMalformedDecodedInstructionContracts) {

@@ -10,12 +10,24 @@ struct NoOperand {
     bool operator==(const NoOperand&) const = default;
 };
 
-struct RegisterOperands {
+struct SingleRegisterOperand {
     RegisterId r1{};
-    std::optional<RegisterId> r2{};
-    std::optional<std::uint8_t> encodedNibble{};
 
-    bool operator==(const RegisterOperands&) const = default;
+    bool operator==(const SingleRegisterOperand&) const = default;
+};
+
+struct RegisterPairOperands {
+    RegisterId r1{};
+    RegisterId r2{};
+
+    bool operator==(const RegisterPairOperands&) const = default;
+};
+
+struct RegisterAndNibbleOperand {
+    RegisterId r1{};
+    std::uint8_t encodedNibble{};
+
+    bool operator==(const RegisterAndNibbleOperand&) const = default;
 };
 
 struct ImmediateValue {
@@ -30,7 +42,12 @@ struct MemoryAddress {
     bool operator==(const MemoryAddress&) const = default;
 };
 
-using ResolvedOperand = std::variant<NoOperand, RegisterOperands, ImmediateValue, MemoryAddress>;
+using ResolvedOperand = std::variant<NoOperand,
+                                     SingleRegisterOperand,
+                                     RegisterPairOperands,
+                                     RegisterAndNibbleOperand,
+                                     ImmediateValue,
+                                     MemoryAddress>;
 
 enum class ResolveFaultCode {
     InvalidInstruction,
@@ -41,7 +58,7 @@ enum class ResolveFaultCode {
 
 struct ResolveFault {
     ResolveFaultCode code{};
-    std::int64_t calculatedAddress{};
+    std::optional<std::int64_t> offendingValue{};
 
     bool operator==(const ResolveFault&) const = default;
 };

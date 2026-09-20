@@ -35,6 +35,8 @@ fazem parte desta etapa.
   falhas de decodificação.
 - [Endereçamento](docs/addressing.md): operandos tipados, cálculos de endereço,
   Condition Code e falhas de resolução.
+- [Contratos de execução](docs/execution-contracts.md): efeitos atômicos,
+  falhas estruturadas e regra do PC pós-fetch.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
   implementações.
