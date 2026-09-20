@@ -50,6 +50,7 @@ qt_add_executable(SICXESimulator
 
     src/core/Decoder.cpp
     src/core/Decoder.hpp
+    src/core/Instruction.hpp
 
     src/core/AddressResolver.cpp
     src/core/AddressResolver.hpp
@@ -82,7 +83,11 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(SICXESimulatorTests
+    tests/DecoderTest.cpp
     tests/MemoryTest.cpp
+    src/core/Decoder.cpp
+    src/core/Decoder.hpp
+    src/core/Instruction.hpp
     src/core/Memory.cpp
     src/core/Memory.hpp
 )
