@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Format, build and test
+    runs-on: ubuntu-latest
+    container: fedora:43
+
+    steps:
+      - name: Install dependencies
+        run: >-
+          dnf install -y
+          clang-tools-extra
+          cmake
+          gcc-c++
+          git
+          qt6-qtbase-devel
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        shell: bash
+        run: |
+          mapfile -d '' format_files < <(
+            find src tests -type f \
+              \( -name '*.cpp' -o -name '*.hpp' -o -name '*.h' \) \
+              -print0
+          )
+          clang-format --dry-run --Werror "${format_files[@]}"
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
