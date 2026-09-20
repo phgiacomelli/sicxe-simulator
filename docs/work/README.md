@@ -19,10 +19,9 @@ O ownership indica quem lidera alterações em uma área; não impede colaboraç
 Uma mudança fora do ownership do pacote deve ser descrita no pull request e
 revisada pelo integrante responsável pela área afetada.
 
-## Contratos antes do paralelismo
+## Contratos compartilhados
 
-Antes de os pacotes 2, 3 e 4 implementarem operações, os tipos abaixo devem ser
-propostos em um PR pequeno e aprovados pelos responsáveis desses pacotes:
+O pacote 1 entrega, antes do paralelismo dos pacotes 2, 3 e 4:
 
 - identificação tipada de registradores de 24 bits;
 - `ResolvedOperand` e `ResolveFault`;
@@ -30,8 +29,10 @@ propostos em um PR pequeno e aprovados pelos responsáveis desses pacotes:
 - regra para PC pós-fetch;
 - representação e atualização do Condition Code.
 
-O PR de contratos deve conter interfaces e testes de construção/invariantes,
-sem antecipar a implementação das instruções.
+Essas interfaces possuem testes de construção e invariantes, sem antecipar a
+semântica das instruções. O contrato de efeitos e a regra do PC estão descritos
+em [contratos de execução](../execution-contracts.md). Mudanças nesses tipos
+devem ser combinadas entre os responsáveis pelos pacotes afetados.
 
 ## Atualização dos pacotes
 

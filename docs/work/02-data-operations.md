@@ -25,6 +25,11 @@ AND OR
 O desenvolvimento pode começar com testes e funções puras após o merge dos
 contratos. A integração ao dispatcher pertence ao pacote 4.
 
+Os contratos concretos e cuidados de integração entregues pelo pacote 1 estão
+no [guia de integração do pacote 2](02-data-operations-integration.md).
+O efeito, as falhas e a regra do PC estão em
+[contratos de execução](../execution-contracts.md).
+
 ## Ownership
 
 Arquivos sugeridos:

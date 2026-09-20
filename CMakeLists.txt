@@ -47,6 +47,7 @@ qt_add_executable(SICXESimulator
 
     src/core/RegisterFile.cpp
     src/core/RegisterFile.hpp
+    src/core/Architecture.hpp
 
     src/core/Decoder.cpp
     src/core/Decoder.hpp
@@ -54,6 +55,8 @@ qt_add_executable(SICXESimulator
 
     src/core/AddressResolver.cpp
     src/core/AddressResolver.hpp
+    src/core/Operand.hpp
+    src/core/ExecutionEffect.hpp
 
     src/core/Executor.cpp
     src/core/Executor.hpp
@@ -83,13 +86,23 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_executable(SICXESimulatorTests
+    tests/AddressResolverTest.cpp
     tests/DecoderTest.cpp
+    tests/ExecutionEffectTest.cpp
     tests/MemoryTest.cpp
+    tests/RegisterFileTest.cpp
+    src/core/AddressResolver.cpp
+    src/core/AddressResolver.hpp
+    src/core/Architecture.hpp
     src/core/Decoder.cpp
     src/core/Decoder.hpp
     src/core/Instruction.hpp
     src/core/Memory.cpp
     src/core/Memory.hpp
+    src/core/Operand.hpp
+    src/core/ExecutionEffect.hpp
+    src/core/RegisterFile.cpp
+    src/core/RegisterFile.hpp
 )
 
 target_include_directories(SICXESimulatorTests
