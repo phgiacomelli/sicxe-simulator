@@ -1,9 +1,10 @@
-#include "../src/core/execution/DataOperations.hpp"
+#include "core/execution/DataOperations.hpp"
 
-#include "../src/core/Memory.hpp"
-#include "../src/core/RegisterFile.hpp"
+#include "core/Memory.hpp"
+#include "core/RegisterFile.hpp"
 
 #include <gtest/gtest.h>
+#include <vector>
 
 class DataOperationsTest : public ::testing::Test {
 protected:
@@ -46,6 +47,27 @@ TEST_F(DataOperationsTest, RMO_CopiesRegisterAndDoesNotMutate) {
     ASSERT_TRUE(effect.registerWrite.has_value());
     EXPECT_EQ(effect.registerWrite->target, RegisterId::X);
     EXPECT_EQ(effect.registerWrite->value, 0x123456);
+    EXPECT_EQ(registers.read(RegisterId::A), 0x123456);
+    EXPECT_EQ(registers.read(RegisterId::X), 0x000000);
+    EXPECT_FALSE(effect.memoryWrite.has_value());
+    EXPECT_FALSE(effect.conditionCode.has_value());
+}
+
+TEST_F(DataOperationsTest, CLEAR_AndRMORejectSWAsDestination) {
+    registers.write(RegisterId::SW, 0x000001);
+    const DecodedInstruction clear{Opcode::CLEAR, InstructionFormat::Format2, 0x0000, 2};
+    const DecodedInstruction rmo{Opcode::RMO, InstructionFormat::Format2, 0x0000, 2};
+
+    const auto clearResult = executeDataOperation(
+        clear, SingleRegisterOperand{RegisterId::SW}, defaultPc, memory, registers);
+    const auto rmoResult = executeDataOperation(
+        rmo, RegisterPairOperands{RegisterId::A, RegisterId::SW}, defaultPc, memory, registers);
+
+    ASSERT_TRUE(std::holds_alternative<ExecuteFault>(clearResult));
+    ASSERT_TRUE(std::holds_alternative<ExecuteFault>(rmoResult));
+    EXPECT_EQ(std::get<ExecuteFault>(clearResult).code, ExecuteFaultCode::InvalidOperand);
+    EXPECT_EQ(std::get<ExecuteFault>(rmoResult).code, ExecuteFaultCode::InvalidOperand);
+    EXPECT_EQ(registers.read(RegisterId::SW), 0x000001);
 }
 
 TEST_F(DataOperationsTest, LDA_LoadsBitPatterns) {
@@ -118,7 +140,7 @@ TEST_F(DataOperationsTest, LDX_LoadsImmediate) {
 
 TEST_F(DataOperationsTest, STA_WritesAtValidMemoryBoundaries) {
     registers.write(RegisterId::A, 0xFFFFFF);
-    std::uint32_t lastValidWordAddress = 0xFFFD;
+    const std::uint32_t lastValidWordAddress = 0x100000 - 3;
 
     DecodedInstruction inst{Opcode::STA, InstructionFormat::Format4, 0x0000, 4};
     ResolvedOperand operand = MemoryAddress{lastValidWordAddress};
@@ -130,6 +152,9 @@ TEST_F(DataOperationsTest, STA_WritesAtValidMemoryBoundaries) {
     auto wordWrite = std::get<WordWrite>(*effect.memoryWrite);
     EXPECT_EQ(wordWrite.address, lastValidWordAddress);
     EXPECT_EQ(wordWrite.value, 0xFFFFFF);
+    EXPECT_EQ(memory.readWord(lastValidWordAddress), 0x000000);
+    EXPECT_FALSE(effect.registerWrite.has_value());
+    EXPECT_FALSE(effect.conditionCode.has_value());
 }
 
 TEST_F(DataOperationsTest, STB_WritesAtMemoryStart) {
@@ -209,6 +234,9 @@ TEST_F(DataOperationsTest, STCH_WritesSingleByte) {
     auto byteWrite = std::get<ByteWrite>(*effect.memoryWrite);
     EXPECT_EQ(byteWrite.address, 0x0050);
     EXPECT_EQ(byteWrite.value, 0x33);
+    EXPECT_EQ(memory.readByte(0x0050), 0x00);
+    EXPECT_FALSE(effect.registerWrite.has_value());
+    EXPECT_FALSE(effect.conditionCode.has_value());
 }
 
 TEST_F(DataOperationsTest, AND_PerformsLogicalAnd) {
@@ -231,6 +259,30 @@ TEST_F(DataOperationsTest, OR_PerformsLogicalOr) {
     auto effect = std::get<ExecutionEffect>(result);
 
     EXPECT_EQ(effect.registerWrite->value, 0x00FF00 | 0x0000FF);
+}
+
+TEST_F(DataOperationsTest, AND_AndORReadWordsFromMemory) {
+    registers.write(RegisterId::A, 0xF0FF0F);
+    memory.writeWord(0x0200, 0x0FF0FF);
+    const DecodedInstruction andInstruction{Opcode::AND, InstructionFormat::Format3, 0x0000, 3};
+    const DecodedInstruction orInstruction{Opcode::OR, InstructionFormat::Format3, 0x0000, 3};
+    const ResolvedOperand operand = MemoryAddress{0x0200};
+
+    const auto andEffect = std::get<ExecutionEffect>(
+        executeDataOperation(andInstruction, operand, defaultPc, memory, registers));
+    const auto orEffect = std::get<ExecutionEffect>(
+        executeDataOperation(orInstruction, operand, defaultPc, memory, registers));
+
+    ASSERT_TRUE(andEffect.registerWrite.has_value());
+    ASSERT_TRUE(orEffect.registerWrite.has_value());
+    EXPECT_EQ(andEffect.registerWrite->value, 0xF0FF0F & 0x0FF0FF);
+    EXPECT_EQ(orEffect.registerWrite->value, 0xF0FF0F | 0x0FF0FF);
+    EXPECT_EQ(registers.read(RegisterId::A), 0xF0FF0F);
+    EXPECT_EQ(memory.readWord(0x0200), 0x0FF0FF);
+    EXPECT_FALSE(andEffect.memoryWrite.has_value());
+    EXPECT_FALSE(orEffect.memoryWrite.has_value());
+    EXPECT_FALSE(andEffect.conditionCode.has_value());
+    EXPECT_FALSE(orEffect.conditionCode.has_value());
 }
 
 TEST_F(DataOperationsTest, StoreWithImmediateFails) {
