@@ -59,20 +59,25 @@ Não fazem parte desta etapa:
 - falhas estruturadas;
 - testes unitários.
 
+### Transferência de dados e lógica
+
+- `CLEAR` e `RMO`;
+- loads e stores de palavra;
+- `LDCH` e `STCH`;
+- `AND` e `OR`;
+- efeitos sem mutação direta da máquina;
+- falhas estruturadas e testes unitários.
+
 ## Próximo incremento
 
-Revisar e aprovar os contratos compartilhados pelo executor e iniciar, em
-paralelo, as operações de transferência/lógica e as operações aritméticas dos
-pacotes 2 e 3. O dispatcher e o commit dos efeitos permanecem no pacote 4.
+Concluir as operações aritméticas e relacionais do pacote 3. Em seguida, o
+pacote 4 integrará as famílias de operações ao dispatcher e ao ciclo atômico da
+máquina.
 
 ## Trabalho restante
 
 O trabalho restante foi dividido em seis pacotes. A descrição completa de cada
 um está no [índice dos pacotes de trabalho](work/README.md).
-
-### Operações de transferência e lógica
-
-`CLEAR`, `RMO`, loads, stores, `LDCH`, `STCH`, `AND` e `OR`.
 
 ### Operações aritméticas e relacionais
 

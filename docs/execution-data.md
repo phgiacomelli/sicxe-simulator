@@ -1,25 +1,34 @@
-# Operações de Transferência e Lógica
+# Operações de transferência e lógica
 
-Este documento detalha o comportamento do módulo responsável por instruções de 
-transferência de dados e operações lógicas (`CLEAR`, `RMO`, `LDA`, `LDB`, `LDL`, 
-`LDS`, `LDT`, `LDX`, `STA`, `STB`, `STL`, `STS`, `STT`, `STX`, `LDCH`, `STCH`, 
-`AND`, `OR`).
+Este documento descreve o módulo `src/core/execution/DataOperations.*`, que
+implementa as 18 instruções do [pacote 2](work/02-data-operations.md). O módulo
+consome operandos já resolvidos conforme o
+[guia de integração](work/02-data-operations-integration.md) e produz os efeitos
+definidos nos [contratos de execução](execution-contracts.md).
 
-## Matriz Fonte / Destino / Largura
+## Matriz fonte, destino e largura
 
-Conforme os critérios do Pacote 2, a tabela abaixo mapeia a largura dos efeitos 
-produzidos por cada instrução[cite: 5]:
+| Instrução | Fonte aceita | Destino do efeito | Largura |
+| --- | --- | --- | --- |
+| `CLEAR` | registrador `r1` | registrador `r1` | 24 bits |
+| `RMO` | registrador `r1` | registrador `r2` | 24 bits |
+| `LDA/LDB/LDL/LDS/LDT/LDX` | imediato ou memória | registrador definido pelo opcode | 24 bits |
+| `STA/STB/STL/STS/STT/STX` | registrador definido pelo opcode | memória | palavra de 3 bytes |
+| `LDCH` | imediato ou byte de memória | 8 bits inferiores de `A` | 8 bits |
+| `STCH` | 8 bits inferiores de `A` | memória | 1 byte |
+| `AND/OR` | imediato ou palavra de memória | registrador `A` | 24 bits |
 
-| Instrução | Fonte | Destino | Largura (bits) | Observações |
-| :--- | :--- | :--- | :--- | :--- |
-| `CLEAR` | N/A | Registrador (r1) | 24 | Zera o registrador[cite: 5]. |
-| `RMO` | Registrador (r1) | Registrador (r2) | 24 | |
-| `LD*` | Memória/Imediato | Registrador | 24 | Copia exatamente 24 bits[cite: 5]. |
-| `ST*` | Registrador | Memória | 24 | Escrita de 3 bytes (big-endian)[cite: 5]. |
-| `LDCH` | Memória/Imediato | Registrador (A) | 8 | Substitui apenas os 8 bits menos significativos[cite: 5]. |
-| `STCH` | Registrador (A) | Memória | 8 | Grava apenas os 8 bits menos significativos[cite: 5]. |
-| `AND`/`OR` | Memória/Imediato | Registrador | 24 | Operam sobre padrões de 24 bits[cite: 5]. |
+`LDCH` preserva os 16 bits superiores de `A`. `STCH` produz somente uma escrita
+de byte. Loads e operações lógicas leem o valor imediato diretamente ou usam o
+endereço de memória recebido; stores aceitam apenas `MemoryAddress`.
 
-Nenhuma destas operações altera o Condition Code (CC) e o cálculo de endereços não 
-ocorre dentro deste módulo[cite: 5]. Combinações incompatíveis para operações de `ST*` 
-resultam em falha estruturada (`ExecuteFault`), sem lançar exceções para o chamador[cite: 5].
+## Efeitos e falhas
+
+Todas as operações preservam o `postFetchPc` recebido e não alteram o Condition
+Code. `CLEAR` e o destino de `RMO` rejeitam `SW` para manter essa garantia.
+
+As funções apenas leem `Memory` e `RegisterFile`. Escritas são descritas em
+`ExecutionEffect` e serão validadas e confirmadas posteriormente pela
+`Machine`. Operandos incompatíveis produzem `InvalidOperand`; leituras fora dos
+limites da memória produzem `MemoryAccessOutOfRange`. Nenhuma falha carrega um
+efeito parcial.

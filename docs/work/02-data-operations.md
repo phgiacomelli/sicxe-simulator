@@ -108,9 +108,18 @@ não confirma escritas em memória ou registradores.
 
 ## Critério de conclusão
 
-- [ ] As 18 instruções possuem implementação e teste próprio.
-- [ ] Não existe lógica de `n/i/x/b/p/e` neste módulo.
-- [ ] Nenhuma operação modifica diretamente `Memory` ou `RegisterFile`.
-- [ ] Efeitos de byte e palavra são diferenciados.
-- [ ] `docs/execution-data.md` contém a matriz fonte/destino/largura.
+- [x] As 18 instruções possuem implementação e teste próprio.
+- [x] Não existe lógica de `n/i/x/b/p/e` neste módulo.
+- [x] Nenhuma operação modifica diretamente `Memory` ou `RegisterFile`.
+- [x] Efeitos de byte e palavra são diferenciados.
+- [x] `docs/execution-data.md` contém a matriz fonte/destino/largura.
 - [ ] CI verde e integração revisada pelo responsável do pacote 4.
+
+## Decisões e estado final
+
+- Endereçamento simples e indireto chegam igualmente como `MemoryAddress`; a
+  distinção e a indireção pertencem aos testes do `AddressResolver`.
+- `CLEAR` e o destino de `RMO` rejeitam `SW`, preservando o Condition Code.
+- Leituras fora da memória são convertidas em `MemoryAccessOutOfRange`.
+- O dispatcher e o commit dos efeitos permanecem pendentes e pertencem ao
+  pacote 4.

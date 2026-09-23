@@ -4,9 +4,10 @@ Simulador da arquitetura SIC/XE desenvolvido para a disciplina
 de Programação de Sistemas.
 
 O projeto está sendo construído em etapas. No estado atual, a memória, o
-arquivo de registradores, o decoder de instruções e a resolução de operandos já
-possuem implementação. A execução das instruções e o ciclo completo da máquina
-ainda serão implementados.
+arquivo de registradores, o decoder de instruções, a resolução de operandos e
+as 18 operações de transferência e lógica já possuem implementação. As demais
+operações, o dispatcher e o ciclo completo da máquina ainda serão
+implementados.
 
 ## Tecnologias
 
@@ -37,6 +38,8 @@ fazem parte desta etapa.
   Condition Code e falhas de resolução.
 - [Contratos de execução](docs/execution-contracts.md): efeitos atômicos,
   falhas estruturadas e regra do PC pós-fetch.
+- [Transferência e lógica](docs/execution-data.md): fontes, destinos, larguras,
+  efeitos e falhas das operações do pacote 2.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
   implementações.

@@ -61,16 +61,8 @@ qt_add_executable(SICXESimulator
     src/core/Executor.cpp
     src/core/Executor.hpp
 
-    src/core/AddressResolver.cpp
-    src/core/AddressResolver.hpp
-    src/core/Operand.hpp
-    src/core/ExecutionEffect.hpp
-
     src/core/execution/DataOperations.cpp
     src/core/execution/DataOperations.hpp
-
-    src/core/Executor.cpp
-    src/core/Executor.hpp
 )
 
 target_include_directories(SICXESimulator

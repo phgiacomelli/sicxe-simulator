@@ -1,18 +1,51 @@
 #include "DataOperations.hpp"
 
+#include <optional>
 #include <stdexcept>
 #include <variant>
 
-static std::optional<std::uint32_t> readOperandWord(const ResolvedOperand& operand,
-                                                    const Memory& memory) {
-    if (auto* imm = std::get_if<ImmediateValue>(&operand)) {
-        return imm->value;
+namespace {
+
+std::optional<std::uint32_t> readOperandWord(const ResolvedOperand& operand, const Memory& memory) {
+    if (const auto* immediate = std::get_if<ImmediateValue>(&operand)) {
+        return immediate->value;
     }
-    if (auto* mem = std::get_if<MemoryAddress>(&operand)) {
-        return memory.readWord(mem->address);
+    if (const auto* memoryAddress = std::get_if<MemoryAddress>(&operand)) {
+        return memory.readWord(memoryAddress->address);
     }
     return std::nullopt;
 }
+
+std::optional<RegisterId> dataRegisterFor(Opcode opcode) {
+    switch (opcode) {
+        case Opcode::LDA:
+        case Opcode::STA:
+            return RegisterId::A;
+        case Opcode::LDB:
+        case Opcode::STB:
+            return RegisterId::B;
+        case Opcode::LDL:
+        case Opcode::STL:
+            return RegisterId::L;
+        case Opcode::LDS:
+        case Opcode::STS:
+            return RegisterId::S;
+        case Opcode::LDT:
+        case Opcode::STT:
+            return RegisterId::T;
+        case Opcode::LDX:
+        case Opcode::STX:
+            return RegisterId::X;
+        default:
+            return std::nullopt;
+    }
+}
+
+ExecuteFault invalidOperand(const DecodedInstruction& instruction) {
+    return ExecuteFault{ExecuteFaultCode::InvalidOperand, instruction.instructionAddress};
+}
+
+} // namespace
 
 ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
                                    const ResolvedOperand& operand,
@@ -24,22 +57,20 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
     try {
         switch (instruction.opcode) {
             case Opcode::CLEAR: {
-                if (auto* singleReg = std::get_if<SingleRegisterOperand>(&operand)) {
-                    effect.registerWrite = RegisterWrite{singleReg->r1, 0x000000};
-                } else {
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                const auto* singleRegister = std::get_if<SingleRegisterOperand>(&operand);
+                if (singleRegister == nullptr || singleRegister->r1 == RegisterId::SW) {
+                    return invalidOperand(instruction);
                 }
+                effect.registerWrite = RegisterWrite{singleRegister->r1, 0x000000};
                 break;
             }
             case Opcode::RMO: {
-                if (auto* regPair = std::get_if<RegisterPairOperands>(&operand)) {
-                    std::uint32_t val1 = registers.read(regPair->r1);
-                    effect.registerWrite = RegisterWrite{regPair->r2, val1};
-                } else {
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                const auto* registerPair = std::get_if<RegisterPairOperands>(&operand);
+                if (registerPair == nullptr || registerPair->r2 == RegisterId::SW) {
+                    return invalidOperand(instruction);
                 }
+                const std::uint32_t sourceValue = registers.read(registerPair->r1);
+                effect.registerWrite = RegisterWrite{registerPair->r2, sourceValue};
                 break;
             }
             case Opcode::LDA:
@@ -48,26 +79,12 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
             case Opcode::LDS:
             case Opcode::LDT:
             case Opcode::LDX: {
-                auto val = readOperandWord(operand, memory);
-                if (!val)
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                const auto value = readOperandWord(operand, memory);
+                if (!value) {
+                    return invalidOperand(instruction);
+                }
 
-                RegisterId targetReg;
-                if (instruction.opcode == Opcode::LDA)
-                    targetReg = RegisterId::A;
-                else if (instruction.opcode == Opcode::LDB)
-                    targetReg = RegisterId::B;
-                else if (instruction.opcode == Opcode::LDL)
-                    targetReg = RegisterId::L;
-                else if (instruction.opcode == Opcode::LDS)
-                    targetReg = RegisterId::S;
-                else if (instruction.opcode == Opcode::LDT)
-                    targetReg = RegisterId::T;
-                else
-                    targetReg = RegisterId::X;
-
-                effect.registerWrite = RegisterWrite{targetReg, *val};
+                effect.registerWrite = RegisterWrite{*dataRegisterFor(instruction.opcode), *value};
                 break;
             }
             case Opcode::STA:
@@ -76,27 +93,14 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
             case Opcode::STS:
             case Opcode::STT:
             case Opcode::STX: {
-                if (auto* mem = std::get_if<MemoryAddress>(&operand)) {
-                    RegisterId srcReg;
-                    if (instruction.opcode == Opcode::STA)
-                        srcReg = RegisterId::A;
-                    else if (instruction.opcode == Opcode::STB)
-                        srcReg = RegisterId::B;
-                    else if (instruction.opcode == Opcode::STL)
-                        srcReg = RegisterId::L;
-                    else if (instruction.opcode == Opcode::STS)
-                        srcReg = RegisterId::S;
-                    else if (instruction.opcode == Opcode::STT)
-                        srcReg = RegisterId::T;
-                    else
-                        srcReg = RegisterId::X;
-
-                    std::uint32_t val = registers.read(srcReg);
-                    effect.memoryWrite = WordWrite{mem->address, val};
-                } else {
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                const auto* memoryAddress = std::get_if<MemoryAddress>(&operand);
+                if (memoryAddress == nullptr) {
+                    return invalidOperand(instruction);
                 }
+
+                const RegisterId sourceRegister = *dataRegisterFor(instruction.opcode);
+                const std::uint32_t sourceValue = registers.read(sourceRegister);
+                effect.memoryWrite = WordWrite{memoryAddress->address, sourceValue};
                 break;
             }
             case Opcode::LDCH: {
@@ -106,8 +110,7 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
                 } else if (auto* mem = std::get_if<MemoryAddress>(&operand)) {
                     byteVal = memory.readByte(mem->address);
                 } else {
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                    return invalidOperand(instruction);
                 }
 
                 std::uint32_t currentA = registers.read(RegisterId::A);
@@ -121,22 +124,21 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
                     std::uint8_t byteVal = static_cast<std::uint8_t>(currentA & 0xFF);
                     effect.memoryWrite = ByteWrite{mem->address, byteVal};
                 } else {
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                    return invalidOperand(instruction);
                 }
                 break;
             }
             case Opcode::AND:
             case Opcode::OR: {
-                auto val = readOperandWord(operand, memory);
-                if (!val)
-                    return ExecuteFault{ExecuteFaultCode::InvalidOperand,
-                                        instruction.instructionAddress};
+                const auto value = readOperandWord(operand, memory);
+                if (!value) {
+                    return invalidOperand(instruction);
+                }
 
-                std::uint32_t currentA = registers.read(RegisterId::A);
+                const std::uint32_t currentA = registers.read(RegisterId::A);
                 std::uint32_t newA =
-                    (instruction.opcode == Opcode::AND) ? (currentA & *val) : (currentA | *val);
-                newA &= 0xFFFFFF;
+                    (instruction.opcode == Opcode::AND) ? (currentA & *value) : (currentA | *value);
+                newA &= WordMask;
 
                 effect.registerWrite = RegisterWrite{RegisterId::A, newA};
                 break;
@@ -145,7 +147,7 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
                 return ExecuteFault{ExecuteFaultCode::UnsupportedOpcode,
                                     instruction.instructionAddress};
         }
-    } catch (const std::exception&) {
+    } catch (const std::out_of_range&) {
         return ExecuteFault{ExecuteFaultCode::MemoryAccessOutOfRange,
                             instruction.instructionAddress};
     }
