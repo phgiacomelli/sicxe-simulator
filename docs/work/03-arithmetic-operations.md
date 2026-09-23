@@ -101,11 +101,10 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
 - interface Qt.
 
 ## Critério de conclusão
-
-- [ ] As 14 instruções possuem implementação e testes de limite.
-- [ ] Toda aritmética é definida para padrões de 24 bits.
-- [ ] Divisão por zero não produz efeito arquitetural.
-- [ ] CC é atualizado somente pelo helper compartilhado.
-- [ ] Nenhuma operação altera diretamente o estado.
-- [ ] `docs/execution-arithmetic.md` registra a semântica e os limites.
+- [x] As 14 instruções possuem implementação e testes de limite.
+- [x] Toda aritmética é definida para padrões de 24 bits.
+- [x] Divisão por zero não produz efeito arquitetural.
+- [x] CC é atualizado somente pelo helper compartilhado.
+- [x] Nenhuma operação altera diretamente o estado.
+- [x] `docs/execution-arithmetic.md` registra a semântica e os limites.
 - [ ] CI verde e integração revisada pelo responsável do pacote 4.
