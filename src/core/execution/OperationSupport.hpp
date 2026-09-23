@@ -5,6 +5,7 @@
 #include "../Memory.hpp"
 #include "../Operand.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <variant>
 
