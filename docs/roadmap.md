@@ -68,21 +68,24 @@ Não fazem parte desta etapa:
 - efeitos sem mutação direta da máquina;
 - falhas estruturadas e testes unitários.
 
+### Aritmética, comparações, shifts e indexação
+
+- operações aritméticas de memória e registrador;
+- comparação signed de 24 bits;
+- divisão por zero como falha estruturada;
+- rotação e deslocamento aritmético;
+- incremento de `X` e atualização atômica do Condition Code;
+- testes de limites e ausência de mutação antecipada.
+
 ## Próximo incremento
 
-Concluir as operações aritméticas e relacionais do pacote 3. Em seguida, o
-pacote 4 integrará as famílias de operações ao dispatcher e ao ciclo atômico da
-máquina.
+Implementar as operações de controle de fluxo e integrar as famílias de
+operações ao dispatcher e ao ciclo atômico da máquina, conforme o pacote 4.
 
 ## Trabalho restante
 
 O trabalho restante foi dividido em seis pacotes. A descrição completa de cada
 um está no [índice dos pacotes de trabalho](work/README.md).
-
-### Operações aritméticas e relacionais
-
-`ADD`, `ADDR`, `SUB`, `SUBR`, `MUL`, `MULR`, `DIV`, `DIVR`, `COMP`, `COMPR`,
-`SHIFTL`, `SHIFTR`, `TIX` e `TIXR`.
 
 ### Controle de fluxo
 

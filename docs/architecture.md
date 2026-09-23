@@ -120,13 +120,15 @@ registradores e PC. As regras, tipos e falhas estão detalhados em
 ### `Executor`
 
 Parcialmente implementado. O módulo `src/core/execution/DataOperations.*`
-contém as 18 operações de transferência de dados e lógica. Essas operações
-recebem uma instrução decodificada e um operando já resolvido e produzem um
-`ExecutionEffect` ou um `ExecuteFault` sem modificar diretamente a máquina.
+contém as 18 operações de transferência de dados e lógica, e o módulo
+`src/core/execution/ArithmeticOperations.*` contém as 14 operações aritméticas,
+relacionais, de shift e indexação. Essas operações recebem uma instrução
+decodificada e um operando já resolvido e produzem um `ExecutionEffect` ou um
+`ExecuteFault` sem modificar diretamente a máquina.
 
-As operações aritméticas, relacionais e de controle de fluxo ainda serão
-implementadas. O dispatcher em `Executor.*`, que selecionará a família correta,
-também permanece pendente para o pacote 4.
+As operações de controle de fluxo ainda serão implementadas. O dispatcher em
+`Executor.*`, que selecionará a família correta, também permanece pendente para
+o pacote 4.
 
 A lógica de endereçamento não deverá ser repetida dentro das operações.
 Os contratos compartilhados estão definidos em `src/core/ExecutionEffect.hpp` e

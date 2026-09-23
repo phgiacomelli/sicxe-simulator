@@ -101,6 +101,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
 - interface Qt.
 
 ## Critério de conclusão
+
 - [x] As 14 instruções possuem implementação e testes de limite.
 - [x] Toda aritmética é definida para padrões de 24 bits.
 - [x] Divisão por zero não produz efeito arquitetural.
@@ -108,3 +109,14 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
 - [x] Nenhuma operação altera diretamente o estado.
 - [x] `docs/execution-arithmetic.md` registra a semântica e os limites.
 - [ ] CI verde e integração revisada pelo responsável do pacote 4.
+
+## Decisões e estado final
+
+- Operações signed convertem padrões de 24 bits para tipos intermediários mais
+  largos antes de calcular e normalizam o resultado com `WordMask`.
+- Divisão trunca em direção a zero; divisor zero imediato, em memória ou em
+  registrador produz `DivisionByZero` sem efeito parcial.
+- Nibbles de shift fora do intervalo codificado `0..15` são rejeitados como
+  `InvalidOperand`.
+- O dispatcher, o commit dos efeitos e as operações de controle de fluxo
+  permanecem pendentes e pertencem ao pacote 4.
