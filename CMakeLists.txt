@@ -65,6 +65,7 @@ qt_add_executable(SICXESimulator
     src/core/execution/DataOperations.hpp
     src/core/execution/ArithmeticOperations.cpp
     src/core/execution/ArithmeticOperations.hpp
+    src/core/execution/OperationSupport.hpp
 )
 
 target_include_directories(SICXESimulator
@@ -102,6 +103,7 @@ add_executable(SICXESimulatorTests
     src/core/execution/DataOperations.hpp
     src/core/execution/ArithmeticOperations.cpp
     src/core/execution/ArithmeticOperations.hpp
+    src/core/execution/OperationSupport.hpp
     src/core/AddressResolver.cpp
     src/core/AddressResolver.hpp
     src/core/Architecture.hpp

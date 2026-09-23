@@ -1,7 +1,8 @@
 #include "ArithmeticOperations.hpp"
 
+#include "OperationSupport.hpp"
+
 #include <cstdint>
-#include <optional>
 #include <stdexcept>
 #include <variant>
 
@@ -29,21 +30,7 @@ ConditionCode compareSigned24(std::int32_t a, std::int32_t b) {
     return ConditionCode::Greater;
 }
 
-std::optional<std::uint32_t> readOperandWord(const ResolvedOperand& operand, const Memory& memory) {
-    if (const auto* immediate = std::get_if<ImmediateValue>(&operand)) {
-        return immediate->value;
-    }
-    if (const auto* memoryAddress = std::get_if<MemoryAddress>(&operand)) {
-        return memory.readWord(memoryAddress->address);
-    }
-    return std::nullopt;
-}
-
-ExecuteFault invalidOperand(const DecodedInstruction& instruction) {
-    return ExecuteFault{ExecuteFaultCode::InvalidOperand, instruction.instructionAddress};
-}
-
-}
+} // namespace
 
 ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
                                          const ResolvedOperand& operand,
@@ -55,9 +42,9 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
     try {
         switch (instruction.opcode) {
             case Opcode::COMP: {
-                const auto value = readOperandWord(operand, memory);
+                const auto value = operation_support::readWordOperand(operand, memory);
                 if (!value) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t valA = toSigned24(registers.read(RegisterId::A));
                 const std::int32_t valOp = toSigned24(*value);
@@ -67,7 +54,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::COMPR: {
                 const auto* registerPair = std::get_if<RegisterPairOperands>(&operand);
                 if (registerPair == nullptr) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t val1 = toSigned24(registers.read(registerPair->r1));
                 const std::int32_t val2 = toSigned24(registers.read(registerPair->r2));
@@ -76,9 +63,9 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             }
             case Opcode::ADD:
             case Opcode::SUB: {
-                const auto value = readOperandWord(operand, memory);
+                const auto value = operation_support::readWordOperand(operand, memory);
                 if (!value) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t valA = toSigned24(registers.read(RegisterId::A));
                 const std::int32_t valOp = toSigned24(*value);
@@ -92,7 +79,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::SUBR: {
                 const auto* registerPair = std::get_if<RegisterPairOperands>(&operand);
                 if (registerPair == nullptr || registerPair->r2 == RegisterId::SW) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t val1 = toSigned24(registers.read(registerPair->r1));
                 const std::int32_t val2 = toSigned24(registers.read(registerPair->r2));
@@ -103,9 +90,9 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
                 break;
             }
             case Opcode::MUL: {
-                const auto value = readOperandWord(operand, memory);
+                const auto value = operation_support::readWordOperand(operand, memory);
                 if (!value) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t valA = toSigned24(registers.read(RegisterId::A));
                 const std::int32_t valOp = toSigned24(*value);
@@ -116,7 +103,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::MULR: {
                 const auto* registerPair = std::get_if<RegisterPairOperands>(&operand);
                 if (registerPair == nullptr || registerPair->r2 == RegisterId::SW) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t val1 = toSigned24(registers.read(registerPair->r1));
                 const std::int32_t val2 = toSigned24(registers.read(registerPair->r2));
@@ -125,15 +112,14 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
                 break;
             }
             case Opcode::DIV: {
-                const auto value = readOperandWord(operand, memory);
+                const auto value = operation_support::readWordOperand(operand, memory);
                 if (!value) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t valOp = toSigned24(*value);
                 if (valOp == 0) {
-                    return ExecuteFault{ExecuteFaultCode::DivisionByZero,
-                                        instruction.instructionAddress,
-                                        0};
+                    return ExecuteFault{
+                        ExecuteFaultCode::DivisionByZero, instruction.instructionAddress, 0};
                 }
                 const std::int32_t valA = toSigned24(registers.read(RegisterId::A));
                 const std::int64_t result = static_cast<std::int64_t>(valA) / valOp;
@@ -143,13 +129,12 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::DIVR: {
                 const auto* registerPair = std::get_if<RegisterPairOperands>(&operand);
                 if (registerPair == nullptr || registerPair->r2 == RegisterId::SW) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::int32_t val1 = toSigned24(registers.read(registerPair->r1));
                 if (val1 == 0) {
-                    return ExecuteFault{ExecuteFaultCode::DivisionByZero,
-                                        instruction.instructionAddress,
-                                        0};
+                    return ExecuteFault{
+                        ExecuteFaultCode::DivisionByZero, instruction.instructionAddress, 0};
                 }
                 const std::int32_t val2 = toSigned24(registers.read(registerPair->r2));
                 const std::int64_t result = static_cast<std::int64_t>(val2) / val1;
@@ -159,8 +144,9 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::SHIFTL:
             case Opcode::SHIFTR: {
                 const auto* regAndNibble = std::get_if<RegisterAndNibbleOperand>(&operand);
-                if (regAndNibble == nullptr || regAndNibble->r1 == RegisterId::SW) {
-                    return invalidOperand(instruction);
+                if (regAndNibble == nullptr || regAndNibble->r1 == RegisterId::SW ||
+                    regAndNibble->encodedNibble > 0x0F) {
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::uint32_t count =
                     static_cast<std::uint32_t>(regAndNibble->encodedNibble) + 1;
@@ -177,9 +163,9 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
                 break;
             }
             case Opcode::TIX: {
-                const auto value = readOperandWord(operand, memory);
+                const auto value = operation_support::readWordOperand(operand, memory);
                 if (!value) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::uint32_t currentX = registers.read(RegisterId::X);
                 const std::uint32_t newX = (currentX + 1) & WordMask;
@@ -192,7 +178,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
             case Opcode::TIXR: {
                 const auto* singleRegister = std::get_if<SingleRegisterOperand>(&operand);
                 if (singleRegister == nullptr) {
-                    return invalidOperand(instruction);
+                    return operation_support::invalidOperand(instruction);
                 }
                 const std::uint32_t currentX = registers.read(RegisterId::X);
                 const std::uint32_t newX = (currentX + 1) & WordMask;

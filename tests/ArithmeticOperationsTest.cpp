@@ -22,6 +22,7 @@ protected:
 
 TEST_F(ArithmeticOperationsTest, COMP_ProducesThreeConditionCodes) {
     DecodedInstruction inst{Opcode::COMP, InstructionFormat::Format3, 0x0000, 3};
+    registers.write(RegisterId::SW, 0xABCDE1);
 
     registers.write(RegisterId::A, 10);
     auto resLess =
@@ -31,16 +32,15 @@ TEST_F(ArithmeticOperationsTest, COMP_ProducesThreeConditionCodes) {
     EXPECT_FALSE(effectLess.registerWrite.has_value());
 
     registers.write(RegisterId::A, 20);
-    auto resEq =
-        executeArithmeticOperation(inst, ImmediateValue{20}, defaultPc, memory, registers);
+    auto resEq = executeArithmeticOperation(inst, ImmediateValue{20}, defaultPc, memory, registers);
     auto effectEq = std::get<ExecutionEffect>(resEq);
     EXPECT_EQ(effectEq.conditionCode, ConditionCode::Equal);
 
     registers.write(RegisterId::A, 30);
-    auto resGt =
-        executeArithmeticOperation(inst, ImmediateValue{20}, defaultPc, memory, registers);
+    auto resGt = executeArithmeticOperation(inst, ImmediateValue{20}, defaultPc, memory, registers);
     auto effectGt = std::get<ExecutionEffect>(resGt);
     EXPECT_EQ(effectGt.conditionCode, ConditionCode::Greater);
+    EXPECT_EQ(registers.read(RegisterId::SW), 0xABCDE1);
 }
 
 TEST_F(ArithmeticOperationsTest, COMP_ComparesSignedNegativeValues) {
@@ -84,6 +84,19 @@ TEST_F(ArithmeticOperationsTest, ADD_AddsImmediateAndWrapsOnOverflow) {
     EXPECT_EQ(effect.registerWrite->value, 0x800000);
 }
 
+TEST_F(ArithmeticOperationsTest, ADD_WrapsOnNegativeOverflow) {
+    DecodedInstruction inst{Opcode::ADD, InstructionFormat::Format3, 0x0000, 3};
+    registers.write(RegisterId::A, 0x800000);
+
+    auto result =
+        executeArithmeticOperation(inst, ImmediateValue{0xFFFFFF}, defaultPc, memory, registers);
+    auto effect = std::get<ExecutionEffect>(result);
+
+    ASSERT_TRUE(effect.registerWrite.has_value());
+    EXPECT_EQ(effect.registerWrite->value, 0x7FFFFF);
+    EXPECT_EQ(registers.read(RegisterId::A), 0x800000);
+}
+
 TEST_F(ArithmeticOperationsTest, ADDR_AddsR1IntoR2) {
     DecodedInstruction inst{Opcode::ADDR, InstructionFormat::Format2, 0x0000, 2};
     registers.write(RegisterId::A, 15);
@@ -103,8 +116,7 @@ TEST_F(ArithmeticOperationsTest, SUB_SubtractsFromMemory) {
     memory.writeWord(0x20, 50);
     registers.write(RegisterId::A, 120);
 
-    auto res =
-        executeArithmeticOperation(inst, MemoryAddress{0x20}, defaultPc, memory, registers);
+    auto res = executeArithmeticOperation(inst, MemoryAddress{0x20}, defaultPc, memory, registers);
     auto effect = std::get<ExecutionEffect>(res);
 
     ASSERT_TRUE(effect.registerWrite.has_value());
@@ -156,14 +168,12 @@ TEST_F(ArithmeticOperationsTest, DIV_DividesWithTruncationTowardsZero) {
     DecodedInstruction inst{Opcode::DIV, InstructionFormat::Format3, 0x0000, 3};
 
     registers.write(RegisterId::A, 7);
-    auto resPos =
-        executeArithmeticOperation(inst, ImmediateValue{2}, defaultPc, memory, registers);
+    auto resPos = executeArithmeticOperation(inst, ImmediateValue{2}, defaultPc, memory, registers);
     EXPECT_EQ(std::get<ExecutionEffect>(resPos).registerWrite->value, 3);
 
-    registers.write(RegisterId::A, 0xFFFFFD - 2);
-    auto resNeg =
-        executeArithmeticOperation(inst, ImmediateValue{2}, defaultPc, memory, registers);
-    EXPECT_EQ(std::get<ExecutionEffect>(resNeg).registerWrite->value, 0xFFFFFD);
+    registers.write(RegisterId::A, 0xFFFFFB);
+    auto resNeg = executeArithmeticOperation(inst, ImmediateValue{2}, defaultPc, memory, registers);
+    EXPECT_EQ(std::get<ExecutionEffect>(resNeg).registerWrite->value, 0xFFFFFE);
 }
 
 TEST_F(ArithmeticOperationsTest, DIV_HandlesMinSignedDividedByMinusOne) {
@@ -186,6 +196,36 @@ TEST_F(ArithmeticOperationsTest, DIV_DivisionByZeroReturnsFault) {
     ASSERT_TRUE(std::holds_alternative<ExecuteFault>(res));
     auto fault = std::get<ExecuteFault>(res);
     EXPECT_EQ(fault.code, ExecuteFaultCode::DivisionByZero);
+}
+
+TEST_F(ArithmeticOperationsTest, DIV_DivisionByZeroFromMemoryReturnsFaultWithoutMutation) {
+    DecodedInstruction inst{Opcode::DIV, InstructionFormat::Format3, 0x0000, 3};
+    registers.write(RegisterId::A, 100);
+    memory.writeWord(0x20, 0);
+
+    auto result =
+        executeArithmeticOperation(inst, MemoryAddress{0x20}, defaultPc, memory, registers);
+
+    ASSERT_TRUE(std::holds_alternative<ExecuteFault>(result));
+    EXPECT_EQ(std::get<ExecuteFault>(result).code, ExecuteFaultCode::DivisionByZero);
+    EXPECT_EQ(registers.read(RegisterId::A), 100);
+    EXPECT_EQ(memory.readWord(0x20), 0);
+}
+
+TEST_F(ArithmeticOperationsTest, DIVR_DividesR2ByR1WithoutMutatingRegisters) {
+    DecodedInstruction inst{Opcode::DIVR, InstructionFormat::Format2, 0x0000, 2};
+    registers.write(RegisterId::S, 4);
+    registers.write(RegisterId::T, 20);
+    ResolvedOperand operand = RegisterPairOperands{RegisterId::S, RegisterId::T};
+
+    auto result = executeArithmeticOperation(inst, operand, defaultPc, memory, registers);
+    auto effect = std::get<ExecutionEffect>(result);
+
+    ASSERT_TRUE(effect.registerWrite.has_value());
+    EXPECT_EQ(effect.registerWrite->target, RegisterId::T);
+    EXPECT_EQ(effect.registerWrite->value, 5);
+    EXPECT_EQ(registers.read(RegisterId::S), 4);
+    EXPECT_EQ(registers.read(RegisterId::T), 20);
 }
 
 TEST_F(ArithmeticOperationsTest, DIVR_DivisionByZeroInRegisterReturnsFault) {
@@ -226,6 +266,23 @@ TEST_F(ArithmeticOperationsTest, SHIFTR_ArithmeticRightShiftPreservesSign) {
     auto res = executeArithmeticOperation(inst, op, defaultPc, memory, registers);
     auto effect = std::get<ExecutionEffect>(res);
     EXPECT_EQ(effect.registerWrite->value, 0xC00000);
+
+    ResolvedOperand op16 = RegisterAndNibbleOperand{RegisterId::A, 15};
+    auto result16 = executeArithmeticOperation(inst, op16, defaultPc, memory, registers);
+    auto effect16 = std::get<ExecutionEffect>(result16);
+    EXPECT_EQ(effect16.registerWrite->value, 0xFFFF80);
+}
+
+TEST_F(ArithmeticOperationsTest, ShiftRejectsNibbleOutsideEncodedRange) {
+    DecodedInstruction inst{Opcode::SHIFTL, InstructionFormat::Format2, 0x0000, 2};
+    registers.write(RegisterId::A, 0x123456);
+    ResolvedOperand operand = RegisterAndNibbleOperand{RegisterId::A, 16};
+
+    auto result = executeArithmeticOperation(inst, operand, defaultPc, memory, registers);
+
+    ASSERT_TRUE(std::holds_alternative<ExecuteFault>(result));
+    EXPECT_EQ(std::get<ExecuteFault>(result).code, ExecuteFaultCode::InvalidOperand);
+    EXPECT_EQ(registers.read(RegisterId::A), 0x123456);
 }
 
 TEST_F(ArithmeticOperationsTest, TIX_IncrementsXAndSetsConditionCodeSimultaneously) {
@@ -256,6 +313,8 @@ TEST_F(ArithmeticOperationsTest, TIXR_IncrementsXAndComparesAgainstRegister) {
     EXPECT_EQ(effect.registerWrite->target, RegisterId::X);
     EXPECT_EQ(effect.registerWrite->value, 10);
     EXPECT_EQ(effect.conditionCode, ConditionCode::Less);
+    EXPECT_EQ(registers.read(RegisterId::X), 9);
+    EXPECT_EQ(registers.read(RegisterId::T), 15);
 }
 
 TEST_F(ArithmeticOperationsTest, IncompatibleOperandReturnsInvalidOperandFault) {
@@ -267,9 +326,12 @@ TEST_F(ArithmeticOperationsTest, IncompatibleOperandReturnsInvalidOperandFault) 
 
 TEST_F(ArithmeticOperationsTest, MemoryReadAtMemoryLimitThrowsAndConvertsToFault) {
     DecodedInstruction inst{Opcode::ADD, InstructionFormat::Format3, 0x0000, 3};
-    auto res = executeArithmeticOperation(
-        inst, MemoryAddress{static_cast<std::uint32_t>(memory.size() - 1)}, defaultPc, memory,
-        registers);
+    auto res =
+        executeArithmeticOperation(inst,
+                                   MemoryAddress{static_cast<std::uint32_t>(memory.size() - 1)},
+                                   defaultPc,
+                                   memory,
+                                   registers);
     ASSERT_TRUE(std::holds_alternative<ExecuteFault>(res));
     EXPECT_EQ(std::get<ExecuteFault>(res).code, ExecuteFaultCode::MemoryAccessOutOfRange);
 }
