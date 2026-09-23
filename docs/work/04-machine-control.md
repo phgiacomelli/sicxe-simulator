@@ -23,6 +23,22 @@ J JEQ JGT JLT JSUB RSUB
 O esqueleto e os testes de estado podem começar antes das dependências, mas o
 merge funcional ocorre depois dos pacotes 1, 2 e 3.
 
+## Ponto de partida atual
+
+Os três pacotes necessários estão concluídos. O pacote 4 deve consumir, sem
+reimplementar suas regras:
+
+- `Decoder::decode` para obter `DecodedInstruction`;
+- `computePostFetchPc` para calcular o PC sequencial sem wrap;
+- `AddressResolver::resolve` para produzir `ResolvedOperand`;
+- `executeDataOperation` para as 18 operações de transferência e lógica;
+- `executeArithmeticOperation` para as 14 operações aritméticas;
+- `ExecutionEffect` e `ExecuteFault` como resultado comum das três famílias.
+
+`OperationSupport.hpp` é um detalhe interno das famílias de operações, não uma
+interface do dispatcher. O pacote 4 deve depender das interfaces públicas de
+cada família.
+
 ## Ownership
 
 Arquivos atuais:
@@ -75,6 +91,12 @@ decisão deve ser registrada antes do pacote 5 iniciar a integração.
 
 Qualquer falha entre os passos 2 e 6 mantém memória, registradores e PC como
 estavam antes da tentativa.
+
+Antes de escrever o commit, feche a decisão registrada em
+[contratos de execução](../execution-contracts.md#validação-e-commit) sobre
+operações de formato 2 que usam `PC` ou `SW`. A solução deve possuir testes e
+não pode depender da ordem acidental entre `registerWrite`, `conditionCode` e
+`nextPc`.
 
 ## Controle de fluxo
 

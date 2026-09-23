@@ -8,6 +8,18 @@ cada módulo e o fluxo planejado para a execução de uma instrução.
 A VM executará programas SIC/XE já codificados. Tradução de assembly, geração
 de código objeto, linking e relocação não pertencem a este projeto.
 
+## Decisões de interpretação do enunciado
+
+- Este repositório usa C++20 e Qt 6, decisão tecnológica já adotada pelo grupo
+  em lugar da referência a Java no enunciado. Novos pacotes devem preservar
+  essa base e não introduzir um segundo runtime.
+- A memória é endereçada por byte: cada endereço identifica um byte e uma
+  palavra ocupa os endereços `m`, `m+1` e `m+2`. Essa decisão segue as ações das
+  instruções e os modos de endereçamento do próprio enunciado, apesar de sua
+  tabela descrever a unidade de endereçamento como “palavra”.
+- Somente as 38 instruções não destacadas em vermelho são conhecidas pela VM.
+  As demais não são cadastradas como instruções parcialmente suportadas.
+
 ## Fronteira entre VM e montador
 
 O ponto de entrada da VM é uma sequência de bytes de código de máquina já
@@ -120,13 +132,15 @@ registradores e PC. As regras, tipos e falhas estão detalhados em
 ### `Executor`
 
 Parcialmente implementado. O módulo `src/core/execution/DataOperations.*`
-contém as 18 operações de transferência de dados e lógica. Essas operações
-recebem uma instrução decodificada e um operando já resolvido e produzem um
-`ExecutionEffect` ou um `ExecuteFault` sem modificar diretamente a máquina.
+contém as 18 operações de transferência de dados e lógica, e o módulo
+`src/core/execution/ArithmeticOperations.*` contém as 14 operações aritméticas,
+relacionais, de shift e indexação. Essas operações recebem uma instrução
+decodificada e um operando já resolvido e produzem um `ExecutionEffect` ou um
+`ExecuteFault` sem modificar diretamente a máquina.
 
-As operações aritméticas, relacionais e de controle de fluxo ainda serão
-implementadas. O dispatcher em `Executor.*`, que selecionará a família correta,
-também permanece pendente para o pacote 4.
+As operações de controle de fluxo ainda serão implementadas. O dispatcher em
+`Executor.*`, que selecionará a família correta, também permanece pendente para
+o pacote 4.
 
 A lógica de endereçamento não deverá ser repetida dentro das operações.
 Os contratos compartilhados estão definidos em `src/core/ExecutionEffect.hpp` e

@@ -1,5 +1,4 @@
-#ifndef SICXE_DATA_OPERATIONS_HPP
-#define SICXE_DATA_OPERATIONS_HPP
+#pragma once
 
 #include "../ExecutionEffect.hpp"
 #include "../Instruction.hpp"
@@ -14,5 +13,3 @@ ExecuteResult executeDataOperation(const DecodedInstruction& instruction,
                                    std::uint32_t postFetchPc,
                                    const Memory& memory,
                                    const RegisterFile& registers);
-
-#endif

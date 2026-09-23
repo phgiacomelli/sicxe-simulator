@@ -77,6 +77,21 @@ testes e documentação quando isso tornar a revisão mais clara.
 - Evite duplicar uma decisão arquitetural em mais de um documento. Atualize a
   fonte principal e use links nos demais locais.
 
+## Convenções C++
+
+- Headers do projeto usam `#pragma once`.
+- Um arquivo `.cpp` inclui primeiro o próprio header, depois outros headers do
+  projeto e por fim a biblioteca padrão ou dependências externas.
+- Testes incluem headers a partir da raiz configurada em `src`, por exemplo
+  `#include "core/Memory.hpp"`; não use caminhos relativos com `../src`.
+- Constantes arquiteturais compartilhadas devem ter um único nome e uma única
+  definição, como `WordMask` em `Architecture.hpp`.
+- Falhas esperadas atravessam as interfaces tipadas do núcleo; exceções de
+  infraestrutura devem ser convertidas no módulo que conhece seu significado.
+- Operações do executor calculam efeitos e permanecem sem mutação. A ordem de
+  validação e commit pertence exclusivamente à `Machine`, conforme a
+  [arquitetura](docs/architecture.md).
+
 ## Verificação local
 
 Configure e compile:

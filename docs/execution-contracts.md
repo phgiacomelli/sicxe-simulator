@@ -35,6 +35,21 @@ palavra de 24 bits, que a `Machine` confirmará em ordem big-endian. A variante
 Os endereços ainda devem ser validados pela `Machine` antes do commit. Uma
 palavra precisa possuir três bytes válidos a partir do endereço informado.
 
+## Validação e commit
+
+A `Machine` deve validar o efeito inteiro antes da primeira escrita. No mínimo,
+isso inclui o `nextPc`, o identificador de registrador e o intervalo completo
+de qualquer escrita de memória. Somente depois dessas validações ela pode
+confirmar registrador, memória, Condition Code e PC.
+
+Existe uma decisão que o pacote 4 deve fechar antes de implementar o commit:
+os operandos tipados aceitam `PC` e `SW`, enquanto `ExecutionEffect` também
+possui campos próprios para próximo PC e Condition Code. O dispatcher e a
+`Machine` devem definir e testar uma única representação para escritas de
+formato 2 nesses registradores, sem depender da ordem acidental das atribuições.
+Até essa decisão, não trate `registerWrite`, `nextPc` e `conditionCode` como
+escritas independentes quando apontarem para o mesmo estado arquitetural.
+
 ## Falhas
 
 `ExecuteFault` informa:
