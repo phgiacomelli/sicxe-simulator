@@ -108,7 +108,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
 - [x] CC é atualizado somente pelo helper compartilhado.
 - [x] Nenhuma operação altera diretamente o estado.
 - [x] `docs/execution-arithmetic.md` registra a semântica e os limites.
-- [ ] CI verde e integração revisada pelo responsável do pacote 4.
+- [x] CI verde e integração revisada pelo responsável do pacote 4.
 
 ## Decisões e estado final
 
