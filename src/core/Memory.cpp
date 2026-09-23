@@ -1,5 +1,7 @@
 #include "Memory.hpp"
 
+#include "Architecture.hpp"
+
 #include <stdexcept>
 
 Memory::Memory(std::size_t size) : data_(size, 0) {
@@ -27,7 +29,7 @@ std::uint32_t Memory::readWord(std::size_t address) const {
 void Memory::writeWord(std::size_t address, std::uint32_t value) {
     validateAddress(address, 3);
 
-    value &= 0xFFFFFF;
+    value &= WordMask;
 
     data_[address] = static_cast<std::uint8_t>((value >> 16) & 0xFF);
     data_[address + 1] = static_cast<std::uint8_t>((value >> 8) & 0xFF);
