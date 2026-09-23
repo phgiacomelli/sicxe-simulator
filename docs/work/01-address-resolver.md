@@ -120,7 +120,7 @@ resultado fora da memória é falha; não deve ocorrer wrap silencioso.
 
 ## Critério de conclusão
 
-- [ ] Interface aprovada pelos responsáveis dos pacotes 2, 3 e 4.
+- [x] Interface aprovada pelos responsáveis dos pacotes 2, 3 e 4.
 - [x] Todos os modos aceitos pelo decoder possuem teste positivo.
 - [x] Limites e falhas de endereço possuem testes negativos.
 - [x] `RegisterFile` e CC possuem testes próprios.
@@ -131,9 +131,8 @@ resultado fora da memória é falha; não deve ocorrer wrap silencioso.
 
 ## Estado da implementação
 
-Implementação concluída na branch `feat/address-resolver`. Os contratos
-compartilhados estão prontos para revisão pelos responsáveis dos pacotes 2, 3 e
-4; a integração depende dessa aprovação.
+Implementação concluída e integrada. Os contratos compartilhados já são
+consumidos pelos pacotes 2 e 3 e constituem a base do próximo pacote.
 
 Decisões tomadas:
 
@@ -151,5 +150,5 @@ Decisões tomadas:
 - `computePostFetchPc` calcula o próximo PC sem wrap arquitetural.
 
 Não foram encontradas divergências entre a documentação do decoder e o código.
-Permanecem fora deste pacote a semântica dos opcodes e o commit de alterações
-pela `Machine`.
+Permanecem fora deste pacote o dispatcher e o commit de alterações pela
+`Machine`.

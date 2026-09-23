@@ -8,6 +8,18 @@ cada módulo e o fluxo planejado para a execução de uma instrução.
 A VM executará programas SIC/XE já codificados. Tradução de assembly, geração
 de código objeto, linking e relocação não pertencem a este projeto.
 
+## Decisões de interpretação do enunciado
+
+- Este repositório usa C++20 e Qt 6, decisão tecnológica já adotada pelo grupo
+  em lugar da referência a Java no enunciado. Novos pacotes devem preservar
+  essa base e não introduzir um segundo runtime.
+- A memória é endereçada por byte: cada endereço identifica um byte e uma
+  palavra ocupa os endereços `m`, `m+1` e `m+2`. Essa decisão segue as ações das
+  instruções e os modos de endereçamento do próprio enunciado, apesar de sua
+  tabela descrever a unidade de endereçamento como “palavra”.
+- Somente as 38 instruções não destacadas em vermelho são conhecidas pela VM.
+  As demais não são cadastradas como instruções parcialmente suportadas.
+
 ## Fronteira entre VM e montador
 
 O ponto de entrada da VM é uma sequência de bytes de código de máquina já

@@ -113,10 +113,11 @@ não confirma escritas em memória ou registradores.
 - [x] Nenhuma operação modifica diretamente `Memory` ou `RegisterFile`.
 - [x] Efeitos de byte e palavra são diferenciados.
 - [x] `docs/execution-data.md` contém a matriz fonte/destino/largura.
-- [ ] CI verde e integração revisada pelo responsável do pacote 4.
+- [x] CI verde e integração revisada pelo responsável do pacote 4.
 
 ## Decisões e estado final
 
+- Implementação concluída e integrada sobre os contratos do pacote 1.
 - Endereçamento simples e indireto chegam igualmente como `MemoryAddress`; a
   distinção e a indireção pertencem aos testes do `AddressResolver`.
 - `CLEAR` e o destino de `RMO` rejeitam `SW`, preservando o Condition Code.

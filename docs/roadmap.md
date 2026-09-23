@@ -84,8 +84,8 @@ operações ao dispatcher e ao ciclo atômico da máquina, conforme o pacote 4.
 
 ## Trabalho restante
 
-O trabalho restante foi dividido em seis pacotes. A descrição completa de cada
-um está no [índice dos pacotes de trabalho](work/README.md).
+O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
+completa estão no [índice dos pacotes de trabalho](work/README.md).
 
 ### Controle de fluxo
 

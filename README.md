@@ -30,6 +30,8 @@ fazem parte desta etapa.
 
 ## Documentação
 
+- [Enunciado original](PRIMEIRO_TRABALHO_SIC_XE.pdf): especificação fornecida
+  para o trabalho.
 - [Arquitetura](docs/architecture.md): módulos, responsabilidades e fluxo de
   uma instrução.
 - [Decoder](docs/decoder.md): formatos reconhecidos, validações, resultados e
