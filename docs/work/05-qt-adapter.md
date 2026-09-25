@@ -98,12 +98,12 @@ estratégias simultâneas.
 - [x] Execução contínua não congela a UI.
 - [x] Núcleo não inclui headers nem bibliotecas Qt.
 - [x] `docs/program-input.md` descreve formatos e exemplos.
-- [ ] CI verde e revisão externa (interface pronta para o pacote 6).
+- [x] CI verde e revisão externa (interface pronta para o pacote 6).
 
 ## Entrega e decisões
 
 Implementado com `QTimer`, comandos enfileirados e snapshots imutáveis.
 Contratos, alternativas e limitações estão centralizados em
 [program-input.md](../program-input.md). Nenhuma interface do núcleo foi alterada
-e nenhuma divergência adicional com o enunciado foi encontrada. Widgets e
-aceitação visual permanecem no pacote 6; CI e revisão externa precedem o merge.
+e nenhuma divergência adicional com o enunciado foi encontrada. CI e revisão
+externa foram concluídas; widgets e aceitação visual permanecem no pacote 6.
