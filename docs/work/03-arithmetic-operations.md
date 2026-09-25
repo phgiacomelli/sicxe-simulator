@@ -118,5 +118,6 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
   registrador produz `DivisionByZero` sem efeito parcial.
 - Nibbles de shift fora do intervalo codificado `0..15` são rejeitados como
   `InvalidOperand`.
-- O dispatcher, o commit dos efeitos e as operações de controle de fluxo
-  permanecem pendentes e pertencem ao pacote 4.
+- O dispatcher, o commit dos efeitos e as operações de controle de fluxo foram
+  integrados pelo pacote 4, conforme documentado no
+  [ciclo da máquina](../machine-cycle.md).

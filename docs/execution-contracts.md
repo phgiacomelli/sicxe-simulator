@@ -42,13 +42,10 @@ isso inclui o `nextPc`, o identificador de registrador e o intervalo completo
 de qualquer escrita de memória. Somente depois dessas validações ela pode
 confirmar registrador, memória, Condition Code e PC.
 
-Existe uma decisão que o pacote 4 deve fechar antes de implementar o commit:
-os operandos tipados aceitam `PC` e `SW`, enquanto `ExecutionEffect` também
-possui campos próprios para próximo PC e Condition Code. O dispatcher e a
-`Machine` devem definir e testar uma única representação para escritas de
-formato 2 nesses registradores, sem depender da ordem acidental das atribuições.
-Até essa decisão, não trate `registerWrite`, `nextPc` e `conditionCode` como
-escritas independentes quando apontarem para o mesmo estado arquitetural.
+O `Executor` normaliza escritas de formato 2 em `PC` para o campo `nextPc` antes
+de devolver o efeito. Escritas em `SW` não podem coexistir com uma atualização
+de Condition Code. Motivos, alternativas e consequências dessas decisões estão
+registrados somente no [ciclo da máquina](machine-cycle.md#decisões-do-ciclo).
 
 ## Falhas
 

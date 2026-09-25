@@ -131,16 +131,14 @@ registradores e PC. As regras, tipos e falhas estão detalhados em
 
 ### `Executor`
 
-Parcialmente implementado. O módulo `src/core/execution/DataOperations.*`
-contém as 18 operações de transferência de dados e lógica, e o módulo
-`src/core/execution/ArithmeticOperations.*` contém as 14 operações aritméticas,
-relacionais, de shift e indexação. Essas operações recebem uma instrução
-decodificada e um operando já resolvido e produzem um `ExecutionEffect` ou um
-`ExecuteFault` sem modificar diretamente a máquina.
-
-As operações de controle de fluxo ainda serão implementadas. O dispatcher em
-`Executor.*`, que selecionará a família correta, também permanece pendente para
-o pacote 4.
+Implementado em `src/core/Executor.*`. O dispatcher seleciona a família pelo
+opcode e delega às três famílias de operações: `src/core/execution/DataOperations.*`
+(18 operações de transferência de dados e lógica),
+`src/core/execution/ArithmeticOperations.*` (14 operações aritméticas,
+relacionais, de shift e indexação) e `src/core/execution/ControlOperations.*`
+(`J`, `JEQ`, `JGT`, `JLT`, `JSUB` e `RSUB`). Essas operações recebem uma
+instrução decodificada e um operando já resolvido e produzem um `ExecutionEffect`
+ou um `ExecuteFault` sem modificar diretamente a máquina.
 
 A lógica de endereçamento não deverá ser repetida dentro das operações.
 Os contratos compartilhados estão definidos em `src/core/ExecutionEffect.hpp` e
@@ -148,10 +146,10 @@ documentados em [execution-contracts.md](execution-contracts.md).
 
 ### `Machine`
 
-Possui apenas a construção inicial da memória. `reset()` e `step()` ainda estão
-vazios.
-
-Ao ser concluída, a máquina coordenará o ciclo:
+Implementada em `src/core/Machine.*`, com os tipos de falha em
+`src/core/MachineFault.hpp` e a validação de efeitos em
+`src/core/EffectValidation.*`. Oferece `loadProgram`, `reset`, `step` e
+`snapshot`, e coordena o ciclo:
 
 1. obter o PC atual;
 2. decodificar a instrução;
@@ -161,8 +159,10 @@ Ao ser concluída, a máquina coordenará o ciclo:
 6. validar todas as alterações;
 7. confirmar memória, registradores e PC.
 
-A confirmação deve ocorrer somente depois que a instrução inteira tiver sido
-validada. Assim, uma falha não deixa alterações parciais no estado.
+A confirmação ocorre somente depois que a instrução inteira tiver sido
+validada. Assim, uma falha não deixa alterações parciais no estado. As etapas,
+as falhas, a atomicidade e as decisões do ciclo estão em
+[machine-cycle.md](machine-cycle.md).
 
 ### Interface Qt
 

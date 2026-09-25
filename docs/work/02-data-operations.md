@@ -122,5 +122,5 @@ não confirma escritas em memória ou registradores.
   distinção e a indireção pertencem aos testes do `AddressResolver`.
 - `CLEAR` e o destino de `RMO` rejeitam `SW`, preservando o Condition Code.
 - Leituras fora da memória são convertidas em `MemoryAccessOutOfRange`.
-- O dispatcher e o commit dos efeitos permanecem pendentes e pertencem ao
-  pacote 4.
+- O dispatcher e o commit dos efeitos foram integrados pelo pacote 4, conforme
+  documentado no [ciclo da máquina](../machine-cycle.md).
