@@ -2,7 +2,7 @@
 
 ## Ferramentas
 
-Os testes usam GoogleTest e são registrados no CTest pelo CMake.
+Os testes usam GoogleTest e QTest e são registrados no CTest pelo CMake.
 
 A suíte atual cobre `Memory`, `RegisterFile`, `Decoder`, `AddressResolver`, os
 contratos de `ExecutionEffect`, as três famílias de operações, o dispatcher, a
@@ -43,3 +43,10 @@ Para listar os casos sem executá-los:
 ```bash
 ctest --test-dir build -N
 ```
+
+Os testes em `tests/application` cobrem os parsers hexadecimal e binário,
+equivalência das entradas, erros de leitura, limites de carga, preservação da
+sessão, comandos enfileirados, snapshots imutáveis, detalhes das falhas,
+responsividade e pausa entre instruções. O teste Qt usa `QCoreApplication`,
+sem necessidade de display. O build sem Qt é descrito em
+[program-input.md](program-input.md#build-e-integração).
