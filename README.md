@@ -8,8 +8,9 @@ arquivo de registradores, o decoder de instruções, a resolução de operandos 
 as 18 operações de transferência e lógica e as 14 operações aritméticas já
 possuem implementação. As seis operações de controle de fluxo, o dispatcher e o
 ciclo completo e atômico da máquina (carga, reset, snapshot e passo a passo)
-também estão implementados. A entrada de programas, o adaptador Qt e a
-interface gráfica ainda serão implementados.
+também estão implementados. Ainda serão implementadas as formas externas de
+entrada por texto hexadecimal e arquivo binário bruto, além do adaptador Qt e
+da interface gráfica.
 
 ## Tecnologias
 
