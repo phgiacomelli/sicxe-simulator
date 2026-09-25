@@ -42,14 +42,10 @@ isso inclui o `nextPc`, o identificador de registrador e o intervalo completo
 de qualquer escrita de memória. Somente depois dessas validações ela pode
 confirmar registrador, memória, Condition Code e PC.
 
-Os operandos tipados aceitam `PC` e `SW`, enquanto `ExecutionEffect` também
-possui campos próprios para próximo PC e Condition Code. O pacote 4 fechou essa
-decisão: uma escrita de registrador em `PC` é uma transferência de controle e
-não pode coexistir com um `nextPc` diferente do PC pós-fetch, e uma escrita em
-`SW` não pode coexistir com uma atualização de Condition Code. Combinações
-conflitantes são rejeitadas antes do commit, de modo que o resultado não
-depende da ordem das atribuições. As regras completas estão em
-[ciclo da máquina](machine-cycle.md#decisões-do-ciclo).
+O `Executor` normaliza escritas de formato 2 em `PC` para o campo `nextPc` antes
+de devolver o efeito. Escritas em `SW` não podem coexistir com uma atualização
+de Condition Code. Motivos, alternativas e consequências dessas decisões estão
+registrados somente no [ciclo da máquina](machine-cycle.md#decisões-do-ciclo).
 
 ## Falhas
 

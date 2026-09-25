@@ -55,11 +55,14 @@ StepResult Machine::step() {
     const auto& instruction = std::get<DecodedInstruction>(decoded);
 
     // 3. PC pós-fetch em tipo largo, sem wrap.
-    const auto postFetchPc =
-        computePostFetchPc(instruction.instructionAddress, instruction.length);
+    const auto postFetchPc = computePostFetchPc(instruction.instructionAddress, instruction.length);
     if (!postFetchPc) {
         const std::int64_t end = instruction.instructionAddress + instruction.length;
         const CycleFault cycleFault{CycleFaultCode::PostFetchPcOutOfRange, end};
+        return fail(MachineFault{instructionPc, cycleFault});
+    }
+    if (*postFetchPc >= memory_.size()) {
+        const CycleFault cycleFault{CycleFaultCode::NextPcOutOfRange, *postFetchPc};
         return fail(MachineFault{instructionPc, cycleFault});
     }
 
@@ -85,7 +88,7 @@ StepResult Machine::step() {
     const auto& effect = std::get<ExecutionEffect>(executed);
 
     // 6. Validação de todos os destinos do efeito.
-    if (const auto cycleFault = validateEffect(effect, *postFetchPc, memory_)) {
+    if (const auto cycleFault = validateEffect(effect, memory_)) {
         return fail(MachineFault{instructionPc, *cycleFault});
     }
 
@@ -138,15 +141,13 @@ std::uint32_t Machine::commit(const ExecutionEffect& effect) {
         }
     }
 
-    // Uma escrita em PC já está representada por finalPc e não é gravada duas vezes.
-    if (effect.registerWrite && effect.registerWrite->target != RegisterId::PC) {
+    if (effect.registerWrite) {
         registers_.write(effect.registerWrite->target, effect.registerWrite->value);
     }
     if (effect.conditionCode) {
         registers_.setConditionCode(*effect.conditionCode);
     }
 
-    const std::uint32_t nextPc = finalPc(effect);
-    registers_.setPC(nextPc);
-    return nextPc;
+    registers_.setPC(effect.nextPc);
+    return effect.nextPc;
 }

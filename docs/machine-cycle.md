@@ -91,7 +91,7 @@ altera o estado, repetir `step` sem carregar nem resetar produz a mesma falha.
 | --- | --- | --- | --- |
 | 1 | Capturar o PC da instrução | `Machine` | — |
 | 2 | Decodificar, sem alterar estado | `Decoder` | `DecodeFault` |
-| 3 | Calcular o PC pós-fetch em tipo largo | `computePostFetchPc` | `CycleFault` |
+| 3 | Calcular e validar o PC pós-fetch | `computePostFetchPc` e `Machine` | `CycleFault` |
 | 4 | Resolver o operando | `AddressResolver` | `ResolveFault` |
 | 5 | Executar e produzir um efeito | `Executor` | `ExecuteFault` |
 | 6 | Validar todos os destinos do efeito | `validateEffect` | `CycleFault` |
@@ -111,9 +111,11 @@ desconhecido.
 A `Machine` chama `computePostFetchPc(instructionAddress, length)` uma única
 vez. A regra não é reimplementada em nenhum outro módulo: o resolver e o
 executor recebem o valor pronto. O cálculo é feito em tipo largo e não faz wrap;
-se ultrapassar 24 bits, o ciclo falha com `PostFetchPcOutOfRange`. Com a
-memória padrão de 1 MiB isso não ocorre, porque o decoder já falha antes; o
-caso é alcançável apenas em memórias maiores que 16 MiB.
+se ultrapassar 24 bits, o ciclo falha com `PostFetchPcOutOfRange`. Em seguida, a
+`Machine` exige que o resultado aponte para um byte existente da memória; caso
+contrário, falha com `NextPcOutOfRange` antes de resolver ou executar a
+instrução. Com a memória padrão de 1 MiB, uma instrução que termina exatamente
+no fim da memória é decodificável, mas não executável.
 
 Avanço por formato: SIC e formato 3 avançam 3 bytes, formato 2 avança 2 bytes e
 formato 4 avança 4 bytes.
@@ -149,21 +151,20 @@ primeira falha, na ordem:
 | --- | --- | --- |
 | 1 | identificador do registrador escrito é um `RegisterId` conhecido | `InvalidRegisterWrite` |
 | 2 | Condition Code é `Less`, `Equal` ou `Greater` | `InvalidConditionCode` |
-| 3 | não há escrita em `PC` com `nextPc` diferente do PC pós-fetch, nem escrita em `SW` junto com atualização de CC | `ConflictingEffect` |
+| 3 | não resta escrita não normalizada em `PC`, nem escrita em `SW` junto com atualização de CC | `ConflictingEffect` |
 | 4 | a escrita de memória cabe inteira (1 byte, ou 3 bytes para palavra) | `MemoryWriteOutOfRange` |
 | 5 | `nextPc` é um PC válido | `NextPcOutOfRange` |
-| 6 | o PC que o efeito deixa (ver [escrita em PC](#decisões-do-ciclo)) é um PC válido | `NextPcOutOfRange` |
 
 Um PC é válido quando aponta para um byte existente da memória e cabe em 24
-bits. Os passos 5 e 6 são independentes de propósito: uma escrita em `PC` não
-pode esconder um `nextPc` (e, portanto, um PC pós-fetch) fora da memória.
+bits. Escritas em `PC` já chegam a essa etapa normalizadas em `nextPc` pelo
+dispatcher.
 
 ### Commit
 
-Só ocorre depois de todas as etapas anteriores. A ordem é memória, registrador
-(exceto `PC`), Condition Code e por fim `PC`. Como o efeito foi validado e os
-conflitos foram excluídos, essas escritas não dependem de ordem e não podem
-falhar.
+Só ocorre depois de todas as etapas anteriores. A ordem é memória, registrador,
+Condition Code e por fim `PC`, sempre a partir de `nextPc`. Como o efeito foi
+validado e os conflitos foram excluídos, essas escritas não dependem de ordem e
+não podem falhar.
 
 ## Atomicidade
 
@@ -228,23 +229,23 @@ Detalhes:
 
 Algumas operações de formato 2 aceitam `PC` como registrador de destino
 (`CLEAR`, `RMO`, `ADDR`, `SUBR`, `MULR`, `DIVR`, `SHIFTL`, `SHIFTR`). O efeito
-delas carrega o `nextPc` sequencial e uma `registerWrite` com alvo `PC`.
+calculado pela família inicialmente carrega o `nextPc` sequencial e uma
+`registerWrite` com alvo `PC`.
 
 Decisão: uma escrita de registrador em `PC` é uma transferência de controle. O
-PC final é o valor escrito; a escrita não é aplicada duas vezes e não depende da
-ordem do commit. Para haver uma única representação, o efeito só é aceito se o
-`nextPc` for o PC pós-fetch; um efeito com escrita em `PC` e outro `nextPc` é
-ambíguo e falha com `ConflictingEffect`. Tanto o `nextPc` quanto o PC final são
-validados.
+dispatcher move seu valor para `nextPc` e remove a `registerWrite` antes de
+devolver o efeito. Assim, o `ExecutionEffect` entregue à `Machine` possui uma
+única representação do PC final. Uma escrita em `PC` que ainda alcance a
+validação é um efeito malformado e falha com `ConflictingEffect`.
 
 Alternativa considerada: rejeitar toda escrita em `PC` por formato 2. Foi
 descartada porque o decoder, o resolver e os pacotes 2 e 3 já aceitam `PC` como
 destino, e recusá-lo mudaria o comportamento daquelas instruções.
 
-Consequência da regra de PC válido: uma instrução que termina exatamente no
-último byte da memória e segue em sequência falha com `NextPcOutOfRange` (o PC
-sequencial não apontaria para nenhum byte), enquanto um salto a partir dali para
-um endereço existente é aceito.
+Consequência da validação antecipada do PC pós-fetch: qualquer instrução que
+termine exatamente no fim da memória falha com `NextPcOutOfRange` antes da
+resolução e da execução, inclusive quando seria um salto para um endereço
+existente.
 
 ### `PC` e `SW` em instruções de formato 2
 
@@ -252,7 +253,7 @@ um endereço existente é aceito.
   PC-relative e como em `JSUB`. Por isso `RMO PC,L` grava em `L` o endereço da
   instrução seguinte. A `Machine` passa ao resolver e ao executor uma cópia do
   `RegisterFile` com esse PC; o registrador real só muda no commit.
-- Escrita em `PC`: descrita acima.
+- Escrita em `PC`: o dispatcher a normaliza para `nextPc`, como descrito acima.
 - Escrita em `SW`: `CLEAR` e o destino de `RMO`, `ADDR`, `SUBR`, `MULR`, `DIVR`,
   além do registrador de `SHIFTL`/`SHIFTR`, rejeitam `SW` com `InvalidOperand`,
   o que preserva o Condition Code. Se algum efeito futuro escrever `SW` como

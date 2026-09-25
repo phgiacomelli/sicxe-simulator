@@ -12,7 +12,7 @@ protected:
     std::uint32_t postFetchPc = 0x1003;
 
     std::optional<CycleFault> validate(const ExecutionEffect& effect) const {
-        return validateEffect(effect, postFetchPc, memory);
+        return validateEffect(effect, memory);
     }
 
     void expectFault(const ExecutionEffect& effect,
@@ -51,7 +51,7 @@ TEST_F(EffectValidationTest, RejectsNextPcBeyondArchitecturalWidthEvenInLargerMe
     const Memory largeMemory{0x1000010};
     const ExecutionEffect effect{0x1000000};
 
-    const auto fault = validateEffect(effect, postFetchPc, largeMemory);
+    const auto fault = validateEffect(effect, largeMemory);
 
     ASSERT_TRUE(fault.has_value());
     EXPECT_EQ(fault->code, CycleFaultCode::NextPcOutOfRange);
@@ -91,40 +91,9 @@ TEST_F(EffectValidationTest, RejectsMemoryWriteWithAddressNearUnsignedLimit) {
     expectFault(effect, CycleFaultCode::MemoryWriteOutOfRange, 0xFFFFFFFF);
 }
 
-TEST_F(EffectValidationTest, RegisterWriteToPcIsTheDestinationOfTheTransfer) {
+TEST_F(EffectValidationTest, RejectsUnnormalizedRegisterWriteToPc) {
     ExecutionEffect effect{postFetchPc};
     effect.registerWrite = RegisterWrite{RegisterId::PC, 0x002000};
-
-    EXPECT_FALSE(validate(effect).has_value());
-    EXPECT_EQ(finalPc(effect), 0x002000U);
-}
-
-TEST_F(EffectValidationTest, FinalPcIsNextPcWhenNoRegisterWriteTargetsPc) {
-    ExecutionEffect effect{0x003000};
-    EXPECT_EQ(finalPc(effect), 0x003000U);
-
-    effect.registerWrite = RegisterWrite{RegisterId::A, 0x000005};
-    EXPECT_EQ(finalPc(effect), 0x003000U);
-}
-
-TEST_F(EffectValidationTest, RejectsRegisterWriteToPcOutsideMemory) {
-    ExecutionEffect effect{postFetchPc};
-    effect.registerWrite = RegisterWrite{RegisterId::PC, 0x200000};
-
-    expectFault(effect, CycleFaultCode::NextPcOutOfRange, 0x200000);
-}
-
-TEST_F(EffectValidationTest, RegisterWriteToPcDoesNotHideNextPcOutsideMemory) {
-    postFetchPc = MemorySize;
-    ExecutionEffect effect{postFetchPc};
-    effect.registerWrite = RegisterWrite{RegisterId::PC, 0};
-
-    expectFault(effect, CycleFaultCode::NextPcOutOfRange, MemorySize);
-}
-
-TEST_F(EffectValidationTest, RejectsRegisterWriteToPcCombinedWithAnotherNextPc) {
-    ExecutionEffect effect{0x002000};
-    effect.registerWrite = RegisterWrite{RegisterId::PC, 0x003000};
 
     expectFault(effect, CycleFaultCode::ConflictingEffect);
 }

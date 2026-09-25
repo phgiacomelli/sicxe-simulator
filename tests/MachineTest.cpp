@@ -101,8 +101,7 @@ Program preambleProgram() {
     return program;
 }
 
-template <typename Cause>
-Cause causeOf(const MachineFault& fault) {
+template <typename Cause> Cause causeOf(const MachineFault& fault) {
     return std::get<Cause>(fault.cause);
 }
 
@@ -690,17 +689,18 @@ TEST_F(MachineTest, JSUBFollowedByRSUBReturnsToTheInstructionAfterTheCall) {
     EXPECT_EQ(registers().pc, 0x09U);
 }
 
-TEST_F(MachineTest, JumpAtTheLastBytesOfMemoryIsValidBecauseTheTargetIsInsideMemory) {
+TEST_F(MachineTest, PostFetchPcAtMemoryEndFailsBeforeAJumpCanExecute) {
     Program program;
     program.at(0x00, format4(Opcode::J, Simple, LastAddress - 2));
     program.at(LastAddress - 2, format3(Opcode::J, Simple, 0x10));
     load(program.bytes());
     stepOk();
 
-    const StepSuccess success = stepOk();
+    const MachineFault fault = stepAtomicFault();
 
-    EXPECT_EQ(success.nextPc, 0x10U);
-    EXPECT_EQ(registers().pc, 0x10U);
+    EXPECT_EQ(causeOf<CycleFault>(fault).code, CycleFaultCode::NextPcOutOfRange);
+    EXPECT_EQ(causeOf<CycleFault>(fault).offendingValue, MemorySize);
+    EXPECT_EQ(registers().pc, LastAddress - 2);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -932,8 +932,7 @@ TEST_F(MachineTest, SequentialPcBeyondTheLastByteFailsWithoutChangingState) {
     EXPECT_EQ(causeOf<CycleFault>(fault).offendingValue, MemorySize);
 }
 
-TEST_F(MachineTest, PostFetchPcOutsideMemoryIsRejectedEvenWhenInstructionWritesPc) {
-    // Regressão: uma escrita em PC (CLEAR PC grava 0) não pode esconder um PC pós-fetch inválido.
+TEST_F(MachineTest, PostFetchPcOutsideMemoryIsRejectedBeforeExecution) {
     machine = Machine{4};
     load(format2(Opcode::CLEAR, RegisterId::PC), 2, 2);
     const MachineSnapshot before = machine.snapshot();
@@ -989,6 +988,7 @@ TEST_F(MachineTest, RmoIntoPcIsATransferToTheCopiedValue) {
     EXPECT_EQ(registers().pc, 0x40U);
     EXPECT_EQ(registers().a, 0x40U);
     EXPECT_EQ(success.nextPc, 0x40U);
+    EXPECT_FALSE(success.effect.registerWrite.has_value());
 }
 
 TEST_F(MachineTest, ClearPcTransfersToAddressZero) {
@@ -998,6 +998,7 @@ TEST_F(MachineTest, ClearPcTransfersToAddressZero) {
 
     EXPECT_EQ(success.nextPc, 0U);
     EXPECT_EQ(registers().pc, 0U);
+    EXPECT_FALSE(success.effect.registerWrite.has_value());
 }
 
 TEST_F(MachineTest, FormatTwoInstructionsReadTheProgramCounterAfterFetch) {
