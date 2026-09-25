@@ -4,6 +4,24 @@
 #include "execution/ControlOperations.hpp"
 #include "execution/DataOperations.hpp"
 
+#include <variant>
+
+namespace {
+
+ExecuteResult normalizeProgramCounterWrite(ExecuteResult result) {
+    auto* effect = std::get_if<ExecutionEffect>(&result);
+    if (effect == nullptr || !effect->registerWrite ||
+        effect->registerWrite->target != RegisterId::PC) {
+        return result;
+    }
+
+    effect->nextPc = effect->registerWrite->value;
+    effect->registerWrite.reset();
+    return result;
+}
+
+} // namespace
+
 ExecuteResult Executor::execute(const DecodedInstruction& instruction,
                                 const ResolvedOperand& operand,
                                 std::uint32_t postFetchPc,
@@ -16,7 +34,8 @@ ExecuteResult Executor::execute(const DecodedInstruction& instruction,
         case Opcode::JLT:
         case Opcode::JSUB:
         case Opcode::RSUB:
-            return executeControlOperation(instruction, operand, postFetchPc, memory, registers);
+            return normalizeProgramCounterWrite(
+                executeControlOperation(instruction, operand, postFetchPc, memory, registers));
 
         case Opcode::CLEAR:
         case Opcode::RMO:
@@ -36,7 +55,8 @@ ExecuteResult Executor::execute(const DecodedInstruction& instruction,
         case Opcode::STCH:
         case Opcode::AND:
         case Opcode::OR:
-            return executeDataOperation(instruction, operand, postFetchPc, memory, registers);
+            return normalizeProgramCounterWrite(
+                executeDataOperation(instruction, operand, postFetchPc, memory, registers));
 
         case Opcode::ADD:
         case Opcode::ADDR:
@@ -52,7 +72,8 @@ ExecuteResult Executor::execute(const DecodedInstruction& instruction,
         case Opcode::SHIFTR:
         case Opcode::TIX:
         case Opcode::TIXR:
-            return executeArithmeticOperation(instruction, operand, postFetchPc, memory, registers);
+            return normalizeProgramCounterWrite(
+                executeArithmeticOperation(instruction, operand, postFetchPc, memory, registers));
     }
 
     return ExecuteFault{ExecuteFaultCode::UnsupportedOpcode, instruction.instructionAddress};

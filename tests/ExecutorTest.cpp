@@ -186,6 +186,18 @@ TEST_F(ExecutorTest, DataAndArithmeticOperationsKeepSequentialPc) {
     EXPECT_EQ(add.nextPc, postFetchPc);
 }
 
+TEST_F(ExecutorTest, NormalizesFormat2PcDestinationsIntoNextPc) {
+    const auto moveToPc =
+        effectOf(Opcode::RMO, RegisterPairOperands{RegisterId::A, RegisterId::PC});
+    const auto addToPc =
+        effectOf(Opcode::ADDR, RegisterPairOperands{RegisterId::S, RegisterId::PC});
+
+    EXPECT_EQ(moveToPc.nextPc, 4U);
+    EXPECT_FALSE(moveToPc.registerWrite.has_value());
+    EXPECT_EQ(addToPc.nextPc, 2U);
+    EXPECT_FALSE(addToPc.registerWrite.has_value());
+}
+
 TEST_F(ExecutorTest, PropagatesFamilyFaults) {
     const auto div = instruction(Opcode::DIV);
     const auto jump = instruction(Opcode::J);
