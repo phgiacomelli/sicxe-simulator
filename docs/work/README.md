@@ -1,8 +1,8 @@
 # Pacotes de trabalho
 
-Esta pasta é a fonte principal para a divisão e o estado da implementação. Cada
-integrante deve ler [o guia de contribuição](../../CONTRIBUTING.md), a
-[arquitetura](../architecture.md) e somente então o documento do seu pacote.
+Esta pasta detalha a divisão, o ownership e os critérios de conclusão de cada
+pacote. Cada integrante deve ler [o guia de contribuição](../../CONTRIBUTING.md),
+a [arquitetura](../architecture.md) e somente então o documento do seu pacote.
 
 | Pacote | Responsabilidade | Dependência principal | Estado |
 | --- | --- | --- | --- |
@@ -13,9 +13,9 @@ integrante deve ler [o guia de contribuição](../../CONTRIBUTING.md), a
 | [5](05-qt-adapter.md) | Entrada de programas e adaptação Qt | Interface pública do pacote 4 | Liberado pelo pacote 4 |
 | [6](06-interface-acceptance.md) | Interface gráfica e aceitação | Pacotes 4 e 5 | Aguardando pacote 5 |
 
-O [roadmap](../roadmap.md) é a fonte principal para o estado global. Esta tabela
-serve como ponto de entrada para cada integrante e deve ser atualizada no mesmo
-PR que conclui um pacote.
+O [roadmap](../roadmap.md) é a fonte principal para o estado global. A coluna
+`Estado` desta tabela apenas resume essa informação como ponto de entrada para
+cada integrante e deve ser atualizada no mesmo PR que altera o roadmap.
 
 ## Regra de ownership
 
