@@ -29,6 +29,8 @@ if(CLANG_FORMAT)
     )
 endif()
 
+option(SICXE_BUILD_QT "Build Qt application and controller" ON)
+
 add_library(SICXECore STATIC
     src/core/Machine.cpp
     src/core/Machine.hpp
@@ -70,24 +72,25 @@ target_include_directories(SICXECore
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
-
-qt_standard_project_setup()
-
-qt_add_executable(SICXESimulator
-    src/main.cpp
-    src/ui/MainWindow.cpp
-    src/ui/MainWindow.hpp
+add_library(sicxe_input
+    src/application/HexParser.cpp
+    src/application/RawBinaryReader.cpp
 )
+target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(SICXESimulator
-    PRIVATE
-        SICXECore
-        Qt6::Widgets
-)
+if(SICXE_BUILD_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+    qt_standard_project_setup()
+    add_library(sicxe_application
+        src/application/MachineController.cpp
+        src/application/MachineController.hpp
+    )
+    target_link_libraries(sicxe_application PUBLIC SICXECore sicxe_input Qt6::Core)
+    qt_add_executable(SICXESimulator src/main.cpp src/ui/MainWindow.cpp src/ui/MainWindow.hpp)
+    target_link_libraries(SICXESimulator PRIVATE sicxe_application Qt6::Widgets)
+endif()
 
 include(CTest)
-
 if(BUILD_TESTING)
     find_package(GTest CONFIG QUIET)
 
@@ -115,15 +118,17 @@ if(BUILD_TESTING)
         tests/MachineTest.cpp
         tests/MemoryTest.cpp
         tests/RegisterFileTest.cpp
+        tests/application/HexParserTest.cpp
+        tests/application/RawBinaryReaderTest.cpp
     )
-
-    target_link_libraries(SICXESimulatorTests
-        PRIVATE
-            GTest::gtest_main
-            SICXECore
-    )
-
+    target_link_libraries(SICXESimulatorTests PRIVATE SICXECore sicxe_input GTest::gtest_main)
     include(GoogleTest)
-
     gtest_discover_tests(SICXESimulatorTests)
+
+    if(SICXE_BUILD_QT)
+        find_package(Qt6 REQUIRED COMPONENTS Test)
+        add_executable(MachineControllerTests tests/application/MachineControllerTest.cpp)
+        target_link_libraries(MachineControllerTests PRIVATE sicxe_application Qt6::Test)
+        add_test(NAME MachineControllerTests COMMAND MachineControllerTests)
+    endif()
 endif()

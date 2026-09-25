@@ -8,9 +8,9 @@ arquivo de registradores, o decoder de instruções, a resolução de operandos 
 as 18 operações de transferência e lógica e as 14 operações aritméticas já
 possuem implementação. As seis operações de controle de fluxo, o dispatcher e o
 ciclo completo e atômico da máquina (carga, reset, snapshot e passo a passo)
-também estão implementados. Ainda serão implementadas as formas externas de
-entrada por texto hexadecimal e arquivo binário bruto, além do adaptador Qt e
-da interface gráfica.
+também estão implementados. A entrada por texto hexadecimal e arquivo binário
+bruto e o adaptador Qt com execução contínua e pausa também estão implementados. A interface gráfica
+completa será entregue no pacote 6.
 
 ## Tecnologias
 
@@ -50,6 +50,8 @@ fazem parte desta etapa.
 - [Ciclo da máquina](docs/machine-cycle.md): pipeline, validação e commit de
   efeitos, atomicidade, falhas, controle de fluxo, carga, reset e snapshot do
   pacote 4.
+- [Entrada de programas](docs/program-input.md): formatos, falhas, comandos e
+  sinais do adaptador Qt do pacote 5.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
   implementações.
