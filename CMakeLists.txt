@@ -29,124 +29,72 @@ if(CLANG_FORMAT)
     )
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+option(SICXE_BUILD_QT "Build Qt application and controller" ON)
 
-qt_standard_project_setup()
-
-qt_add_executable(SICXESimulator
-    src/main.cpp
-
-    src/ui/MainWindow.cpp
-    src/ui/MainWindow.hpp
-
-    src/core/Machine.cpp
-    src/core/Machine.hpp
-
+add_library(sicxe_core
     src/core/Memory.cpp
-    src/core/Memory.hpp
-
     src/core/RegisterFile.cpp
-    src/core/RegisterFile.hpp
-    src/core/Architecture.hpp
-
     src/core/Decoder.cpp
-    src/core/Decoder.hpp
-    src/core/Instruction.hpp
-
     src/core/AddressResolver.cpp
-    src/core/AddressResolver.hpp
-    src/core/Operand.hpp
-    src/core/ExecutionEffect.hpp
-
     src/core/Executor.cpp
-    src/core/Executor.hpp
-
     src/core/EffectValidation.cpp
-    src/core/EffectValidation.hpp
-    src/core/MachineFault.hpp
-
-    src/core/execution/DataOperations.cpp
-    src/core/execution/DataOperations.hpp
-    src/core/execution/ArithmeticOperations.cpp
-    src/core/execution/ArithmeticOperations.hpp
-    src/core/execution/ControlOperations.cpp
-    src/core/execution/ControlOperations.hpp
-    src/core/execution/OperationSupport.hpp
-)
-
-target_include_directories(SICXESimulator
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
-target_link_libraries(SICXESimulator
-    PRIVATE
-        Qt6::Widgets
-)
-
-
-include(FetchContent)
-
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.17.0
-)
-
-FetchContent_MakeAvailable(googletest)
-
-enable_testing()
-
-add_executable(SICXESimulatorTests
-    tests/DataOperationsTest.cpp
-    tests/ArithmeticOperationsTest.cpp
-    tests/ControlOperationsTest.cpp
-    tests/AddressResolverTest.cpp
-    tests/DecoderTest.cpp
-    tests/EffectValidationTest.cpp
-    tests/ExecutionEffectTest.cpp
-    tests/ExecutorTest.cpp
-    tests/MachineTest.cpp
-    tests/MemoryTest.cpp
-    tests/RegisterFileTest.cpp
-    src/core/execution/DataOperations.cpp
-    src/core/execution/DataOperations.hpp
-    src/core/execution/ArithmeticOperations.cpp
-    src/core/execution/ArithmeticOperations.hpp
-    src/core/execution/ControlOperations.cpp
-    src/core/execution/ControlOperations.hpp
-    src/core/execution/OperationSupport.hpp
-    src/core/AddressResolver.cpp
-    src/core/AddressResolver.hpp
-    src/core/Architecture.hpp
-    src/core/Decoder.cpp
-    src/core/Decoder.hpp
-    src/core/EffectValidation.cpp
-    src/core/EffectValidation.hpp
-    src/core/Executor.cpp
-    src/core/Executor.hpp
-    src/core/Instruction.hpp
     src/core/Machine.cpp
-    src/core/Machine.hpp
-    src/core/MachineFault.hpp
-    src/core/Memory.cpp
-    src/core/Memory.hpp
-    src/core/Operand.hpp
-    src/core/ExecutionEffect.hpp
-    src/core/RegisterFile.cpp
-    src/core/RegisterFile.hpp
+    src/core/execution/DataOperations.cpp
+    src/core/execution/ArithmeticOperations.cpp
+    src/core/execution/ControlOperations.cpp
 )
+target_include_directories(sicxe_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_include_directories(SICXESimulatorTests
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+add_library(sicxe_input
+    src/application/HexParser.cpp
+    src/application/RawBinaryReader.cpp
 )
+target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(SICXESimulatorTests
-    PRIVATE
-        GTest::gtest_main
-)
+if(SICXE_BUILD_QT)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+    qt_standard_project_setup()
+    add_library(sicxe_application
+        src/application/MachineController.cpp
+        src/application/MachineController.hpp
+    )
+    target_link_libraries(sicxe_application PUBLIC sicxe_core sicxe_input Qt6::Core)
+    qt_add_executable(SICXESimulator src/main.cpp src/ui/MainWindow.cpp src/ui/MainWindow.hpp)
+    target_link_libraries(SICXESimulator PRIVATE sicxe_application Qt6::Widgets)
+endif()
 
-include(GoogleTest)
+include(CTest)
+if(BUILD_TESTING)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.17.0
+    )
+    FetchContent_MakeAvailable(googletest)
+    add_executable(SICXESimulatorTests
+        tests/DataOperationsTest.cpp
+        tests/ArithmeticOperationsTest.cpp
+        tests/ControlOperationsTest.cpp
+        tests/AddressResolverTest.cpp
+        tests/DecoderTest.cpp
+        tests/EffectValidationTest.cpp
+        tests/ExecutionEffectTest.cpp
+        tests/ExecutorTest.cpp
+        tests/MachineTest.cpp
+        tests/MemoryTest.cpp
+        tests/RegisterFileTest.cpp
+        tests/application/HexParserTest.cpp
+        tests/application/RawBinaryReaderTest.cpp
+    )
+    target_link_libraries(SICXESimulatorTests PRIVATE sicxe_core sicxe_input GTest::gtest_main)
+    include(GoogleTest)
+    gtest_discover_tests(SICXESimulatorTests)
 
-gtest_discover_tests(SICXESimulatorTests)
+    if(SICXE_BUILD_QT)
+        find_package(Qt6 REQUIRED COMPONENTS Test)
+        add_executable(MachineControllerTests tests/application/MachineControllerTest.cpp)
+        target_link_libraries(MachineControllerTests PRIVATE sicxe_application Qt6::Test)
+        add_test(NAME MachineControllerTests COMMAND MachineControllerTests)
+    endif()
+endif()
