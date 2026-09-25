@@ -103,7 +103,7 @@ se refere à execução contínua, não a arquivos arbitrariamente grandes.
 
 ## Build e integração
 
-`sicxe_core` contém somente C++20; `sicxe_input` também não depende de Qt.
+`SICXECore` contém somente C++20; `sicxe_input` também não depende de Qt.
 `sicxe_application` liga esses módulos a `Qt6::Core`; widgets pertencem à aplicação
 visual. Para verificar o núcleo e parsers sem localizar ou vincular Qt:
 
