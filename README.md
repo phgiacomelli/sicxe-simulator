@@ -6,8 +6,11 @@ de Programação de Sistemas.
 O projeto está sendo construído em etapas. No estado atual, a memória, o
 arquivo de registradores, o decoder de instruções, a resolução de operandos e
 as 18 operações de transferência e lógica e as 14 operações aritméticas já
-possuem implementação. As operações de controle de fluxo, o dispatcher e o
-ciclo completo da máquina ainda serão implementados.
+possuem implementação. As seis operações de controle de fluxo, o dispatcher e o
+ciclo completo e atômico da máquina (carga, reset, snapshot e passo a passo)
+também estão implementados. Ainda serão implementadas as formas externas de
+entrada por texto hexadecimal e arquivo binário bruto, além do adaptador Qt e
+da interface gráfica.
 
 ## Tecnologias
 
@@ -44,6 +47,9 @@ fazem parte desta etapa.
   efeitos e falhas das operações do pacote 2.
 - [Aritmética](docs/execution-arithmetic.md): semântica signed de 24 bits,
   comparações, shifts e indexação do pacote 3.
+- [Ciclo da máquina](docs/machine-cycle.md): pipeline, validação e commit de
+  efeitos, atomicidade, falhas, controle de fluxo, carga, reset e snapshot do
+  pacote 4.
 - [Testes](docs/testing.md): como executar os testes.
 - [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
   implementações.
