@@ -77,7 +77,7 @@ Não fazem parte desta etapa:
 - incremento de `X` e atualização atômica do Condition Code;
 - testes de limites e ausência de mutação antecipada.
 
-### Controle de fluxo e ciclo da máquina — aguarda CI e revisão
+### Controle de fluxo e ciclo da máquina
 
 - `J`, `JEQ`, `JGT`, `JLT`, `JSUB` e `RSUB`;
 - dispatcher das três famílias de operações;
@@ -90,10 +90,18 @@ A execução de cada critério do pacote está em
 [machine-cycle.md](machine-cycle.md) e em
 [docs/work/04-machine-control.md](work/04-machine-control.md).
 
+### Entrada de programas e adaptador Qt
+
+- parsers hexadecimal e binário bruto com falhas estruturadas;
+- controller com comandos enfileirados e snapshots imutáveis;
+- execução contínua e pausa por QTimer;
+- testes de entradas, sessão, sinais e responsividade.
+
+Os contratos e decisões estão em [program-input.md](program-input.md).
+
 ## Próximo incremento
 
-Implementar a entrada de programas e o adaptador Qt sobre a interface pública
-da `Machine`, conforme o pacote 5.
+Implementar a interface gráfica e aceitação ponta a ponta, conforme o pacote 6.
 
 ## Trabalho restante
 
@@ -102,8 +110,8 @@ completa estão no [índice dos pacotes de trabalho](work/README.md).
 
 ### Execução contínua
 
-Execução contínua e pausa entre instruções, a cargo do adaptador do pacote 5. A
-`Machine` expõe apenas o passo atômico.
+Implementadas pelo adaptador do pacote 5; a `Machine` mantém apenas o passo
+atômico. Ver [contrato do controller](program-input.md).
 
 ### Interface gráfica
 
@@ -127,9 +135,9 @@ Execução contínua e pausa entre instruções, a cargo do adaptador do pacote 
 
 1. O pacote 1 estabiliza os tipos arquiteturais e o operando resolvido.
 2. Os pacotes 2 e 3 implementam famílias independentes do executor.
-3. O pacote 4 integra as famílias ao ciclo da máquina (implementado nesta
-   branch; aguarda CI e revisão).
-4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas.
+3. O pacote 4 integra as famílias ao ciclo da máquina (concluído).
+4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas
+   (concluído).
 5. O pacote 6 conclui a interface e a aceitação ponta a ponta.
 
 Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas

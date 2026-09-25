@@ -142,11 +142,11 @@ não pode depender da ordem acidental entre `registerWrite`, `conditionCode` e
 - [x] Carga e reset possuem comportamento documentado e testado.
 - [x] A interface pública necessária ao pacote 5 está estável.
 - [x] `docs/machine-cycle.md` explica pipeline, commit e falhas.
-- [ ] CI verde e testes de integração passam em build limpa.
+- [x] CI verde e testes de integração passam em build limpa.
 
 ### Verificação local
 
 A build limpa e a suíte completa foram executadas localmente com CMake/CTest.
 Resultado: 212/212 testes passaram.
 
-A verificação da CI remota permanece pendente.
+A CI remota e a revisão externa foram concluídas antes do merge do pacote 4.

@@ -164,6 +164,14 @@ validada. Assim, uma falha não deixa alterações parciais no estado. As etapas
 as falhas, a atomicidade e as decisões do ciclo estão em
 [machine-cycle.md](machine-cycle.md).
 
+### Adaptador da aplicação
+
+Implementado em `src/application/`: os parsers C++20 produzem `ProgramInput`,
+e o `MachineController` Qt comanda a interface pública da `Machine`, publicando
+snapshots imutáveis e resultados tipados. A execução contínua usa um único
+`QTimer`, sem dependência de Qt no núcleo. Contratos e decisões estão em
+[program-input.md](program-input.md).
+
 ### Interface Qt
 
 A interface atual contém apenas a janela inicial. Futuramente deverá permitir:
@@ -181,7 +189,7 @@ A interface atual contém apenas a janela inicial. Futuramente deverá permitir:
 As dependências devem seguir esta direção:
 
 ```text
-UI → Machine → Decoder / AddressResolver / Executor → Memory / RegisterFile
+UI → MachineController → Machine → Decoder / AddressResolver / Executor → Memory / RegisterFile
 ```
 
 O núcleo não deve depender de Qt. A interface pode observar e comandar a
