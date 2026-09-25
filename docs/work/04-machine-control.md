@@ -136,10 +136,17 @@ não pode depender da ordem acidental entre `registerWrite`, `conditionCode` e
 
 ## Critério de conclusão
 
-- [ ] As seis instruções de controle possuem testes próprios.
-- [ ] O ciclo completo executa as 38 instruções por meio do dispatcher.
-- [ ] Toda falha observável preserva o estado arquitetural.
-- [ ] Carga e reset possuem comportamento documentado e testado.
-- [ ] A interface pública necessária ao pacote 5 está estável.
-- [ ] `docs/machine-cycle.md` explica pipeline, commit e falhas.
+- [X] As seis instruções de controle possuem testes próprios.
+- [X] O ciclo completo executa as 38 instruções por meio do dispatcher.
+- [X] Toda falha observável preserva o estado arquitetural.
+- [X] Carga e reset possuem comportamento documentado e testado.
+- [X] A interface pública necessária ao pacote 5 está estável.
+- [X] `docs/machine-cycle.md` explica pipeline, commit e falhas.
 - [ ] CI verde e testes de integração passam em build limpa.
+
+### Verificação local
+
+A build limpa e a suíte completa foram executadas localmente com CMake/CTest.
+Resultado: 215/215 testes passaram.
+
+A verificação da CI remota permanece pendente.

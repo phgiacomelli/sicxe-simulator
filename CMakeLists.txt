@@ -61,10 +61,16 @@ qt_add_executable(SICXESimulator
     src/core/Executor.cpp
     src/core/Executor.hpp
 
+    src/core/EffectValidation.cpp
+    src/core/EffectValidation.hpp
+    src/core/MachineFault.hpp
+
     src/core/execution/DataOperations.cpp
     src/core/execution/DataOperations.hpp
     src/core/execution/ArithmeticOperations.cpp
     src/core/execution/ArithmeticOperations.hpp
+    src/core/execution/ControlOperations.cpp
+    src/core/execution/ControlOperations.hpp
     src/core/execution/OperationSupport.hpp
 )
 
@@ -94,22 +100,35 @@ enable_testing()
 add_executable(SICXESimulatorTests
     tests/DataOperationsTest.cpp
     tests/ArithmeticOperationsTest.cpp
+    tests/ControlOperationsTest.cpp
     tests/AddressResolverTest.cpp
     tests/DecoderTest.cpp
+    tests/EffectValidationTest.cpp
     tests/ExecutionEffectTest.cpp
+    tests/ExecutorTest.cpp
+    tests/MachineTest.cpp
     tests/MemoryTest.cpp
     tests/RegisterFileTest.cpp
     src/core/execution/DataOperations.cpp
     src/core/execution/DataOperations.hpp
     src/core/execution/ArithmeticOperations.cpp
     src/core/execution/ArithmeticOperations.hpp
+    src/core/execution/ControlOperations.cpp
+    src/core/execution/ControlOperations.hpp
     src/core/execution/OperationSupport.hpp
     src/core/AddressResolver.cpp
     src/core/AddressResolver.hpp
     src/core/Architecture.hpp
     src/core/Decoder.cpp
     src/core/Decoder.hpp
+    src/core/EffectValidation.cpp
+    src/core/EffectValidation.hpp
+    src/core/Executor.cpp
+    src/core/Executor.hpp
     src/core/Instruction.hpp
+    src/core/Machine.cpp
+    src/core/Machine.hpp
+    src/core/MachineFault.hpp
     src/core/Memory.cpp
     src/core/Memory.hpp
     src/core/Operand.hpp

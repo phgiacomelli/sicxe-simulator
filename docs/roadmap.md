@@ -77,29 +77,33 @@ Não fazem parte desta etapa:
 - incremento de `X` e atualização atômica do Condition Code;
 - testes de limites e ausência de mutação antecipada.
 
+### Controle de fluxo e ciclo da máquina
+
+- `J`, `JEQ`, `JGT`, `JLT`, `JSUB` e `RSUB`;
+- dispatcher das três famílias de operações;
+- ciclo atômico com validação do efeito antes do commit;
+- carga de programa, reset, snapshot e passo a passo;
+- falhas estruturadas sem alterações parciais;
+- testes unitários e de integração.
+
+A execução de cada critério do pacote está em
+[machine-cycle.md](machine-cycle.md) e em
+[docs/work/04-machine-control.md](work/04-machine-control.md).
+
 ## Próximo incremento
 
-Implementar as operações de controle de fluxo e integrar as famílias de
-operações ao dispatcher e ao ciclo atômico da máquina, conforme o pacote 4.
+Implementar a entrada de programas e o adaptador Qt sobre a interface pública
+da `Machine`, conforme o pacote 5.
 
 ## Trabalho restante
 
 O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
 completa estão no [índice dos pacotes de trabalho](work/README.md).
 
-### Controle de fluxo
+### Execução contínua
 
-`J`, `JEQ`, `JGT`, `JLT`, `JSUB` e `RSUB`.
-
-### Ciclo da máquina
-
-- carga do programa;
-- reset completo;
-- fetch, decode, resolve e execute;
-- atualização do PC;
-- execução passo a passo;
-- execução contínua e pausa;
-- tratamento de falhas sem alterações parciais.
+Execução contínua e pausa entre instruções, a cargo do adaptador do pacote 5. A
+`Machine` expõe apenas o passo atômico.
 
 ### Interface gráfica
 
@@ -123,7 +127,7 @@ completa estão no [índice dos pacotes de trabalho](work/README.md).
 
 1. O pacote 1 estabiliza os tipos arquiteturais e o operando resolvido.
 2. Os pacotes 2 e 3 implementam famílias independentes do executor.
-3. O pacote 4 integra as famílias ao ciclo da máquina.
+3. O pacote 4 integra as famílias ao ciclo da máquina (concluído).
 4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas.
 5. O pacote 6 conclui a interface e a aceitação ponta a ponta.
 
