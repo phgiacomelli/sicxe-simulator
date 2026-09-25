@@ -6,6 +6,10 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Format, build and test
@@ -15,11 +19,13 @@ jobs:
     steps:
       - name: Install dependencies
         run: >-
-          dnf install -y
+          dnf install -y --setopt=install_weak_deps=False
           clang-tools-extra
           cmake
           gcc-c++
           git
+          gtest-devel
+          ninja-build
           qt6-qtbase-devel
 
       - name: Check out repository
@@ -36,7 +42,7 @@ jobs:
           clang-format --dry-run --Werror "${format_files[@]}"
 
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build build --parallel
