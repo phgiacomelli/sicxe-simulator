@@ -122,6 +122,11 @@ MachineSnapshot Machine::snapshot() const {
         result.memory.push_back(memory_.readByte(address));
     }
 
+    const auto decoded = decoder_.decode(memory_, result.registers.pc);
+    if (const auto* instruction = std::get_if<DecodedInstruction>(&decoded)) {
+        result.currentInstruction = *instruction;
+    }
+
     result.lastFault = lastFault_;
     return result;
 }
