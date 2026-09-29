@@ -86,8 +86,27 @@ if(SICXE_BUILD_QT)
         src/application/MachineController.hpp
     )
     target_link_libraries(sicxe_application PUBLIC SICXECore sicxe_input Qt6::Core)
-    qt_add_executable(SICXESimulator src/main.cpp src/ui/MainWindow.cpp src/ui/MainWindow.hpp)
-    target_link_libraries(SICXESimulator PRIVATE sicxe_application Qt6::Widgets)
+
+    add_library(sicxe_ui
+        src/ui/MainWindow.cpp
+        src/ui/MainWindow.hpp
+        src/ui/ExecutionPanel.cpp
+        src/ui/ExecutionPanel.hpp
+        src/ui/RegisterPanel.cpp
+        src/ui/RegisterPanel.hpp
+        src/ui/MemoryPanel.cpp
+        src/ui/MemoryPanel.hpp
+        src/ui/FaultPanel.cpp
+        src/ui/FaultPanel.hpp
+        src/ui/InputFaultText.cpp
+        src/ui/InputFaultText.hpp
+        src/ui/ProgramLoadDialog.cpp
+        src/ui/ProgramLoadDialog.hpp
+    )
+    target_link_libraries(sicxe_ui PUBLIC sicxe_application Qt6::Widgets)
+
+    qt_add_executable(SICXESimulator src/main.cpp)
+    target_link_libraries(SICXESimulator PRIVATE sicxe_ui)
 endif()
 
 include(CTest)
@@ -130,5 +149,14 @@ if(BUILD_TESTING)
         add_executable(MachineControllerTests tests/application/MachineControllerTest.cpp)
         target_link_libraries(MachineControllerTests PRIVATE sicxe_application Qt6::Test)
         add_test(NAME MachineControllerTests COMMAND MachineControllerTests)
+
+        add_executable(InterfaceTests tests/ui/InterfaceTest.cpp)
+        target_link_libraries(InterfaceTests PRIVATE sicxe_ui Qt6::Test)
+        add_test(NAME InterfaceTests COMMAND InterfaceTests)
+        set_tests_properties(InterfaceTests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+        add_executable(ProgramAcceptanceTests tests/acceptance/ProgramAcceptanceTest.cpp)
+        target_link_libraries(ProgramAcceptanceTests PRIVATE sicxe_application Qt6::Test)
+        add_test(NAME ProgramAcceptanceTests COMMAND ProgramAcceptanceTests)
     endif()
 endif()
