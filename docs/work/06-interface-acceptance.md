@@ -1,5 +1,8 @@
 # Pacote 6 — Interface gráfica e aceitação ponta a ponta
 
+Estado: implementado e validado localmente na branch de integração. A CI
+remota e o merge ainda precisam ser confirmados.
+
 ## Resultado esperado
 
 Transformar a janela inicial em uma bancada visual que carregue programas,
@@ -120,10 +123,25 @@ Atualizar:
 
 ## Critério de conclusão
 
-- [ ] O fluxo completo pode ser executado sem terminal após a build.
-- [ ] Todos os registradores e a memória são inspecionáveis.
-- [ ] Controles refletem corretamente o estado da execução.
-- [ ] Falhas ficam visíveis e preservam o estado para inspeção.
-- [ ] Programas de aceitação cobrem instruções, modos e falhas principais.
-- [ ] Testes da UI e ponta a ponta passam na CI.
-- [ ] Documentação e roteiro partem de checkout limpo.
+- [x] O fluxo completo pode ser executado sem terminal após a build.
+- [x] Todos os registradores e a memória são inspecionáveis.
+- [x] Controles refletem corretamente o estado da execução.
+- [x] Falhas ficam visíveis e preservam o estado para inspeção.
+- [x] Programas de aceitação cobrem instruções, modos e falhas principais.
+- [x] Testes da UI e ponta a ponta passam localmente e estão registrados na CI.
+- [x] Documentação e roteiro partem de checkout limpo.
+- [ ] CI remota confirma o PR antes do merge.
+
+## Entrega
+
+`src/ui` contém a bancada final, `tests/ui` os testes dos widgets e do fluxo
+visual, e `tests/acceptance` os 18 programas codificados com expectativas
+independentes. `docs/demo.md` oferece o roteiro manual. A carga espera a
+validação assíncrona da `Machine` antes de fechar o diálogo; uma rejeição não
+substitui a sessão anterior. O snapshot recebeu somente a observação opcional
+da instrução no PC atual, sem alterar a semântica do ciclo.
+
+Não há `HALT` sintético nem parada automática ao fim do trecho carregado. Na
+interface, a execução contínua termina por pausa ou falha; carga e reset ficam
+disponíveis após pausar. O controlador também aceita carga/reset durante a
+execução, mas a interface desabilita esses botões enquanto roda.

@@ -17,7 +17,7 @@ O resultado é uma `std::variant` contendo `DecodedInstruction` ou
 
 ## Conjunto reconhecido
 
-O simulador reconhece somente as 38 instruções que serão implementadas.
+O simulador reconhece somente as 38 instruções implementadas.
 
 ### Formato 2
 

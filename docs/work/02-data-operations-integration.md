@@ -1,5 +1,8 @@
 # Guia de integração do pacote 2
 
+Este é um guia histórico de implementação. Para o comportamento final, consulte
+[transferência e lógica](../execution-data.md).
+
 Este documento complementa o [pacote 2](02-data-operations.md) com os contratos
 concretos entregues pelo pacote 1. Ele explica como consumir operandos e
 registradores sem mover regras de endereçamento para as operações.
@@ -15,7 +18,7 @@ Leia, nesta ordem:
 
 ## Entradas disponíveis
 
-`executeDataOperation` receberá:
+`executeDataOperation` recebe:
 
 - `DecodedInstruction`, que identifica o opcode e preserva os campos
   codificados;
@@ -49,7 +52,7 @@ Use exclusivamente:
 std::uint32_t value = registers.read(registerId);
 ```
 
-para consultar registradores inteiros. Uma futura escrita deve ser descrita no
+para consultar registradores inteiros. Uma escrita deve ser descrita no
 efeito, usando o mesmo `RegisterId`; não chame `registers.write` dentro das
 operações.
 

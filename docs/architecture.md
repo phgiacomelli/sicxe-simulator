@@ -3,15 +3,16 @@
 ## Objetivo
 
 Este documento apresenta a organização do simulador, a responsabilidade de
-cada módulo e o fluxo planejado para a execução de uma instrução.
+cada módulo e o fluxo de execução de uma instrução.
 
-A VM executará programas SIC/XE já codificados. Tradução de assembly, geração
+A VM executa programas SIC/XE já codificados. Tradução de assembly, geração
 de código objeto, linking e relocação não pertencem a este projeto.
 
 ## Decisões de interpretação do enunciado
 
-- Este repositório usa C++20 e Qt 6, decisão tecnológica já adotada pelo grupo
-  em lugar da referência a Java no enunciado. Novos pacotes devem preservar
+- O enunciado original menciona Java, mas o professor posteriormente deixou a
+  escolha da linguagem ao grupo. O grupo escolheu C++20 e Qt 6; a referência a
+  Java no PDF é legada, não um requisito vigente. Novos pacotes devem preservar
   essa base e não introduzir um segundo runtime.
 - A memória é endereçada por byte: cada endereço identifica um byte e uma
   palavra ocupa os endereços `m`, `m+1` e `m+2`. Essa decisão segue as ações das
@@ -42,7 +43,7 @@ conter registros e informações a serem interpretados por um loader.
 
 ## Visão geral
 
-O fluxo completo será:
+O fluxo completo é:
 
 ```text
 Memory
@@ -174,15 +175,27 @@ snapshots imutáveis e resultados tipados. A execução contínua usa um único
 
 ### Interface Qt
 
-A interface atual contém apenas a janela inicial. Futuramente deverá permitir:
+Implementada em `src/ui/`. `MainWindow` conecta os widgets ao
+`MachineController`; nenhum widget recebe referência mutável à `Machine`.
+`ProgramLoadDialog` aceita texto hexadecimal ou arquivo binário bruto e mantém
+o diálogo aberto até receber `LoadResult`. Falhas de sintaxe e de carga aparecem
+próximas aos campos, sem substituir a sessão anterior.
 
-- carregar bytes já codificados;
-- escolher o endereço inicial;
-- executar uma instrução;
-- executar continuamente e pausar;
-- resetar a máquina;
-- observar registradores, memória e instrução corrente;
-- visualizar erros da VM.
+`ExecutionPanel` controla carga, passo, execução, pausa e reset, e mostra o
+estado da sessão e a instrução decodificada no PC atual com seus bytes. Os
+demais painéis exibem todos os registradores e Condition Code, uma faixa
+consultável de memória e falhas tipadas persistentes. Os destaques do último
+passo vêm do efeito confirmado pelo núcleo; não são edições na VM.
+
+O campo `currentInstruction` do snapshot é uma decodificação somente de leitura
+no PC capturado. Ele não executa a instrução nem altera o estado; quando o PC
+não contém instrução reconhecida, o campo é vazio e o diagnóstico da tentativa
+de execução aparece no painel de falhas. Como não existe `HALT` sintético, na
+interface a execução contínua termina por pausa ou falha. Enquanto está rodando,
+os botões de carga e reset ficam desabilitados; após pausar, o usuário pode
+carregar outro programa ou resetar. O `MachineController` também aceita esses
+comandos durante execução e interrompe o timer, mas a UI não os oferece nesse
+estado.
 
 ## Dependências permitidas
 
