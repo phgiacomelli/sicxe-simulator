@@ -58,8 +58,14 @@ MemoryPanel::MemoryPanel(QWidget* parent) : QWidget(parent) {
 
 void MemoryPanel::updateMemory(const std::vector<uint8_t>& memory,
                                const std::vector<std::uint32_t>& changedAddresses) {
+    changedAddresses_.clear();
+    for (const auto address : changedAddresses) {
+        if (address < currentMemory_.size() && address < memory.size() &&
+            currentMemory_[address] != memory[address]) {
+            changedAddresses_.push_back(address);
+        }
+    }
     currentMemory_ = memory;
-    changedAddresses_ = changedAddresses;
     refreshTable();
 }
 

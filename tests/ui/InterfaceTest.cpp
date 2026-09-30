@@ -105,6 +105,7 @@ private slots:
     void memoryRangeAndChangedByteAreVisible() {
         MemoryPanel panel;
         std::vector<std::uint8_t> memory(64);
+        panel.updateMemory(memory);
         memory[16] = 0xAB;
         memory[17] = 0xCD;
         memory[32] = 0xEF;
@@ -133,6 +134,19 @@ private slots:
         QTest::mouseClick(search, Qt::LeftButton);
         QCOMPARE(table->rowCount(), 1);
         QCOMPARE(table->item(0, 0)->text(), QString("EF"));
+    }
+
+    void unchangedMemoryWriteDoesNotHighlightBytes() {
+        MemoryPanel panel;
+        std::vector<std::uint8_t> memory(64);
+        panel.updateMemory(memory);
+        panel.updateMemory(memory, {16, 17, 18});
+
+        auto* table = panel.findChild<QTableWidget*>();
+        QVERIFY(table);
+        QCOMPARE(table->item(1, 0)->background().color(), table->item(1, 3)->background().color());
+        QCOMPARE(table->item(1, 1)->background().color(), table->item(1, 3)->background().color());
+        QCOMPARE(table->item(1, 2)->background().color(), table->item(1, 3)->background().color());
     }
 
     void memoryRangeDoesNotHighlightBytesOutsideTheSelectedLength() {
