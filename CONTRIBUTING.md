@@ -107,7 +107,8 @@ Execute os testes:
 ctest --test-dir build --output-on-failure
 ```
 
-Formate o código:
+Com `clang-format` instalado na máquina, o CMake cria o alvo `format`. Nesse
+caso, formate o código:
 
 ```bash
 cmake --build build --target format

@@ -80,8 +80,9 @@ e snapshot. Não há HALT sintético, limite de passos ou parada implícita no f
 bytes carregados; o usuário pausa, ou uma falha encerra a execução contínua.
 
 `snapshotChanged(ImmutableMachineSnapshot)` entrega um
-`std::shared_ptr<const MachineSnapshot>`: memória, registradores e última falha
-pertencem a uma cópia imutável, que pode ser retida após comandos posteriores.
+`std::shared_ptr<const MachineSnapshot>`: memória, registradores, instrução
+decodificada no PC atual (quando houver) e última falha pertencem a uma cópia
+imutável, que pode ser retida após comandos posteriores.
 Tipos dos sinais são registrados no sistema de metatypes Qt, inclusive para
 conexões enfileiradas. A UI decide como apresentar erros, sem conversão precoce
 para strings no adaptador.
@@ -115,5 +116,6 @@ ctest --test-dir build/core-only --output-on-failure
 
 Com `BUILD_TESTING=OFF`, GoogleTest e Qt Test não são necessários. Na configuração
 padrão os testes do controller usam QTest e `QCoreApplication`, sem display.
-O pacote 6 pode conectar os comandos e sinais aos widgets; layout fica fora deste
-pacote. Nenhuma interface pública do pacote 4 foi alterada.
+O pacote 6 conecta os comandos e sinais aos widgets. Para apresentar a instrução
+no PC atual, `MachineSnapshot` recebeu um campo opcional de observação; a
+semântica de execução da `Machine` não foi alterada.

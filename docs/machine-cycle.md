@@ -68,6 +68,8 @@ Devolve uma cópia imutável do estado:
   O CC é opcional porque a codificação reservada `11` não pode ser lida como
   condição; `sw` continua disponível nesse caso;
 - `memory`: todos os bytes da memória;
+- `currentInstruction`: decodificação somente de leitura dos bytes no PC atual,
+  quando possível; não altera o estado nem representa uma instrução `HALT`;
 - `lastFault`: falha do último `step`, se houver.
 
 O snapshot copia a memória inteira. Ele não muda quando a máquina muda depois

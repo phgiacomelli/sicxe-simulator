@@ -19,7 +19,7 @@ Não fazem parte desta etapa:
 ### Estrutura do projeto
 
 - C++20 e CMake;
-- aplicação Qt 6 inicial;
+- aplicação Qt 6 com bancada visual de execução;
 - GoogleTest integrado ao CTest;
 - formatação com `clang-format`.
 
@@ -99,37 +99,27 @@ A execução de cada critério do pacote está em
 
 Os contratos e decisões estão em [program-input.md](program-input.md).
 
-## Próximo incremento
+### Interface gráfica e aceitação
 
-Implementar a interface gráfica e aceitação ponta a ponta, conforme o pacote 6.
+- carga de texto hexadecimal ou arquivo binário bruto com validação pela VM;
+- step, execução contínua, pausa e reset com controles condicionados ao estado;
+- inspeção de todos os registradores, Condition Code, instrução atual e memória
+  por endereço e faixa;
+- destaque de mudanças do último passo e diagnóstico tipado persistente;
+- testes de widgets e 18 programas de aceitação com bytes codificados.
 
-## Trabalho restante
+Os cenários e o fluxo de demonstração estão em [demo.md](demo.md). A
+implementação da primeira etapa (VM) está concluída. Não há montador integrado
+nem instrução `HALT` sintética.
+
+## Estado dos pacotes
 
 O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
 completa estão no [índice dos pacotes de trabalho](work/README.md).
 
-### Execução contínua
-
-Implementadas pelo adaptador do pacote 5; a `Machine` mantém apenas o passo
-atômico. Ver [contrato do controller](program-input.md).
-
-### Interface gráfica
-
-- entrada de bytes codificados;
-- endereço inicial;
-- controles de execução;
-- registradores e Condition Code;
-- visualização da memória;
-- instrução corrente;
-- apresentação de erros.
-
-### Verificação final
-
-- um teste independente por instrução;
-- testes de integração da máquina;
-- pequenos programas completos já codificados;
-- testes da interface;
-- build reproduzível a partir de um checkout limpo.
+Os pacotes 1 a 6 estão implementados e cobertos por testes locais. O workflow
+da CI está configurado para build, formatação e testes com Qt, e também
+build/testes do núcleo sem Qt. O pacote 6 também passou na CI remota.
 
 ## Ordem de integração
 
@@ -138,7 +128,7 @@ atômico. Ver [contrato do controller](program-input.md).
 3. O pacote 4 integra as famílias ao ciclo da máquina (concluído).
 4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas
    (concluído).
-5. O pacote 6 conclui a interface e a aceitação ponta a ponta.
+5. O pacote 6 conclui a interface e a aceitação ponta a ponta (concluído).
 
 Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
 dependências estarem integradas, mas o merge funcional deve respeitar essa

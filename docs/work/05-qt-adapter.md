@@ -1,5 +1,9 @@
 # Pacote 5 — Entrada de programas e adaptação Qt
 
+Este documento registra a entrega do pacote 5. As referências à interface como
+trabalho posterior descrevem o estado na época; a interface foi implementada
+no [pacote 6](06-interface-acceptance.md).
+
 ## Resultado esperado
 
 Criar o adaptador entre a `Machine` C++ e a aplicação Qt, incluindo as formas de

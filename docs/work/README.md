@@ -11,7 +11,7 @@ a [arquitetura](../architecture.md) e somente então o documento do seu pacote.
 | [3](03-arithmetic-operations.md) | Aritmética, comparações e shifts | Contratos do pacote 1 | Concluído |
 | [4](04-machine-control.md) | Controle de fluxo e ciclo da máquina | Pacotes 1, 2 e 3 | Concluído |
 | [5](05-qt-adapter.md) | Entrada de programas e adaptação Qt | Interface pública do pacote 4 | Concluído |
-| [6](06-interface-acceptance.md) | Interface gráfica e aceitação | Pacotes 4 e 5 | Liberado pelo pacote 5 |
+| [6](06-interface-acceptance.md) | Interface gráfica e aceitação | Pacotes 4 e 5 | Concluído; testes locais e CI |
 
 O [roadmap](../roadmap.md) é a fonte principal para o estado global. A coluna
 `Estado` desta tabela apenas resume essa informação como ponto de entrada para
