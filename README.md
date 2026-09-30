@@ -3,14 +3,10 @@
 Simulador da arquitetura SIC/XE desenvolvido para a disciplina
 de Programação de Sistemas.
 
-O projeto está sendo construído em etapas. No estado atual, a memória, o
-arquivo de registradores, o decoder de instruções, a resolução de operandos e
-as 18 operações de transferência e lógica e as 14 operações aritméticas já
-possuem implementação. As seis operações de controle de fluxo, o dispatcher e o
-ciclo completo e atômico da máquina (carga, reset, snapshot e passo a passo)
-também estão implementados. A entrada por texto hexadecimal e arquivo binário
-bruto e o adaptador Qt com execução contínua e pausa também estão implementados. A interface gráfica
-completa será entregue no pacote 6.
+A primeira etapa, a VM, inclui memória, registradores, decoder, resolução de
+operandos, as 38 instruções reconhecidas, ciclo atômico da máquina, entrada de
+bytes codificados e interface Qt para execução e inspeção. Os programas de
+aceitação e os testes da interface acompanham a implementação.
 
 ## Tecnologias
 
@@ -26,15 +22,18 @@ completa será entregue no pacote 6.
 - modos de endereçamento;
 - interface gráfica para visualização da execução.
 
-O recorte da VM reconhece somente as 38 instruções que serão implementadas.
+O recorte da VM reconhece somente as 38 instruções implementadas.
 Instruções fora desse conjunto são tratadas como opcodes desconhecidos. A VM
-receberá código de máquina já codificado; montador, linker e relocação não
-fazem parte desta etapa.
+recebe código de máquina já codificado; montador, linker e relocação não
+fazem parte desta etapa. A referência a Java no enunciado é legada: o professor
+deixou a escolha da linguagem ao grupo, que adotou C++20 e Qt 6. A decisão está
+registrada na [arquitetura](docs/architecture.md).
 
 ## Documentação
 
 - [Enunciado original](PRIMEIRO_TRABALHO_SIC_XE.pdf): especificação fornecida
-  para o trabalho.
+  para o trabalho; a indicação de Java foi substituída pela orientação do
+  professor citada acima.
 - [Arquitetura](docs/architecture.md): módulos, responsabilidades e fluxo de
   uma instrução.
 - [Decoder](docs/decoder.md): formatos reconhecidos, validações, resultados e
@@ -53,8 +52,8 @@ fazem parte desta etapa.
 - [Entrada de programas](docs/program-input.md): formatos, falhas, comandos e
   sinais do adaptador Qt do pacote 5.
 - [Testes](docs/testing.md): como executar os testes.
-- [Roadmap](docs/roadmap.md): estado atual e sequência sugerida para as próximas
-  implementações.
+- [Demonstração](docs/demo.md): roteiro reproduzível da interface.
+- [Roadmap](docs/roadmap.md): estado da primeira etapa.
 - [Pacotes de trabalho](docs/work/README.md): divisão detalhada entre os seis
   integrantes.
 - [Como contribuir](CONTRIBUTING.md): fluxo de branches, commits, revisão e
@@ -68,16 +67,35 @@ cmake --build build
 ./build/SICXESimulator
 ```
 
+É necessário ter CMake, compilador C++20 e Qt 6 (Core e Widgets). Para compilar
+os testes, também são necessários Qt Test e GoogleTest; o CMake obtém
+GoogleTest automaticamente quando não o encontra instalado.
+
+Na janela, clique em **Carregar Programa**, escolha texto hexadecimal ou um
+arquivo binário bruto, informe endereço de carga e PC inicial em hexadecimal e
+confirme. Depois use **Executar Passo** ou **Executar**; **Pausar** interrompe a
+execução contínua entre instruções. Registros, instrução no PC atual, memória e
+diagnóstico são atualizados após cada passo. A memória pode ser consultada por
+endereço inicial e tamanho da faixa. A VM não possui `HALT` nem parada automática
+no fim dos bytes carregados: pause ou observe uma falha. Para resetar ou carregar
+outro programa durante execução contínua, pause primeiro. Consulte o
+[roteiro](docs/demo.md) para um programa pronto para colar.
+
 ## Testes
 
 ```bash
 ctest --test-dir build --output-on-failure
 ```
 
+Os testes da interface rodam sem janela visível usando a plataforma Qt
+`offscreen`, inclusive na CI. Para build e testes do núcleo sem Qt, veja
+[entrada de programas](docs/program-input.md#build-e-integração).
+
 ## Code Style
 
 O projeto usa `clang-format` com as regras definidas em `.clang-format`.
-Para formatar todos os arquivos C++ manualmente:
+Com `clang-format` instalado, o CMake cria o alvo `format`. Para formatar todos
+os arquivos C++ manualmente:
 
 ```bash
 cmake --build build --target format

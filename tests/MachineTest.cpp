@@ -251,6 +251,20 @@ TEST_F(MachineTest, SnapshotAfterSuccessShowsOnlyTheCommittedChanges) {
     EXPECT_EQ(success.effect.registerWrite->value, 5U);
 }
 
+TEST_F(MachineTest, SnapshotIdentifiesInstructionAtCurrentPc) {
+    load(concat({format3(Opcode::LDA, Immediate, 5), format3(Opcode::ADD, Immediate, 1)}));
+    const auto before = machine.snapshot();
+    ASSERT_TRUE(before.currentInstruction.has_value());
+    EXPECT_EQ(before.currentInstruction->opcode, Opcode::LDA);
+    EXPECT_EQ(before.currentInstruction->rawBytes[0], 0x01);
+    EXPECT_EQ(before.currentInstruction->length, 3);
+    stepOk();
+    const auto after = machine.snapshot();
+    ASSERT_TRUE(after.currentInstruction.has_value());
+    EXPECT_EQ(after.currentInstruction->opcode, Opcode::ADD);
+    EXPECT_EQ(after.currentInstruction->instructionAddress, 3U);
+}
+
 TEST_F(MachineTest, SnapshotIsAnImmutableCopyOfTheState) {
     load(format3(Opcode::LDA, Immediate, 5));
     const MachineSnapshot before = machine.snapshot();

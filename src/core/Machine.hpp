@@ -53,6 +53,7 @@ struct RegisterSnapshot {
 struct MachineSnapshot {
     RegisterSnapshot registers{};
     std::vector<std::uint8_t> memory{};
+    std::optional<DecodedInstruction> currentInstruction{};
     std::optional<MachineFault> lastFault{};
 };
 
