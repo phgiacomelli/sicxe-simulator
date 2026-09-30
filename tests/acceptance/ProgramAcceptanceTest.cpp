@@ -4,8 +4,10 @@
 #include <QSignalSpy>
 #include <QTest>
 #include <algorithm>
+#include <array>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -25,9 +27,10 @@ struct Case {
     int maxSteps;
     RegisterSnapshot expectedRegisters;
     std::vector<std::pair<std::size_t, std::uint8_t>> expectedWrites{};
-    std::optional<DecodeFaultCode> decodeFault{};
-    std::optional<ResolveFaultCode> resolveFault{};
-    std::optional<ExecuteFaultCode> executeFault{};
+    std::optional<MachineFault> expectedFault{};
+    std::optional<Opcode> expectedCurrentOpcode{Opcode::LDA};
+    InstructionFormat expectedCurrentFormat{InstructionFormat::Sic};
+    std::array<std::uint8_t, 4> expectedCurrentBytes{};
 };
 
 RegisterSnapshot registers(std::uint32_t pc,
@@ -121,7 +124,8 @@ std::vector<Case> cases() {
          1,
          registers(0),
          {},
-         DecodeFaultCode::UnknownOpcode},
+         MachineFault{0, DecodeFault{DecodeFaultCode::UnknownOpcode, 0, {0xFF}, 1}},
+         std::nullopt},
         {"memory-out-of-range",
          {{0, "03 00 3F"}},
          0,
@@ -130,9 +134,10 @@ std::vector<Case> cases() {
          1,
          registers(0),
          {},
-         std::nullopt,
-         std::nullopt,
-         ExecuteFaultCode::MemoryAccessOutOfRange},
+         MachineFault{0, ExecuteFault{ExecuteFaultCode::MemoryAccessOutOfRange, 0}},
+         Opcode::LDA,
+         InstructionFormat::Format3,
+         {0x03, 0x00, 0x3F}},
         {"negative-pc-relative",
          {{0, "03 28 00"}},
          0,
@@ -141,8 +146,10 @@ std::vector<Case> cases() {
          1,
          registers(0),
          {},
-         std::nullopt,
-         ResolveFaultCode::AddressOutOfRange},
+         MachineFault{0, ResolveFault{ResolveFaultCode::AddressOutOfRange, -2045}},
+         Opcode::LDA,
+         InstructionFormat::Format3,
+         {0x03, 0x28, 0x00}},
         {"division-by-zero",
          {{0, "01 00 09 25 00 00"}},
          0,
@@ -151,9 +158,10 @@ std::vector<Case> cases() {
          2,
          registers(3, 9),
          {},
-         std::nullopt,
-         std::nullopt,
-         ExecuteFaultCode::DivisionByZero},
+         MachineFault{3, ExecuteFault{ExecuteFaultCode::DivisionByZero, 3, 0}},
+         Opcode::DIV,
+         InstructionFormat::Format3,
+         {0x25, 0x00, 0x00}},
     };
 }
 
@@ -181,6 +189,27 @@ std::vector<std::uint8_t> imageFor(const Case& item) {
         std::copy(bytes.begin(), bytes.end(), image.begin() + segment.offset);
     }
     return image;
+}
+
+bool faultMatches(const MachineFault& actual, const MachineFault& expected) {
+    if (actual.instructionAddress != expected.instructionAddress ||
+        actual.cause.index() != expected.cause.index()) {
+        return false;
+    }
+    return std::visit(
+        [&](const auto& expectedCause) {
+            using Fault = std::decay_t<decltype(expectedCause)>;
+            const auto& actualCause = std::get<Fault>(actual.cause);
+            if constexpr (std::is_same_v<Fault, DecodeFault>) {
+                return actualCause.code == expectedCause.code &&
+                       actualCause.instructionAddress == expectedCause.instructionAddress &&
+                       actualCause.rawBytes == expectedCause.rawBytes &&
+                       actualCause.bytesRead == expectedCause.bytesRead;
+            } else {
+                return actualCause == expectedCause;
+            }
+        },
+        expected.cause);
 }
 
 } // namespace
@@ -217,14 +246,18 @@ private slots:
             for (const auto& [address, value] : item.expectedWrites)
                 expectedMemory[address] = value;
             QVERIFY2(final->memory == expectedMemory, item.name);
-            const bool expectsFault = item.decodeFault || item.resolveFault || item.executeFault;
-            QCOMPARE(final->lastFault.has_value(), expectsFault);
-            if (item.decodeFault)
-                QCOMPARE(std::get<DecodeFault>(final->lastFault->cause).code, *item.decodeFault);
-            if (item.resolveFault)
-                QCOMPARE(std::get<ResolveFault>(final->lastFault->cause).code, *item.resolveFault);
-            if (item.executeFault)
-                QCOMPARE(std::get<ExecuteFault>(final->lastFault->cause).code, *item.executeFault);
+            QCOMPARE(final->lastFault.has_value(), item.expectedFault.has_value());
+            if (item.expectedFault)
+                QVERIFY2(faultMatches(*final->lastFault, *item.expectedFault), item.name);
+            QCOMPARE(final->currentInstruction.has_value(), item.expectedCurrentOpcode.has_value());
+            if (item.expectedCurrentOpcode) {
+                const auto& current = *final->currentInstruction;
+                QVERIFY2(current.opcode == *item.expectedCurrentOpcode, item.name);
+                QVERIFY2(current.format == item.expectedCurrentFormat, item.name);
+                QCOMPARE(current.instructionAddress, item.expectedRegisters.pc);
+                QCOMPARE(current.length, std::uint8_t{3});
+                QVERIFY2(current.rawBytes == item.expectedCurrentBytes, item.name);
+            }
         }
     }
 };
