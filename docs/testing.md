@@ -68,8 +68,8 @@ endereçamento, desvios, sub-rotina, formato 4, shifts e falhas principais.
 O [roteiro de demonstração](demo.md) reproduz o fluxo manual.
 
 No workflow da CI, `InterfaceTests` recebe `QT_QPA_PLATFORM=offscreen` pelo
-CTest, portanto não precisa de display. A CI remota do PR ainda precisa ser
-confirmada. Para executar só os testes
+CTest, portanto não precisa de display. A CI executa esses testes em modo
+offscreen. Para executar só os testes
 novos:
 
 ```bash

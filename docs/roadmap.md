@@ -109,9 +109,8 @@ Os contratos e decisões estão em [program-input.md](program-input.md).
 - testes de widgets e 18 programas de aceitação com bytes codificados.
 
 Os cenários e o fluxo de demonstração estão em [demo.md](demo.md). A
-implementação da primeira etapa (VM) está concluída; ainda falta confirmar a
-CI remota do PR antes do merge. Não há montador
-integrado nem instrução `HALT` sintética.
+implementação da primeira etapa (VM) está concluída. Não há montador integrado
+nem instrução `HALT` sintética.
 
 ## Estado dos pacotes
 
@@ -120,7 +119,7 @@ completa estão no [índice dos pacotes de trabalho](work/README.md).
 
 Os pacotes 1 a 6 estão implementados e cobertos por testes locais. O workflow
 da CI está configurado para build, formatação e testes com Qt, e também
-build/testes do núcleo sem Qt. A CI remota do PR ainda não foi confirmada.
+build/testes do núcleo sem Qt. O pacote 6 também passou na CI remota.
 
 ## Ordem de integração
 
@@ -129,8 +128,7 @@ build/testes do núcleo sem Qt. A CI remota do PR ainda não foi confirmada.
 3. O pacote 4 integra as famílias ao ciclo da máquina (concluído).
 4. O pacote 5 adapta a máquina para a aplicação Qt e para entrada de programas
    (concluído).
-5. O pacote 6 conclui a interface e a aceitação ponta a ponta (em branch de
-   integração; CI e merge pendentes).
+5. O pacote 6 conclui a interface e a aceitação ponta a ponta (concluído).
 
 Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
 dependências estarem integradas, mas o merge funcional deve respeitar essa

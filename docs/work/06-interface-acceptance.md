@@ -1,7 +1,6 @@
 # Pacote 6 — Interface gráfica e aceitação ponta a ponta
 
-Estado: implementado e validado localmente na branch de integração. A CI
-remota e o merge ainda precisam ser confirmados.
+Estado: implementado e validado com testes locais e CI.
 
 ## Resultado esperado
 
@@ -130,7 +129,7 @@ Atualizar:
 - [x] Programas de aceitação cobrem instruções, modos e falhas principais.
 - [x] Testes da UI e ponta a ponta passam localmente e estão registrados na CI.
 - [x] Documentação e roteiro partem de checkout limpo.
-- [ ] CI remota confirma o PR antes do merge.
+- [x] CI remota confirma o build, a formatação e os testes.
 
 ## Entrega
 
