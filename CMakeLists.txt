@@ -160,6 +160,8 @@ if(BUILD_TESTING)
     add_executable(AssemblerTests
         tests/assembler/SourceParserTest.cpp
         tests/assembler/AssemblyContractTest.cpp
+        tests/assembler/SymbolTableTest.cpp
+        tests/assembler/OperandValueTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
