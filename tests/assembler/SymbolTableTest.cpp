@@ -3,6 +3,7 @@
 #include "assembler/SourceParser.hpp"
 
 #include <gtest/gtest.h>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -81,7 +82,12 @@ TEST(SymbolTableTest, RejectsDuplicateDefinitionWithBothPositionsAndPreservesOri
     EXPECT_EQ(duplicate->symbol, "entry");
     EXPECT_EQ(duplicate->position, (SourcePosition{8, 1}));
     EXPECT_EQ(duplicate->previousDefinition, (SourcePosition{1, 1}));
-    EXPECT_FALSE(duplicate->message.empty());
+    EXPECT_NE(duplicate->message.find("Entry"), std::string::npos);
+
+    const auto assemblyDiagnostic = toAssemblyDiagnostic(*duplicate);
+    EXPECT_EQ(assemblyDiagnostic.code, AssemblyDiagnosticCode::DuplicateSymbol);
+    EXPECT_EQ(assemblyDiagnostic.position, (SourcePosition{8, 1}));
+    EXPECT_EQ(assemblyDiagnostic.message, duplicate->message);
 
     ASSERT_EQ(table.size(), 1U);
     EXPECT_EQ(table.symbols().front(), (AssemblySymbol{"ENTRY", 0x100, SourcePosition{1, 1}}));
@@ -104,6 +110,7 @@ TEST(SymbolTableTest, ReportsUndefinedSymbolWithUsePositionAndNeverInventsExtern
     EXPECT_EQ(diagnostic.symbol, "never_defined");
     EXPECT_EQ(diagnostic.position, (SourcePosition{10, 9}));
     EXPECT_FALSE(diagnostic.previousDefinition.has_value());
+    EXPECT_EQ(toAssemblyDiagnostic(diagnostic).code, AssemblyDiagnosticCode::UndefinedSymbol);
 
     const auto unresolved = table.unresolvedDiagnostics();
     ASSERT_EQ(unresolved.size(), 3U);

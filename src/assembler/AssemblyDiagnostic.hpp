@@ -19,6 +19,17 @@ enum class AssemblyDiagnosticCode {
     InvalidOperation,
     UnterminatedQuote,
     UnexpectedField,
+    InvalidSymbolName,
+    ReservedSymbolName,
+    DuplicateSymbol,
+    UndefinedSymbol,
+    EmptyOperand,
+    UnsupportedExpression,
+    InvalidInteger,
+    IntegerOverflow,
+    NegativeValueNotAllowed,
+    ValueOutOfRange,
+    SymbolNotAllowed,
 };
 
 struct AssemblyDiagnostic {

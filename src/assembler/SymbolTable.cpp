@@ -46,14 +46,15 @@ SymbolDiagnostic makeReservedNameDiagnostic(std::string_view label, SourcePositi
 
 SymbolDiagnostic makeDuplicateDiagnostic(std::string_view label,
                                          SourcePosition position,
+                                         std::string_view previousLabel,
                                          SourcePosition previousPosition) {
     return SymbolDiagnostic{
         SymbolDiagnosticCode::DuplicateSymbol,
         std::string{label},
         position,
         previousPosition,
-        "Rotulo '" + std::string{label} + "' redefinido; definicao anterior na linha " +
-            std::to_string(previousPosition.line) + ", coluna " +
+        "Rotulo '" + std::string{label} + "' redefinido; '" + std::string{previousLabel} +
+            "' foi definido antes na linha " + std::to_string(previousPosition.line) + ", coluna " +
             std::to_string(previousPosition.column) + ".",
     };
 }
@@ -82,6 +83,25 @@ std::optional<SymbolDiagnostic> validateIdentifier(const SourceIdentifier& ident
 }
 
 } // namespace
+
+AssemblyDiagnostic toAssemblyDiagnostic(const SymbolDiagnostic& diagnostic) {
+    AssemblyDiagnosticCode code{};
+    switch (diagnostic.code) {
+        case SymbolDiagnosticCode::InvalidSymbolName:
+            code = AssemblyDiagnosticCode::InvalidSymbolName;
+            break;
+        case SymbolDiagnosticCode::ReservedSymbolName:
+            code = AssemblyDiagnosticCode::ReservedSymbolName;
+            break;
+        case SymbolDiagnosticCode::DuplicateSymbol:
+            code = AssemblyDiagnosticCode::DuplicateSymbol;
+            break;
+        case SymbolDiagnosticCode::UndefinedSymbol:
+            code = AssemblyDiagnosticCode::UndefinedSymbol;
+            break;
+    }
+    return AssemblyDiagnostic{code, diagnostic.position, diagnostic.message};
+}
 
 std::string SymbolTable::normalizeName(std::string_view name) {
     std::string normalized{name};
@@ -124,10 +144,14 @@ SymbolTable::define(std::string_view label, std::uint32_t address, SourcePositio
         return makeReservedNameDiagnostic(label, position);
     }
     if (const auto existing = indexByName_.find(key); existing != indexByName_.end()) {
-        return makeDuplicateDiagnostic(label, position, symbols_[existing->second].definition);
+        return makeDuplicateDiagnostic(label,
+                                       position,
+                                       definitionSources_[existing->second],
+                                       symbols_[existing->second].definition);
     }
     indexByName_.emplace(key, symbols_.size());
     symbols_.push_back(AssemblySymbol{std::move(key), address, position});
+    definitionSources_.emplace_back(label);
     return std::nullopt;
 }
 
