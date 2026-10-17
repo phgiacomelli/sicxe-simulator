@@ -109,3 +109,27 @@ Para build sem Qt, use a configuração de
 [program-input.md](program-input.md#build-e-integração); ela também compila
 o montador. O comportamento do parser está em
 [fonte do montador](assembler/source.md).
+
+## Montador: pacote 3
+
+`tests/assembler/SymbolTableTest.cpp` e `tests/assembler/OperandValueTest.cpp`
+exercitam a tabela de rótulos locais e a leitura/validação de operandos
+numéricos e simbólicos no alvo `AssemblerTests`:
+
+- definição, uso anterior e uso futuro com múltiplas referências ao mesmo rótulo;
+- normalização de caixa, rejeição de nomes inválidos e colisão com os 38
+  mnemônicos e as 8 diretivas;
+- redefinição com as duas posições e símbolo indefinido com posição do uso;
+- inteiros decimais e hexadecimais (`0x`/`0X`), zero, limites, overflow e
+  faixas por diretiva (`Address12BitRange`, `Address20BitRange`, `Word24BitRange`);
+- rejeição de expressões (`A+1`, `A-B`, `2*B`), sinais em símbolos e parênteses;
+- isolamento entre montagens sucessivas.
+
+Para executar os testes do pacote 3 após o build:
+
+```bash
+ctest --test-dir build -R 'SymbolTableTest|OperandValueTest' --output-on-failure
+```
+
+As regras e os códigos de diagnóstico estão em
+[símbolos do montador](assembler/symbols.md).
