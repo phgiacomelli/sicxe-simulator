@@ -8,8 +8,9 @@ operandos, as 38 instruções reconhecidas, ciclo atômico da máquina, entrada 
 bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
-A segunda etapa está planejada em [montador de duas passagens](docs/assembler/README.md).
-O montador será um módulo C++20 separado da VM; **ainda não está implementado**.
+A segunda etapa está em desenvolvimento em [montador de duas passagens](docs/assembler/README.md).
+O parser de fonte e os contratos mínimos estão implementados em C++20.
+As duas passagens e a geração de programas ainda dependem dos próximos pacotes.
 
 ## Tecnologias
 
@@ -62,7 +63,9 @@ registrada na [arquitetura](docs/architecture.md).
 - [Segunda etapa — montador](docs/assembler/README.md): recorte, arquitetura de
   duas passagens e divisão entre sete integrantes.
 - [Contratos do montador](docs/assembler/contracts.md): dialeto, interfaces,
-  codificação e saída planejados.
+  tipos mínimos entregues, codificação e saída planejadas.
+- [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
+  diagnósticos e recuperação por linha implementados no pacote 1.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
