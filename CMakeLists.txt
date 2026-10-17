@@ -78,6 +78,15 @@ add_library(sicxe_input
 )
 target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+add_library(sicxe_assembler STATIC
+    src/assembler/SourceParser.cpp
+    src/assembler/SourceParser.hpp
+    src/assembler/SourceLine.hpp
+    src/assembler/AssemblyDiagnostic.hpp
+    src/assembler/AssemblyResult.hpp
+)
+target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
