@@ -1,7 +1,8 @@
 # Contratos do montador SIC/XE
 
-Estado: tipos mínimos de fonte, diagnóstico e resultado implementados no
-pacote 1; as passagens e a geração de bytes permanecem planejadas.
+Estado: fonte e tipos mínimos implementados no pacote 1; símbolos e valores
+de operandos implementados no pacote 3. As passagens e a geração de bytes
+permanecem planejadas.
 Comportamento e divisão de ownership exigem acordo dos consumidores.
 
 ## Fonte de verdade
@@ -49,9 +50,12 @@ Os tipos do pacote 1 vivem no namespace `assembler`:
   bytes, listagem e símbolos) e `AssemblyFailure` (somente diagnósticos).
   Esses tipos não implementam a montagem nem validam a imagem final.
 
-As formas C++ exatas, os códigos de erro e a recuperação por linha estão
-em [fonte e contratos mínimos](source.md). `LocatedLine`, símbolos
-operacionais e `assemble()` serão implementados pelos pacotes seguintes.
+As formas C++ da fonte, seus erros e a recuperação por linha estão em
+[fonte e contratos mínimos](source.md). O pacote 3 entrega `SymbolTable`
+e `OperandValue`, documentados em [símbolos](symbols.md). Seus diagnósticos
+tipados são convertidos para `AssemblyDiagnostic` antes de compor
+`AssemblyFailure`. `LocatedLine` e `assemble()` ainda serão implementados
+pelos pacotes seguintes.
 
 ## Dialeto mínimo da fonte
 

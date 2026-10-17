@@ -103,9 +103,40 @@ As configurações reutilizaram a fonte GoogleTest existente em `build/_deps`
 por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de dependências.
 O `clang-format --dry-run --Werror` passou em todo `src/` e `tests/`,
 e o parser compilou com `-Wall -Wextra -Wpedantic -Werror`.
-CI remota e revisão cruzada continuam pendentes.
+A CI do PR do pacote 1 passou. A revisão cruzada dos contratos foi
+dispensada na integração, mas permanece recomendada aos consumidores.
 
 Para build sem Qt, use a configuração de
 [program-input.md](program-input.md#build-e-integração); ela também compila
 o montador. O comportamento do parser está em
 [fonte do montador](assembler/source.md).
+
+## Montador: pacote 3
+
+`tests/assembler/SymbolTableTest.cpp` e `tests/assembler/OperandValueTest.cpp`
+exercitam a tabela de rótulos locais e a leitura/validação de operandos
+numéricos e simbólicos no alvo `AssemblerTests`:
+
+- definição, uso anterior e uso futuro com múltiplas referências ao mesmo rótulo;
+- normalização de caixa, rejeição de nomes inválidos e colisão com os 38
+  mnemônicos e as 8 diretivas;
+- redefinição com as duas posições e símbolo indefinido com posição do uso;
+- conversão dos erros para `AssemblyDiagnostic` e preservação da grafia da
+  primeira definição na mensagem de duplicidade;
+- inteiros decimais e hexadecimais (`0x`/`0X`), zero, limites, overflow e
+  faixas por diretiva (`Address12BitRange`, `Address20BitRange`, `Word24BitRange`);
+- rejeição de expressões (`A+1`, `A-B`, `2*B`), sinais em símbolos e parênteses;
+- isolamento entre montagens sucessivas.
+
+Para executar os testes do pacote 3 após o build:
+
+```bash
+ctest --test-dir build -R 'SymbolTableTest|OperandValueTest' --output-on-failure
+```
+
+Após a revisão do PR #24, o build limpo e a suíte completa passaram em
+**261 testes sem Qt** e **264 com Qt**; `clang-format --dry-run --Werror`
+e `git diff --check` também passaram.
+
+As regras e os códigos de diagnóstico estão em
+[símbolos do montador](assembler/symbols.md).

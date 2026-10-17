@@ -1,6 +1,6 @@
 # Pacote 3 — Símbolos e valores de operandos
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado; integração com as passagens pendente.
 
 ## Resultado esperado
 
@@ -66,12 +66,39 @@ de montador ao `RegisterFile` da VM.
 
 ## Critério de conclusão
 
-- [ ] Passagens 1 e 2 consultam a mesma tabela por interface estável.
-- [ ] Referências futuras, duplicados, indefinidos e números têm testes.
-- [ ] `docs/assembler/symbols.md` documenta regras e diagnósticos.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Interface estável permite registrar na passagem 1 e consultar na passagem 2.
+- [x] Referências futuras, duplicados, indefinidos e números têm testes.
+- [x] `docs/assembler/symbols.md` documenta regras e diagnósticos.
+- [x] Build, formatação e CTest locais passam com e sem Qt.
+- [x] CI remota verde e revisão cruzada.
+
+A integração efetiva com as passagens 1 e 2 pertence aos pacotes 4 e 7;
+essas passagens ainda não existem neste PR.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `SymbolTable.*` e `OperandValue.*` no namespace `assembler`, com
+testes em `SymbolTableTest.cpp` e `OperandValueTest.cpp` e documentação em
+[symbols.md](../symbols.md). Nenhum contrato público existente do pacote 1
+ou da VM foi alterado.
+
+Decisões implementadas:
+
+- `SymbolTable` armazena definições na ordem determinística de inserção e
+  expõe apenas `const std::vector<AssemblySymbol>&`, sem expor mapa mutável;
+- nomes seguem `[A-Za-z][A-Za-z0-9_]*` sem distinção de caixa e rejeitam
+  colisão com os 38 mnemônicos da VM e as 8 diretivas do dialeto;
+- redefinição preserva a primeira definição e retorna `SymbolDiagnostic`
+  com `position` (nova ocorrência) e `previousDefinition` (primeira linha/coluna);
+- `reference()` registra usos anteriores e futuros na ordem física sem atribuir
+  endereço provisório falso; `unresolvedDiagnostics()` e `resolve()` reportam
+  `UndefinedSymbol` com a posição do uso;
+- `parseValue()` classifica inteiros decimais e hexadecimais (`0x`/`0X`) com
+  detecção de overflow em 64 bits, distingue rótulos válidos e rejeita
+  expressões aritméticas, sinais aplicados a símbolos e parênteses;
+- `validateInteger()`, `parseKnownInteger()`, `referenceOperand()` e
+  `resolveOperand()` permitem ao consumidor parametrizar aceitação de sinal,
+  faixa numérica e permissão de símbolo futuro.
+- diagnósticos de símbolos e operandos são convertidos para
+  `AssemblyDiagnostic`, sem publicar bytes parciais; a grafia original da
+  definição é preservada na mensagem de redefinição.
