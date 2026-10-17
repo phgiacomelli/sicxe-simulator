@@ -66,6 +66,9 @@ registrada na [arquitetura](docs/architecture.md).
   tipos mínimos entregues, codificação e saída planejadas.
 - [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
   diagnósticos e recuperação por linha implementados no pacote 1.
+- [Passagem 1 do montador](docs/assembler/pass-one.md): contador de
+  localização em bytes, rótulos, `START`/`END`, intermediário `LocatedLine` e
+  diagnósticos do pacote 4.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.

@@ -84,6 +84,9 @@ add_library(sicxe_assembler STATIC
     src/assembler/SourceLine.hpp
     src/assembler/AssemblyDiagnostic.hpp
     src/assembler/AssemblyResult.hpp
+    src/assembler/LocatedLine.hpp
+    src/assembler/PassOne.cpp
+    src/assembler/PassOne.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -156,6 +159,7 @@ if(BUILD_TESTING)
     add_executable(AssemblerTests
         tests/assembler/SourceParserTest.cpp
         tests/assembler/AssemblyContractTest.cpp
+        tests/assembler/PassOneTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)

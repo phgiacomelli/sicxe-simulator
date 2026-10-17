@@ -109,3 +109,27 @@ Para build sem Qt, use a configuração de
 [program-input.md](program-input.md#build-e-integração); ela também compila
 o montador. O comportamento do parser está em
 [fonte do montador](assembler/source.md).
+
+## Montador: pacote 4
+
+`tests/assembler/PassOneTest.cpp` exercita a passagem 1 e o contador de
+localização no alvo `AssemblerTests`:
+
+- sequência de endereços e rótulos com formatos 2, 3, 4 e `RSUB`;
+- referências futuras preservadas sem alterar tamanhos ou layout;
+- `START` presente/ausente, rótulo inicial, `END` e ponto de entrada opcional;
+- `BASE`, `NOBASE`, linhas em branco e comentários sem avanço do contador;
+- erros de símbolo duplicado/indefinido, instrução desconhecida, `+` inválido,
+  `END` ausente, segundo `START`/`END` e declarações ativas após `END`;
+- último endereço válido (`0xFFFFF`), próximo endereço inválido (`0x100000`) e
+  overflow sem wrap;
+- rejeição explícita de `BYTE`, `WORD`, `RESB` e `RESW` antes do pacote 5.
+
+Para executar os testes do pacote 4 após o build:
+
+```bash
+ctest --test-dir build -R 'PassOneTest' --output-on-failure
+```
+
+As regras, o exemplo de intermediário e os diagnósticos estão em
+[passagem 1 do montador](assembler/pass-one.md).

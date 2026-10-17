@@ -1,6 +1,7 @@
 # Pacote 4 — Passagem 1 e contador de localização
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado localmente; revisão cruzada e CI remota
+pendentes.
 
 ## Resultado esperado
 
@@ -69,12 +70,39 @@ Não carregar bytes na `Machine`.
 
 ## Critério de conclusão
 
-- [ ] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
-- [ ] `START`, `END`, labels, limites e erros possuem testes.
-- [ ] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
+- [x] `START`, `END`, labels, limites e erros possuem testes.
+- [x] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
+- [x] Build, formatação e CTest locais verdes com e sem Qt.
+- [ ] CI remota verde e revisão cruzada.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `LocatedLine.hpp`, `PassOne.hpp` e `PassOne.cpp` no namespace
+`assembler`, com testes em `tests/assembler/PassOneTest.cpp` e documentação em
+[pass-one.md](../pass-one.md). Nenhum contrato público existente do pacote 1
+ou da VM foi alterado.
+
+Decisões implementadas:
+
+- `PassOne::run` aceita `SourceParseResult` ou `std::span<const SourceLine>` e
+  interrompe imediatamente com `InvalidSourceLine` quando o parser reportou
+  falha sintática ou linha `Invalid`, sem tentar montagem parcial;
+- `LocatedLine` preserva a `SourceLine` original e fixa `category`
+  (`Instruction`, `Data`, `Reservation`, `Directive` e `Comment`), `address`
+  em bytes, `size`, mnemônico normalizado, flag `extended`, `opcode`,
+  `instructionFormat` (`Format2`, `Format3`, `Format4`) e `directive`;
+- o contador de localização usa aritmética larga de 64 bits (`std::uint64_t`)
+  e valida `0x00000..0xFFFFF`, inclusive o último byte (`locationCounter + size <= 0x100000`),
+  sem wrap e interrompendo o avanço após tamanho inválido ou overflow;
+- rótulos recebem o contador antes do avanço e são exportados em
+  `PassOneResult::symbols` (`std::vector<AssemblySymbol>`) na ordem
+  determinística de definição, com integração automática a `SymbolTable` e
+  `OperandValue` do pacote 3 quando presentes;
+- referências anteriores e futuras em operandos de instruções de memória,
+  `BASE` e `END` são registradas sem alterar o tamanho fixado na passagem 1, e
+  símbolos não definidos geram `UndefinedSymbol` ao final da passagem;
+- `BYTE`, `WORD`, `RESB` e `RESW` são classificados em `Data`/`Reservation` e
+  rejeitados explicitamente com `DataDirectiveNotIntegrated` sem inventar
+  tamanho até a integração do pacote 5.
+
