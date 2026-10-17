@@ -18,6 +18,11 @@ Consumir linhas e diagnósticos do pacote 1. Arquivos sugeridos:
 Pacote 4 decide **quando** um rótulo recebe o contador atual; este pacote
 decide **como** definições e referências são armazenadas e consultadas.
 
+Usar `assembler::SourcePosition` do pacote 1 nas definições/erros e a
+chave normalizada do `SourceIdentifier` para nomes vindos da fonte.
+`AssemblySymbol` é o registro final de saída; não é uma tabela de símbolos
+operacional. Os contratos existentes estão em [source.md](../source.md).
+
 ## Interface a entregar
 
 - `define(label, address, position)` insere rótulo uma vez e preserva linha

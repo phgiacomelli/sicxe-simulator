@@ -1,6 +1,7 @@
 # Pacote 1 — Fonte, diagnósticos e contratos mínimos
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado localmente; revisão cruzada e CI remota
+pendentes.
 
 ## Resultado esperado
 
@@ -61,11 +62,38 @@ instruções vermelhas.
 ## Critério de conclusão
 
 - [ ] Contratos mínimos revisados pelos responsáveis dos pacotes 2, 4 e 7.
-- [ ] Parser e diagnósticos estruturados testados via interface pública.
-- [ ] `docs/assembler/source.md` documenta a gramática efetiva e os erros.
-- [ ] Build, formatação, CTest e CI verdes; nenhuma mudança sem relação.
+- [x] Parser e diagnósticos estruturados testados via interface pública.
+- [x] `docs/assembler/source.md` documenta a gramática efetiva e os erros.
+- [x] Build, formatação e CTest locais passam com e sem Qt.
+- [ ] CI remota verde e revisão externa dos contratos.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões específicas, divergências dos PDFs,
-interfaces alteradas, testes executados, pendências e estado dos itens acima.
+Entregues `SourceParser.*`, `SourceLine.hpp`, `AssemblyDiagnostic.hpp` e
+`AssemblyResult.hpp` no namespace `assembler`. `sicxe_assembler` é uma
+biblioteca C++20 independente de Qt/VM; `AssemblerTests` testa sua interface.
+
+Decisões implementadas:
+
+- strings são possuídas pelo resultado, sem dependência da vida da fonte;
+- linha/coluna começam em 1, coluna conta bytes e tab conta um byte;
+- LF, CRLF e CR são aceitos sem linha extra artificial no fim;
+- rótulos/operações possuem grafia original e chave ASCII normalizada;
+- comentários, operandos e aspas preservam seus dados;
+- o primeiro erro de cada linha gera diagnóstico e `Invalid`, sem
+  declaração parcial; a análise continua nas linhas seguintes;
+- falha da montagem é um tipo separado que contém apenas diagnósticos;
+- campos semânticos de opcodes/valores permanecem para os próximos pacotes.
+
+São 24 testes novos: 22 de parser e dois dos contratos de resultado.
+Os testes completos foram executados em configurações limpas com Qt e
+sem Qt, usando a fonte GoogleTest já disponível em `build/_deps`;
+formatação e compilação do parser com warnings como erros também passam.
+O resultado local da suíte completa está em [testes](../../testing.md#montador-pacote-1).
+
+Não foi necessário alterar regras arquiteturais dos PDFs. Gramática e
+decisões de fonte seguem [contratos](../contracts.md), com os tipos
+efetivos em [source.md](../source.md). As interfaces das passagens,
+codificadores, writers e CLI ainda não foram implementadas. Este trabalho
+local não substitui revisão dos responsáveis dos pacotes 2, 4 e 7 nem
+evidência de CI remota.

@@ -6,8 +6,8 @@ Este documento apresenta a organização do simulador, a responsabilidade de
 cada módulo e o fluxo de execução de uma instrução.
 
 A VM executa programas SIC/XE já codificados. Tradução de assembly não
-pertence **à VM**: é responsabilidade do montador de duas passagens planejado
-para a [segunda etapa](assembler/README.md). Linking, formato objeto para
+pertence **à VM**: é responsabilidade do montador de duas passagens em
+desenvolvimento para a [segunda etapa](assembler/README.md). Linking, formato objeto para
 loader e relocação durante a carga não pertencem a nenhuma das duas etapas.
 
 ## Decisões de interpretação do enunciado
@@ -47,6 +47,12 @@ O montador planejado exporta esse binário **para o endereço de carga
 declarado** e uma listagem. Não produz objeto textual `H/T/M/E`; a VM
 não lê registros de objeto nem aplica relocação. Veja os
 [contratos da segunda etapa](assembler/contracts.md).
+
+A base atual do montador é `sicxe_assembler`, com `SourceParser` e tipos
+de fonte/diagnóstico/resultado em `src/assembler/`. Essa biblioteca não
+depende de Qt nem de `SICXECore`; as passagens e saídas ainda estão
+planejadas. Seu comportamento implementado está em
+[fonte do montador](assembler/source.md).
 
 ## Visão geral
 

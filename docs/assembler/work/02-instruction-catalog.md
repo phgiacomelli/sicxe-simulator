@@ -21,6 +21,11 @@ Não mover a tabela da VM para o montador nem alterar o decoder para servir ao
 parser: os dois módulos têm responsabilidades distintas. Testes cruzados
 devem detectar divergência de opcodes e formatos.
 
+O pacote 1 já oferece `assembler::SourceLine` e `ParsedStatement`;
+operação/rótulo possuem `SourceIdentifier::key` normalizada e `source`
+original. Consumir esses valores após `SourceParseResult::succeeded()`,
+preservando `SourcePosition` nos diagnósticos. Veja [source.md](../source.md).
+
 ## Interface a entregar
 
 - Consulta `findInstruction(mnemonic)` retorna descritor imutável com opcode,

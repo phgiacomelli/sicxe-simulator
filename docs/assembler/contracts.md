@@ -1,8 +1,8 @@
 # Contratos do montador SIC/XE
 
-Estado: contrato de planejamento. Nomes exatos de tipos C++ podem ser
-ajustados no primeiro PR; comportamento e divisão de ownership exigem
-acordo dos consumidores.
+Estado: tipos mínimos de fonte, diagnóstico e resultado implementados no
+pacote 1; as passagens e a geração de bytes permanecem planejadas.
+Comportamento e divisão de ownership exigem acordo dos consumidores.
 
 ## Fonte de verdade
 
@@ -11,9 +11,8 @@ arquitetural. A VM existente, documentada em [decoder](../decoder.md) e
 [endereçamento](../addressing.md), concretiza os bytes aceitos. Os
 slides `Montador.pdf`, também distribuídos fora do Git, fornecem o método
 de duas passagens. Onde os PDFs não especificam uma sintaxe de assembly,
-as regras abaixo são
-**convenções mínimas do grupo**, não novos requisitos do professor. Nenhuma
-convenção pode gerar bytes que o `Decoder` rejeite.
+as regras abaixo são **convenções mínimas do grupo**, não novos requisitos
+do professor. Nenhuma convenção pode gerar bytes que o `Decoder` rejeite.
 
 ## Interface externa e intermediário
 
@@ -24,8 +23,8 @@ não recebe `Machine`/widgets e não mantém estado entre chamadas. Erro em
 qualquer passagem impede publicação de bytes ou arquivos de sucesso.
 
 ```text
-SourceLine → ParsedLine → LocatedLine → EncodedLine → AssemblyResult
-          parser       passagem 1     passagem 2      saída
+sourceText → SourceParseResult/SourceLine → LocatedLine → AssemblyResult
+           parser implementado            passagem 1    passagem 2/saída
 ```
 
 Cada linha preserva texto original, número físico começando em 1 e colunas
@@ -33,6 +32,26 @@ dos campos. Comentários e linhas vazias não avançam o contador, mas ficam
 na listagem. `LocatedLine` fixa endereço e tamanho na passagem 1; a segunda
 não pode alterá-los. Diagnósticos têm código estável, linha, coluna e
 mensagem humana; testes usam código e posição, não o texto da mensagem.
+
+Os tipos do pacote 1 vivem no namespace `assembler`:
+
+- `SourceParser::parse(std::string_view)` retorna `SourceParseResult`:
+  `lines`, `diagnostics` e `succeeded()` (sucesso sintático somente).
+- `SourceLine` preserva `number`, `text`, `kind`, `statement` opcional e
+  `comment` opcional. `ParsedStatement` guarda `label` opcional,
+  `operation` e `operand` opcional. `SourceIdentifier` tem `source` e
+  `key` normalizada; `SourceField` tem `text` original e `position`.
+- `SourcePosition` usa linha e coluna de **byte** iniciadas em 1, inclusive
+  para tabs. Resultados possuem suas strings e não dependem do texto de
+  entrada após a chamada. Uma linha inválida não expõe declaração parcial.
+- `AssemblyDiagnostic` tem código tipado, posição e mensagem.
+- `AssemblyResult` é a variante entre `AssemblySuccess` (endereços,
+  bytes, listagem e símbolos) e `AssemblyFailure` (somente diagnósticos).
+  Esses tipos não implementam a montagem nem validam a imagem final.
+
+As formas C++ exatas, os códigos de erro e a recuperação por linha estão
+em [fonte e contratos mínimos](source.md). `LocatedLine`, símbolos
+operacionais e `assemble()` serão implementados pelos pacotes seguintes.
 
 ## Dialeto mínimo da fonte
 
@@ -42,6 +61,9 @@ mensagem humana; testes usam código e posição, não o texto da mensagem.
   listagem. Rótulo opcional começa na primeira coluna; linha sem rótulo
   começa com espaço ou tab. `.` inicia comentário de linha inteira na
   primeira posição não branca; `;` inicia comentário inline fora de aspas.
+  O parser aceita LF, CRLF e CR e preserva linhas vazias; não cria uma
+  linha fictícia após o terminador final. O operando pode conter espaços
+  dentro de aspas e junto de vírgulas; campos extras são erro de sintaxe.
 - `START endereço` é opcional apenas na primeira linha ativa (padrão 0) e
   pode ter rótulo que nomeia o início. `END [rótulo]` é obrigatório, encerra
   o programa e fixa o PC inicial; sem operando, o PC é `START`. Texto ativo

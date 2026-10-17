@@ -19,6 +19,12 @@ pacote 5 integra nele os tamanhos das diretivas de dados com revisão do
 responsável por este pacote. Até essa integração, `BYTE/WORD/RESB/RESW`
 devem receber erro explícito, nunca tamanho inventado.
 
+Consumir as `assembler::SourceLine` do pacote 1 somente quando
+`SourceParseResult::succeeded()` for verdadeiro. `SourceLine::statement`
+contém a declaração válida; branco/comentário conserva sua linha sem
+declaração. Não reinterpretar o texto original nem tentar aproveitar
+uma linha `Invalid` para montar parcialmente.
+
 ## Interface a entregar
 
 `run(parsedLines)` devolve `PassOneResult` com endereço `START`, PC de

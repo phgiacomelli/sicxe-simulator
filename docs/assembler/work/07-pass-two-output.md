@@ -26,6 +26,9 @@ Não alterar `MachineController`, widgets ou `Machine` para integrar.
 - `assemble(sourceText)` devolve `AssemblyResult` de
   [contratos](../contracts.md#interface-externa-e-intermediário), sem I/O
   e sem estado global.
+  Os tipos `assembler::AssemblySuccess`, `AssemblyFailure`,
+  `AssemblyListingLine` e `AssemblySymbol` já existem desde o pacote 1;
+  consultar [source.md](../source.md) e validar as invariantes no produtor.
 - Writer `.bin`: imagem fixa de `START` até o último byte usado,
   incluindo zero em reservas. Writer `.lst`: fonte, número de linha,
   endereço, bytes ou reserva e diagnósticos. Não há `.obj` nem registros

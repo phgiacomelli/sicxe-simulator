@@ -134,17 +134,20 @@ Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
 dependências estarem integradas, mas o merge funcional deve respeitar essa
 ordem.
 
-## Segunda etapa — montador de duas passagens planejado
+## Segunda etapa — montador de duas passagens em desenvolvimento
 
 O objetivo é transformar assembly SIC/XE em bytes de máquina e listagem por
-duas passagens, com imagem binária bruta fixa para teste na VM. O montador ainda
-**não foi implementado**. Seu recorte e suas exclusões estão no
+duas passagens, com imagem binária bruta fixa para teste na VM. O parser e
+os tipos mínimos do pacote 1 estão implementados e validados localmente;
+revisão cruzada e CI remota ainda estão pendentes. A montagem completa ainda
+depende dos pacotes 2–7. Seu recorte e suas exclusões estão no
 [índice da segunda etapa](assembler/README.md), com as interfaces em
 [contratos](assembler/contracts.md).
 
 Há sete pacotes, um PR por integrante:
 
-1. Fonte, diagnósticos e tipos compartilhados mínimos.
+1. Fonte, diagnósticos e tipos compartilhados mínimos — implementados
+   localmente; veja [fonte do montador](assembler/source.md).
 2. Catálogo das 38 instruções, operandos e formato 2.
 3. Tabela de símbolos, referências e valores numéricos/simbólicos.
 4. Passagem 1 e contador de localização.
