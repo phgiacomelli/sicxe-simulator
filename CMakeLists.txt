@@ -153,6 +153,14 @@ if(BUILD_TESTING)
     include(GoogleTest)
     gtest_discover_tests(SICXESimulatorTests)
 
+    add_executable(AssemblerTests
+        tests/assembler/SourceParserTest.cpp
+        tests/assembler/AssemblyContractTest.cpp
+    )
+    set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
+    gtest_discover_tests(AssemblerTests)
+
     if(SICXE_BUILD_QT)
         find_package(Qt6 REQUIRED COMPONENTS Test)
         add_executable(MachineControllerTests tests/application/MachineControllerTest.cpp)
