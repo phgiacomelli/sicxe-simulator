@@ -8,6 +8,10 @@ operandos, as 38 instruções reconhecidas, ciclo atômico da máquina, entrada 
 bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
+A segunda etapa está em desenvolvimento em [montador de duas passagens](docs/assembler/README.md).
+O parser de fonte e os contratos mínimos estão implementados em C++20.
+As duas passagens e a geração de programas ainda dependem dos próximos pacotes.
+
 ## Tecnologias
 
 - C++20
@@ -25,15 +29,15 @@ aceitação e os testes da interface acompanham a implementação.
 O recorte da VM reconhece somente as 38 instruções implementadas.
 Instruções fora desse conjunto são tratadas como opcodes desconhecidos. A VM
 recebe código de máquina já codificado; montador, linker e relocação não
-fazem parte desta etapa. A referência a Java no enunciado é legada: o professor
+fazem parte **da VM**. A referência a Java no enunciado é legada: o professor
 deixou a escolha da linguagem ao grupo, que adotou C++20 e Qt 6. A decisão está
 registrada na [arquitetura](docs/architecture.md).
 
 ## Documentação
 
-- [Enunciado original](PRIMEIRO_TRABALHO_SIC_XE.pdf): especificação fornecida
-  para o trabalho; a indicação de Java foi substituída pela orientação do
-  professor citada acima.
+- Enunciado original (`PRIMEIRO_TRABALHO_SIC_XE.pdf`, distribuído fora do Git):
+  especificação fornecida para o trabalho; a indicação de Java foi substituída
+  pela orientação do professor citada acima.
 - [Arquitetura](docs/architecture.md): módulos, responsabilidades e fluxo de
   uma instrução.
 - [Decoder](docs/decoder.md): formatos reconhecidos, validações, resultados e
@@ -53,9 +57,18 @@ registrada na [arquitetura](docs/architecture.md).
   sinais do adaptador Qt do pacote 5.
 - [Testes](docs/testing.md): como executar os testes.
 - [Demonstração](docs/demo.md): roteiro reproduzível da interface.
-- [Roadmap](docs/roadmap.md): estado da primeira etapa.
+- [Roadmap](docs/roadmap.md): estado das etapas.
 - [Pacotes de trabalho](docs/work/README.md): divisão detalhada entre os seis
-  integrantes.
+  integrantes da VM.
+- [Segunda etapa — montador](docs/assembler/README.md): recorte, arquitetura de
+  duas passagens e divisão entre sete integrantes.
+- [Contratos do montador](docs/assembler/contracts.md): dialeto, interfaces,
+  tipos mínimos entregues, codificação e saída planejadas.
+- [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
+  diagnósticos e recuperação por linha implementados no pacote 1.
+- Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
+  professor para a segunda etapa, com o recorte SIC/XE explicitado na
+  documentação acima.
 - [Como contribuir](CONTRIBUTING.md): fluxo de branches, commits, revisão e
   critérios para integrar mudanças.
 

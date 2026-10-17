@@ -8,15 +8,18 @@ sua própria verificação.
 
 1. Atualize sua `main` local.
 2. Leia [a arquitetura da VM](docs/architecture.md) e a documentação do módulo
-   que será alterado.
+   que será alterado. Para a segunda etapa, leia também o
+   [índice](docs/assembler/README.md) e os [contratos](docs/assembler/contracts.md)
+   do montador.
 3. Confirme no [roadmap](docs/roadmap.md) a ordem atual do projeto.
-4. Leia o seu [pacote de trabalho](docs/work/README.md) e identifique ownership,
-   dependências e critérios de conclusão.
+4. Leia o seu pacote de trabalho: [VM](docs/work/README.md) ou
+   [montador](docs/assembler/README.md). Identifique ownership, dependências e
+   critérios de conclusão.
 
 Mudanças em interfaces compartilhadas devem ser combinadas com os integrantes
 afetados antes da implementação.
 
-## Fronteira obrigatória da VM
+## Fronteira obrigatória da VM e do montador
 
 A VM recebe somente bytes de código de máquina já codificados. Nenhuma mudança
 pode atribuir a ela responsabilidades de montador: interpretar assembly,
@@ -27,6 +30,12 @@ Texto hexadecimal pode ser aceito somente como representação dos bytes de
 entrada. Da mesma forma, um arquivo binário bruto é apenas uma sequência de bytes,
 não um arquivo objeto. A definição completa dessa fronteira está na
 [arquitetura da VM](docs/architecture.md#fronteira-entre-vm-e-montador).
+
+O montador da segunda etapa recebe assembly e produz bytes/listagem, mas não
+executa instruções nem entra em `Machine`, `MachineController` ou widgets.
+Não criar linker, loader de objeto nem relocação na VM para testar o montador:
+exportar `.bin` no endereço fixo e usar a entrada já existente. As escolhas
+de dialeto/saída estão em [contratos](docs/assembler/contracts.md).
 
 ## Branches
 
@@ -72,6 +81,8 @@ testes e documentação quando isso tornar a revisão mais clara.
 - Registre no pull request qualquer alteração necessária fora desse ownership.
 - Preserve a direção de dependências descrita em `docs/architecture.md`.
 - Mantenha o núcleo independente de Qt.
+- Na segunda etapa, mantenha `src/assembler/` independente de Qt e da
+  implementação da VM; testes podem verificar compatibilidade pelos bytes.
 - Regras de endereçamento pertencem ao `AddressResolver`; regras das operações
   pertencem ao `Executor`; somente a `Machine` coordena o ciclo completo.
 - Evite duplicar uma decisão arquitetural em mais de um documento. Atualize a
@@ -141,6 +152,8 @@ Um pull request está pronto para integração quando:
 - `clang-format` passa;
 - documentação afetada foi atualizada;
 - nenhuma responsabilidade de montador foi introduzida na VM;
+- nos PRs da segunda etapa, nenhum comportamento de VM foi introduzido no
+  montador e os [contratos](docs/assembler/contracts.md) foram preservados;
 - pendências conhecidas estão declaradas;
 - não existem alterações não relacionadas ao objetivo;
 - pelo menos um integrante fora do pacote revisou a mudança.

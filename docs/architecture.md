@@ -5,8 +5,10 @@
 Este documento apresenta a organização do simulador, a responsabilidade de
 cada módulo e o fluxo de execução de uma instrução.
 
-A VM executa programas SIC/XE já codificados. Tradução de assembly, geração
-de código objeto, linking e relocação não pertencem a este projeto.
+A VM executa programas SIC/XE já codificados. Tradução de assembly não
+pertence **à VM**: é responsabilidade do montador de duas passagens em
+desenvolvimento para a [segunda etapa](assembler/README.md). Linking, formato objeto para
+loader e relocação durante a carga não pertencem a nenhuma das duas etapas.
 
 ## Decisões de interpretação do enunciado
 
@@ -29,7 +31,7 @@ bruto ou escritos em representação hexadecimal; as duas formas representam a
 mesma entrada para a máquina.
 
 ```text
-assembly -- responsabilidade do montador --> bytes codificados
+assembly -- responsabilidade do montador --> bytes codificados + listagem
 bytes codificados -- responsabilidade da VM --> estado da máquina
 ```
 
@@ -40,6 +42,17 @@ símbolos ou registros de formato objeto, nem realizar linking ou relocação.
 Neste projeto, **arquivo binário bruto** significa apenas uma sequência de bytes
 copiada para a memória. Esse termo não é sinônimo de arquivo objeto, que poderia
 conter registros e informações a serem interpretados por um loader.
+
+O montador planejado exporta esse binário **para o endereço de carga
+declarado** e uma listagem. Não produz objeto textual `H/T/M/E`; a VM
+não lê registros de objeto nem aplica relocação. Veja os
+[contratos da segunda etapa](assembler/contracts.md).
+
+A base atual do montador é `sicxe_assembler`, com `SourceParser` e tipos
+de fonte/diagnóstico/resultado em `src/assembler/`. Essa biblioteca não
+depende de Qt nem de `SICXECore`; as passagens e saídas ainda estão
+planejadas. Seu comportamento implementado está em
+[fonte do montador](assembler/source.md).
 
 ## Visão geral
 

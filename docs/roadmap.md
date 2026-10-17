@@ -1,6 +1,6 @@
-# Roadmap da primeira etapa
+# Roadmap do projeto
 
-## Escopo
+## Escopo da primeira etapa — VM concluída
 
 Esta etapa entrega uma VM SIC/XE capaz de executar código de máquina já
 codificado e apresentar graficamente o estado da execução.
@@ -14,7 +14,7 @@ Não fazem parte desta etapa:
 - relocação;
 - instruções que não pertencem ao conjunto reconhecido pelo simulador.
 
-## Estado da implementação
+## Estado da implementação da VM
 
 ### Estrutura do projeto
 
@@ -112,7 +112,7 @@ Os cenários e o fluxo de demonstração estão em [demo.md](demo.md). A
 implementação da primeira etapa (VM) está concluída. Não há montador integrado
 nem instrução `HALT` sintética.
 
-## Estado dos pacotes
+## Estado dos pacotes da VM
 
 O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
 completa estão no [índice dos pacotes de trabalho](work/README.md).
@@ -121,7 +121,7 @@ Os pacotes 1 a 6 estão implementados e cobertos por testes locais. O workflow
 da CI está configurado para build, formatação e testes com Qt, e também
 build/testes do núcleo sem Qt. O pacote 6 também passou na CI remota.
 
-## Ordem de integração
+## Ordem de integração da VM
 
 1. O pacote 1 estabiliza os tipos arquiteturais e o operando resolvido.
 2. Os pacotes 2 e 3 implementam famílias independentes do executor.
@@ -133,3 +133,31 @@ build/testes do núcleo sem Qt. O pacote 6 também passou na CI remota.
 Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
 dependências estarem integradas, mas o merge funcional deve respeitar essa
 ordem.
+
+## Segunda etapa — montador de duas passagens em desenvolvimento
+
+O objetivo é transformar assembly SIC/XE em bytes de máquina e listagem por
+duas passagens, com imagem binária bruta fixa para teste na VM. O parser e
+os tipos mínimos do pacote 1 estão implementados e validados localmente;
+revisão cruzada e CI remota ainda estão pendentes. A montagem completa ainda
+depende dos pacotes 2–7. Seu recorte e suas exclusões estão no
+[índice da segunda etapa](assembler/README.md), com as interfaces em
+[contratos](assembler/contracts.md).
+
+Há sete pacotes, um PR por integrante:
+
+1. Fonte, diagnósticos e tipos compartilhados mínimos — implementados
+   localmente; veja [fonte do montador](assembler/source.md).
+2. Catálogo das 38 instruções, operandos e formato 2.
+3. Tabela de símbolos, referências e valores numéricos/simbólicos.
+4. Passagem 1 e contador de localização.
+5. Dados e reservas.
+6. Codificação das instruções XE.
+7. Passagem 2, binário/listagem, CLI e aceitação.
+
+O primeiro PR integra contratos e parser; depois 2 e 3 podem ser integrados
+independentemente, 4 usa ambos, 5 acrescenta dados ao intermediário, 6
+codifica instruções e 7 fecha a saída.
+Os sete integrantes podem trabalhar em paralelo nas respectivas branches,
+mas os merges funcionais respeitam dependências e CI verde. Nenhuma etapa
+introduz assembly na VM, linker ou loader de objeto.

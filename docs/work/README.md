@@ -1,8 +1,10 @@
-# Pacotes de trabalho
+# Pacotes de trabalho da primeira etapa — VM
 
 Esta pasta detalha a divisão, o ownership e os critérios de conclusão de cada
 pacote. Cada integrante deve ler [o guia de contribuição](../../CONTRIBUTING.md),
 a [arquitetura](../architecture.md) e somente então o documento do seu pacote.
+Os sete pacotes do montador ficam em [docs/assembler](../assembler/README.md);
+não reutilizar os números desta primeira etapa para a segunda.
 
 | Pacote | Responsabilidade | Dependência principal | Estado |
 | --- | --- | --- | --- |

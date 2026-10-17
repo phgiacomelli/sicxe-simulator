@@ -75,3 +75,37 @@ novos:
 ```bash
 ctest --test-dir build -R 'InterfaceTests|ProgramAcceptanceTests' --output-on-failure
 ```
+
+## Montador: pacote 1
+
+O alvo `AssemblerTests` liga somente `sicxe_assembler` e GoogleTest.
+`tests/assembler/SourceParserTest.cpp` cobre 22 casos de linhas físicas,
+campos, colunas, comentários, aspas, prefixos, vírgulas, recuperação após
+erro e independência/vida útil dos resultados. O parser é somente lexical;
+os testes também confirmam que ele deixa validações semânticas aos futuros
+catálogo, tabela de símbolos e codificadores.
+
+`tests/assembler/AssemblyContractTest.cpp` tem dois casos de consumo dos
+tipos de sucesso (imagem, listagem, reserva e símbolos) e falha (somente
+diagnósticos). Esses casos não afirmam que a montagem completa exista.
+
+Os 24 testes novos são registrados no CTest nas configurações com e sem
+Qt. Para executá-los após o build:
+
+```bash
+ctest --test-dir build -R 'SourceParserTest|AssemblyContractTest' --output-on-failure
+```
+
+A validação local do pacote 1 passou nos **247 testes com Qt**
+(`build/assembler-task1`, Debug) e nos **244 sem Qt**
+(`build/assembler-task1-core`, Release), em diretórios de build novos.
+As configurações reutilizaram a fonte GoogleTest existente em `build/_deps`
+por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de dependências.
+O `clang-format --dry-run --Werror` passou em todo `src/` e `tests/`,
+e o parser compilou com `-Wall -Wextra -Wpedantic -Werror`.
+CI remota e revisão cruzada continuam pendentes.
+
+Para build sem Qt, use a configuração de
+[program-input.md](program-input.md#build-e-integração); ela também compila
+o montador. O comportamento do parser está em
+[fonte do montador](assembler/source.md).
