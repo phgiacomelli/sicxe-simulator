@@ -51,6 +51,7 @@ enum class OperandDiagnosticCode {
     ValueOutOfRange,
     InvalidSymbolName,
     ReservedSymbolName,
+    DuplicateSymbol,
     SymbolNotAllowed,
     UndefinedSymbol,
 };
@@ -63,6 +64,8 @@ struct OperandDiagnostic {
 
     bool operator==(const OperandDiagnostic&) const = default;
 };
+
+AssemblyDiagnostic toAssemblyDiagnostic(const OperandDiagnostic& diagnostic);
 
 struct IntegerRange {
     std::int64_t min{};

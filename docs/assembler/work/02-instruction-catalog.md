@@ -21,6 +21,11 @@ Não mover a tabela da VM para o montador nem alterar o decoder para servir ao
 parser: os dois módulos têm responsabilidades distintas. Testes cruzados
 devem detectar divergência de opcodes e formatos.
 
+O pacote 3 já usa uma lista local dos 38 mnemônicos para impedir rótulos
+reservados. Ao entregar o catálogo, combinar com seu responsável a consulta
+de `SymbolTable` ao catálogo como fonte única desses nomes; manter as 8
+diretivas separadas, pois não são opcodes. Cobrir a integração com testes.
+
 O pacote 1 já oferece `assembler::SourceLine` e `ParsedStatement`;
 operação/rótulo possuem `SourceIdentifier::key` normalizada e `source`
 original. Consumir esses valores após `SourceParseResult::succeeded()`,

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
+#include <string>
 #include <string_view>
 
 namespace {
@@ -243,6 +244,20 @@ TEST(OperandValueTest, SupportsTwoPassReferenceAndResolutionWorkflowWithSourcePa
     EXPECT_EQ(std::get<OperandDiagnostic>(resolvedThird).code,
               OperandDiagnosticCode::UndefinedSymbol);
     EXPECT_EQ(std::get<OperandDiagnostic>(resolvedThird).position, (SourcePosition{3, 8}));
+}
+
+TEST(OperandValueTest, ConvertsErrorsToFinalAssemblyDiagnosticsWithoutSuccessPayload) {
+    const SourcePosition position{5, 8};
+    const auto overflow = parseValue("9223372036854775808", position);
+    ASSERT_TRUE(std::holds_alternative<OperandDiagnostic>(overflow));
+    const auto assemblyDiagnostic = toAssemblyDiagnostic(std::get<OperandDiagnostic>(overflow));
+    EXPECT_EQ(assemblyDiagnostic.code, AssemblyDiagnosticCode::IntegerOverflow);
+    EXPECT_EQ(assemblyDiagnostic.position, position);
+    EXPECT_FALSE(assemblyDiagnostic.message.empty());
+
+    const AssemblyResult result = AssemblyFailure{{assemblyDiagnostic}};
+    ASSERT_TRUE(std::holds_alternative<AssemblyFailure>(result));
+    EXPECT_EQ(std::get<AssemblyFailure>(result).diagnostics.front(), assemblyDiagnostic);
 }
 
 } // namespace

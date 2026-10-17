@@ -76,7 +76,9 @@ sem depender de configuração de editor ou locale.
 ## Diagnósticos e recuperação
 
 `AssemblyDiagnostic` contém `code`, `position` e `message`. Mensagens são
-apresentação humana; consumidores devem usar o enum e a posição.
+apresentação humana; consumidores devem usar o enum e a posição. Os códigos
+abaixo são os que o parser emite; [símbolos](symbols.md) documenta os códigos
+semânticos acrescentados ao mesmo enum pelo pacote 3.
 
 | Código | Posição apontada |
 | --- | --- |

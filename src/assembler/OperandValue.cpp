@@ -125,8 +125,10 @@ OperandDiagnostic mapSymbolDiagnostic(const SymbolDiagnostic& diagnostic) {
         case SymbolDiagnosticCode::ReservedSymbolName:
             code = OperandDiagnosticCode::ReservedSymbolName;
             break;
-        case SymbolDiagnosticCode::UndefinedSymbol:
         case SymbolDiagnosticCode::DuplicateSymbol:
+            code = OperandDiagnosticCode::DuplicateSymbol;
+            break;
+        case SymbolDiagnosticCode::UndefinedSymbol:
             code = OperandDiagnosticCode::UndefinedSymbol;
             break;
     }
@@ -134,6 +136,46 @@ OperandDiagnostic mapSymbolDiagnostic(const SymbolDiagnostic& diagnostic) {
 }
 
 } // namespace
+
+AssemblyDiagnostic toAssemblyDiagnostic(const OperandDiagnostic& diagnostic) {
+    AssemblyDiagnosticCode code{};
+    switch (diagnostic.code) {
+        case OperandDiagnosticCode::EmptyOperand:
+            code = AssemblyDiagnosticCode::EmptyOperand;
+            break;
+        case OperandDiagnosticCode::UnsupportedExpression:
+            code = AssemblyDiagnosticCode::UnsupportedExpression;
+            break;
+        case OperandDiagnosticCode::InvalidInteger:
+            code = AssemblyDiagnosticCode::InvalidInteger;
+            break;
+        case OperandDiagnosticCode::IntegerOverflow:
+            code = AssemblyDiagnosticCode::IntegerOverflow;
+            break;
+        case OperandDiagnosticCode::NegativeValueNotAllowed:
+            code = AssemblyDiagnosticCode::NegativeValueNotAllowed;
+            break;
+        case OperandDiagnosticCode::ValueOutOfRange:
+            code = AssemblyDiagnosticCode::ValueOutOfRange;
+            break;
+        case OperandDiagnosticCode::InvalidSymbolName:
+            code = AssemblyDiagnosticCode::InvalidSymbolName;
+            break;
+        case OperandDiagnosticCode::ReservedSymbolName:
+            code = AssemblyDiagnosticCode::ReservedSymbolName;
+            break;
+        case OperandDiagnosticCode::DuplicateSymbol:
+            code = AssemblyDiagnosticCode::DuplicateSymbol;
+            break;
+        case OperandDiagnosticCode::SymbolNotAllowed:
+            code = AssemblyDiagnosticCode::SymbolNotAllowed;
+            break;
+        case OperandDiagnosticCode::UndefinedSymbol:
+            code = AssemblyDiagnosticCode::UndefinedSymbol;
+            break;
+    }
+    return AssemblyDiagnostic{code, diagnostic.position, diagnostic.message};
+}
 
 OperandParseResult parseValue(std::string_view token, SourcePosition position) {
     if (token.empty()) {

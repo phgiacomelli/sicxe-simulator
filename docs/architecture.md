@@ -48,11 +48,11 @@ declarado** e uma listagem. Não produz objeto textual `H/T/M/E`; a VM
 não lê registros de objeto nem aplica relocação. Veja os
 [contratos da segunda etapa](assembler/contracts.md).
 
-A base atual do montador é `sicxe_assembler`, com `SourceParser` e tipos
-de fonte/diagnóstico/resultado em `src/assembler/`. Essa biblioteca não
-depende de Qt nem de `SICXECore`; as passagens e saídas ainda estão
-planejadas. Seu comportamento implementado está em
-[fonte do montador](assembler/source.md).
+A base atual do montador é `sicxe_assembler`, com `SourceParser`, os tipos
+de fonte/diagnóstico/resultado, `SymbolTable` e `OperandValue` em
+`src/assembler/`. Essa biblioteca não depende de Qt nem de `SICXECore`;
+as passagens e saídas ainda estão planejadas. O comportamento implementado
+está em [fonte](assembler/source.md) e [símbolos](assembler/symbols.md).
 
 ## Visão geral
 

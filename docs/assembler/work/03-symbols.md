@@ -1,7 +1,6 @@
 # Pacote 3 — Símbolos e valores de operandos
 
-Estado: implementado e validado localmente; revisão cruzada e CI remota
-pendentes.
+Estado: implementado e validado; integração com as passagens pendente.
 
 ## Resultado esperado
 
@@ -67,11 +66,14 @@ de montador ao `RegisterFile` da VM.
 
 ## Critério de conclusão
 
-- [x] Passagens 1 e 2 consultam a mesma tabela por interface estável.
+- [x] Interface estável permite registrar na passagem 1 e consultar na passagem 2.
 - [x] Referências futuras, duplicados, indefinidos e números têm testes.
 - [x] `docs/assembler/symbols.md` documenta regras e diagnósticos.
 - [x] Build, formatação e CTest locais passam com e sem Qt.
-- [ ] CI remota verde e revisão cruzada.
+- [x] CI remota verde e revisão cruzada.
+
+A integração efetiva com as passagens 1 e 2 pertence aos pacotes 4 e 7;
+essas passagens ainda não existem neste PR.
 
 ## Registro do PR
 
@@ -97,3 +99,6 @@ Decisões implementadas:
 - `validateInteger()`, `parseKnownInteger()`, `referenceOperand()` e
   `resolveOperand()` permitem ao consumidor parametrizar aceitação de sinal,
   faixa numérica e permissão de símbolo futuro.
+- diagnósticos de símbolos e operandos são convertidos para
+  `AssemblyDiagnostic`, sem publicar bytes parciais; a grafia original da
+  definição é preservada na mensagem de redefinição.

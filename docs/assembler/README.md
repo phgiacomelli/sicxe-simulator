@@ -1,7 +1,6 @@
 # Segunda etapa — montador SIC/XE de duas passagens
 
-Estado: pacotes 1 e 3 implementados e validados localmente; revisão cruzada e
-CI remota pendentes. Pacotes 2 e 4–7 planejados.
+Estado: pacotes 1 e 3 implementados; pacotes 2 e 4–7 planejados.
 
 As duas referências, distribuídas à equipe fora do Git, têm papéis diferentes:
 `PRIMEIRO_TRABALHO_SIC_XE.pdf` define a **máquina SIC/XE deste projeto**
@@ -84,9 +83,9 @@ tarefa de documentação ou de integração alheia.
 
 | Pacote | Entrega principal | Dependências de merge | Estado |
 | --- | --- | --- | --- |
-| [1 — Fonte e contratos](work/01-source-parser.md) | Parser, linhas e diagnósticos | Nenhuma; primeiro PR | Implementado localmente; revisão/CI pendentes |
+| [1 — Fonte e contratos](work/01-source-parser.md) | Parser, linhas e diagnósticos | Nenhuma; primeiro PR | Integrado |
 | [2 — ISA e operandos](work/02-instruction-catalog.md) | Catálogo de 38 instruções e formato 2 | 1 | Planejado |
-| [3 — Símbolos](work/03-symbols.md) | Definições, referências e valores numéricos/simbólicos | 1 | Implementado localmente; revisão/CI pendentes |
+| [3 — Símbolos](work/03-symbols.md) | Definições, referências e valores numéricos/simbólicos | 1 | Implementado |
 | [4 — Passagem 1](work/04-pass-one.md) | Contador, rótulos, `START`/`END` e intermediário | 1, 2, 3 | Planejado |
 | [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Planejado |
 | [6 — Codificação XE](work/06-instruction-encoding.md) | Formatos 3/4 e modos de endereçamento | 1, 2, 3, 4, 5 | Planejado |

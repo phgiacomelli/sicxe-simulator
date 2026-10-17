@@ -23,7 +23,8 @@ const auto value = assembler::parseValue("0x1000", {1, 12});
   `SourceIdentifier`) insere o rótulo uma única vez com seu endereço em
   **bytes** e a `SourcePosition` original; tentativa de redefinição preserva a
   primeira entrada e retorna `SymbolDiagnostic` com a posição da redefinição em
-  `position` e a definição original em `previousDefinition`.
+  `position` e a definição original em `previousDefinition`. A grafia da
+  primeira definição também é preservada para a mensagem desse erro.
 - `SymbolTable::reference(label, position)` registra o uso do rótulo em ordem
   física; referências futuras permanecem pendentes sem receber endereço falso
   provisório.
@@ -42,6 +43,11 @@ const auto value = assembler::parseValue("0x1000", {1, 12});
   `resolveOperand` permitem ao consumidor exigir inteiro já conhecido na
   passagem 1 (`START`, `RESB`, `RESW`) ou aceitar rótulo anterior/futuro com
   faixa numérica específica (`WORD`, `BASE`, `END` e instruções).
+- `toAssemblyDiagnostic(SymbolDiagnostic)` e
+  `toAssemblyDiagnostic(OperandDiagnostic)` convertem erros desses módulos
+  para o contrato final `AssemblyDiagnostic`, mantendo código tipado,
+  posição e mensagem. O consumidor reúne esses erros em `AssemblyFailure`;
+  nenhuma conversão produz bytes ou listagem parciais.
 
 ## Regras de nomes e palavras reservadas
 
@@ -103,8 +109,13 @@ const auto value = assembler::parseValue("0x1000", {1, 12});
 | `ValueOutOfRange` | Inteiro fora do intervalo `[min, max]` exigido pelo consumidor |
 | `InvalidSymbolName` | Token simbólico fora do padrão `[A-Za-z][A-Za-z0-9_]*` |
 | `ReservedSymbolName` | Token simbólico colide com mnemônico ou diretiva |
+| `DuplicateSymbol` | Redefinição repassada por um consumidor de símbolos |
 | `SymbolNotAllowed` | Símbolo fornecido onde o consumidor exige inteiro conhecido na passagem 1 |
 | `UndefinedSymbol` | Símbolo resolvido na passagem 2 sem definição na `SymbolTable` |
+
+`AssemblyDiagnosticCode` possui os códigos correspondentes acima para que
+falhas de símbolo e operando possam integrar `AssemblyFailure`. Os códigos
+lexicais do parser continuam documentados em [fonte](source.md).
 
 ## Verificação
 

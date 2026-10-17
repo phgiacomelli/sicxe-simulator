@@ -32,6 +32,8 @@ struct SymbolDiagnostic {
     bool operator==(const SymbolDiagnostic&) const = default;
 };
 
+AssemblyDiagnostic toAssemblyDiagnostic(const SymbolDiagnostic& diagnostic);
+
 struct SymbolReference {
     std::string name;
     std::string source;
@@ -72,6 +74,7 @@ public:
 
 private:
     std::vector<AssemblySymbol> symbols_;
+    std::vector<std::string> definitionSources_;
     std::unordered_map<std::string, std::size_t> indexByName_;
     std::vector<SymbolReference> references_;
 };

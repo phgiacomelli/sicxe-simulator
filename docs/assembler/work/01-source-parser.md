@@ -1,7 +1,7 @@
 # Pacote 1 — Fonte, diagnósticos e contratos mínimos
 
-Estado: implementado e validado localmente; revisão cruzada e CI remota
-pendentes.
+Estado: integrado na `main` pelo PR #23; CI verde. A revisão cruzada dos
+contratos pelos pacotes consumidores foi dispensada no merge.
 
 ## Resultado esperado
 
@@ -61,11 +61,12 @@ instruções vermelhas.
 
 ## Critério de conclusão
 
-- [ ] Contratos mínimos revisados pelos responsáveis dos pacotes 2, 4 e 7.
+- [ ] Contratos mínimos revisados pelos responsáveis dos pacotes 2, 4 e 7
+  (dispensado para o merge do PR #23; recomendado antes da integração final).
 - [x] Parser e diagnósticos estruturados testados via interface pública.
 - [x] `docs/assembler/source.md` documenta a gramática efetiva e os erros.
 - [x] Build, formatação e CTest locais passam com e sem Qt.
-- [ ] CI remota verde e revisão externa dos contratos.
+- [x] CI remota verde.
 
 ## Registro do PR
 
@@ -94,6 +95,6 @@ O resultado local da suíte completa está em [testes](../../testing.md#montador
 Não foi necessário alterar regras arquiteturais dos PDFs. Gramática e
 decisões de fonte seguem [contratos](../contracts.md), com os tipos
 efetivos em [source.md](../source.md). As interfaces das passagens,
-codificadores, writers e CLI ainda não foram implementadas. Este trabalho
-local não substitui revisão dos responsáveis dos pacotes 2, 4 e 7 nem
-evidência de CI remota.
+codificadores, writers e CLI ainda não foram implementadas. O PR #23 foi
+integrado com CI verde; a revisão dos responsáveis dos pacotes 2, 4 e 7 não
+foi registrada e segue recomendada aos consumidores.
