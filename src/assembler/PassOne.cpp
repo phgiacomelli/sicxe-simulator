@@ -90,7 +90,14 @@ constexpr std::array<std::string_view, 46> ReservedNames = {
 };
 
 constexpr std::array<std::string_view, 8> ValidRegisters = {
-    "A", "B", "L", "PC", "S", "SW", "T", "X",
+    "A",
+    "B",
+    "L",
+    "PC",
+    "S",
+    "SW",
+    "T",
+    "X",
 };
 
 bool isHorizontalSpace(char character) {
@@ -142,13 +149,12 @@ bool isValidRegisterName(std::string_view text) {
 }
 
 const InstructionSpec* findInstructionSpec(std::string_view mnemonic) {
-    const auto it = std::lower_bound(
-        InstructionSpecs.begin(),
-        InstructionSpecs.end(),
-        mnemonic,
-        [](const InstructionSpec& spec, std::string_view target) {
-            return spec.mnemonic < target;
-        });
+    const auto it = std::lower_bound(InstructionSpecs.begin(),
+                                     InstructionSpecs.end(),
+                                     mnemonic,
+                                     [](const InstructionSpec& spec, std::string_view target) {
+                                         return spec.mnemonic < target;
+                                     });
     if (it != InstructionSpecs.end() && it->mnemonic == mnemonic) {
         return &(*it);
     }
@@ -426,9 +432,8 @@ bool validateFormat2Operand(InstructionOperandPattern pattern, const SourceField
 }
 
 #if SICXE_ASSEMBLER_HAS_SYMBOL_PACKAGE
-std::optional<OperandDiagnostic> referenceOperand(const OperandValue& value,
-                                                  PassOneSymbolTracker& symbols,
-                                                  IntegerRange range) {
+std::optional<OperandDiagnostic>
+referenceOperand(const OperandValue& value, PassOneSymbolTracker& symbols, IntegerRange range) {
     if (const auto* symbol = std::get_if<SymbolOperand>(&value)) {
         if (!symbols.reference(symbol->source, symbol->position)) {
             return OperandDiagnostic{
@@ -448,9 +453,8 @@ std::optional<OperandDiagnostic> referenceOperand(const OperandValue& value,
 }
 #endif
 
-std::optional<PassOneDiagnostic> validateAndReferenceMemoryOperand(
-    const SourceField& operandField,
-    PassOneSymbolTracker& symbols) {
+std::optional<PassOneDiagnostic> validateAndReferenceMemoryOperand(const SourceField& operandField,
+                                                                   PassOneSymbolTracker& symbols) {
     std::string_view raw = operandField.text;
     std::size_t offset = 0;
     if (raw.empty()) {
@@ -680,8 +684,7 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
         const ParsedStatement& statement = *line.statement;
         const std::string_view operationKey = statement.operation.key;
         const bool extended = !operationKey.empty() && operationKey.front() == '+';
-        const std::string_view mnemonic =
-            extended ? operationKey.substr(1) : operationKey;
+        const std::string_view mnemonic = extended ? operationKey.substr(1) : operationKey;
         const SourcePosition operationPosition = statement.operation.source.position;
 
         if (hasSeenEnd) {
@@ -762,8 +765,7 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
                     statement.operand->position.line,
                     statement.operand->position.column + trimmedStart.offset,
                 };
-                const auto parsedStart =
-                    parseUnsignedInteger(trimmedStart.text, MaxMemoryAddress);
+                const auto parsedStart = parseUnsignedInteger(trimmedStart.text, MaxMemoryAddress);
                 if (!parsedStart.has_value()) {
                     result.diagnostics.push_back(PassOneDiagnostic{
                         PassOneDiagnosticCode::InvalidStartOperand,
@@ -815,8 +817,7 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
                         });
                         layoutValid = false;
                     } else if (const auto labelDiag = symbols.define(
-                                   *statement.label,
-                                   static_cast<std::uint32_t>(locationCounter))) {
+                                   *statement.label, static_cast<std::uint32_t>(locationCounter))) {
                         result.diagnostics.push_back(*labelDiag);
                     }
                 }
@@ -1000,8 +1001,8 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
         }
 
         if (statement.label.has_value()) {
-            if (const auto labelDiag = symbols.define(
-                    *statement.label, static_cast<std::uint32_t>(locationCounter))) {
+            if (const auto labelDiag =
+                    symbols.define(*statement.label, static_cast<std::uint32_t>(locationCounter))) {
                 result.diagnostics.push_back(*labelDiag);
             }
         }
@@ -1039,8 +1040,8 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
                 result.diagnostics.push_back(PassOneDiagnostic{
                     PassOneDiagnosticCode::InvalidInstructionOperand,
                     statement.operand->position,
-                    "Operando invalido para instrucao de formato 2 '" +
-                        std::string{mnemonic} + "'.",
+                    "Operando invalido para instrucao de formato 2 '" + std::string{mnemonic} +
+                        "'.",
                     std::nullopt,
                 });
             }

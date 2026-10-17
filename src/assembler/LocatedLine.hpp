@@ -67,4 +67,3 @@ struct LocatedLine {
 };
 
 } // namespace assembler
-
