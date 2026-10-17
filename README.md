@@ -66,6 +66,9 @@ registrada na [arquitetura](docs/architecture.md).
   tipos mínimos entregues, codificação e saída planejadas.
 - [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
   diagnósticos e recuperação por linha implementados no pacote 1.
+- [Símbolos e valores de operandos](docs/assembler/symbols.md): tabela de
+  rótulos locais, referências, resolução e leitura de inteiros/rótulos do
+  pacote 3.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
