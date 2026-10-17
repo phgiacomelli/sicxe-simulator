@@ -84,6 +84,10 @@ add_library(sicxe_assembler STATIC
     src/assembler/SourceLine.hpp
     src/assembler/AssemblyDiagnostic.hpp
     src/assembler/AssemblyResult.hpp
+    src/assembler/SymbolTable.cpp
+    src/assembler/SymbolTable.hpp
+    src/assembler/OperandValue.cpp
+    src/assembler/OperandValue.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
