@@ -296,8 +296,7 @@ TEST(PassOneTest, ReportsUnknownOperationInvalidExtendedFormatMissingEndAndState
             const auto result = runSource(badExtended);
             EXPECT_FALSE(result.succeeded());
             ASSERT_EQ(result.diagnostics.size(), 1U);
-            EXPECT_EQ(result.diagnostics[0].code,
-                      PassOneDiagnosticCode::ExtendedFormatNotAllowed);
+            EXPECT_EQ(result.diagnostics[0].code, PassOneDiagnosticCode::ExtendedFormatNotAllowed);
             EXPECT_EQ(result.diagnostics[0].position, (SourcePosition{1, 3}));
         }
     }
