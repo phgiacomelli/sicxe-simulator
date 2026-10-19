@@ -1,6 +1,6 @@
 # Pacote 4 — Passagem 1 e contador de localização
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado; integração de diretivas de dados pendente do pacote 5.
 
 ## Resultado esperado
 
@@ -69,12 +69,41 @@ Não carregar bytes na `Machine`.
 
 ## Critério de conclusão
 
-- [ ] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
-- [ ] `START`, `END`, labels, limites e erros possuem testes.
-- [ ] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
+- [x] `START`, `END`, labels, limites e erros possuem testes.
+- [x] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `LocatedLine.hpp`, `PassOne.hpp` e `PassOne.cpp` no namespace
+`assembler`, com testes em `PassOneTest.cpp` e documentação em
+[pass-one.md](../pass-one.md). Nenhum contrato público existente dos pacotes
+1, 2 e 3 ou da VM foi alterado.
+
+Decisões implementadas:
+
+- `PassOne::run` consome `SourceParseResult` ou `std::span<const SourceLine>`,
+  recusando montagem parcial quando há falhas sintáticas ou linhas `Invalid`;
+- consulta `findInstruction` e `parseInstructionOperand` do pacote 2 como fonte
+  única dos 38 mnemônicos, formatos (`2`, `3` e `4`) e validação de operandos
+  de instruções;
+- utiliza `SymbolTable`, `parseValue`, `parseKnownInteger` e `referenceOperand`
+  do pacote 3 para definir rótulos, registrar referências anteriores/futuras na
+  ordem física e validar inteiros em `Address20BitRange`;
+- avança `LOCCTR` com aritmética de 64 bits sem *wrap-around*, aceitando até o
+  último byte válido (`0xFFFFF`) e reportando `AddressOutOfRange` a partir de
+  `0x100000`;
+- preserva `BASE`, `NOBASE` e comentários na ordem original com `sizeBytes = 0`;
+- rejeita explicitamente `BYTE`, `WORD`, `RESB` e `RESW` com
+  `PassOneDiagnosticCode::DataDirectiveNotIntegrated`, sem definir o rótulo ou
+  publicar uma linha de tamanho desconhecido; o cálculo de dados e reservas
+  permanece para integração pelo pacote 5;
+- limites de endereço do layout e de `Address20BitRange` compartilham a definição
+  em `AddressLimits.hpp`, sem alterar os valores ou as assinaturas do pacote 3.
+
+Na revisão do PR #27, o teste de rejeição das quatro diretivas foi reforçado e
+reproduziu a publicação indevida de símbolo/linha de tamanho zero antes da
+correção. Após o ajuste, builds limpos Release passaram em 356 testes sem Qt e
+359 com Qt, incluindo os 11 testes de `PassOneTest`. Formatação e
+`git diff --check` passaram. A CI e o parecer externo são registrados no PR.

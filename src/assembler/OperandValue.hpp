@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AddressLimits.hpp"
 #include "AssemblyDiagnostic.hpp"
 #include "SourceLine.hpp"
 #include "SymbolTable.hpp"
@@ -76,7 +77,7 @@ struct IntegerRange {
 };
 
 inline constexpr IntegerRange Address12BitRange{0, 0xFFF, false};
-inline constexpr IntegerRange Address20BitRange{0, 0xFFFFF, false};
+inline constexpr IntegerRange Address20BitRange{0, MaxAddressableByte, false};
 inline constexpr IntegerRange Word24BitRange{-0x800000, 0xFFFFFF, true};
 inline constexpr IntegerRange NonNegativeIntegerRange{
     0, std::numeric_limits<std::int64_t>::max(), false};

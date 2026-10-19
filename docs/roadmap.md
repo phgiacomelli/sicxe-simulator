@@ -137,9 +137,10 @@ ordem.
 ## Segunda etapa — montador de duas passagens em desenvolvimento
 
 O objetivo é transformar assembly SIC/XE em bytes de máquina e listagem por
-duas passagens, com imagem binária bruta fixa para teste na VM. Os pacotes 1–3
+duas passagens, com imagem binária bruta fixa para teste na VM. Os pacotes 1–4
 estão implementados, incluindo o catálogo como fonte de mnemônicos reservados
-para símbolos. A montagem completa ainda depende dos pacotes 4–7.
+para símbolos e a passagem 1 com contador de localização e intermediário
+`LocatedLine`. A montagem completa ainda depende dos pacotes 5–7.
 Seu recorte e suas exclusões estão no [índice da segunda etapa](assembler/README.md),
 com as interfaces em [contratos](assembler/contracts.md).
 
@@ -151,7 +152,8 @@ Há sete pacotes, um PR por integrante:
    integrados aos símbolos; veja [ISA do montador](assembler/isa.md).
 3. Tabela de símbolos, referências e valores numéricos/simbólicos —
    implementados; veja [símbolos do montador](assembler/symbols.md).
-4. Passagem 1 e contador de localização.
+4. Passagem 1 e contador de localização — implementados; veja
+   [passagem 1 do montador](assembler/pass-one.md).
 5. Dados e reservas.
 6. Codificação das instruções XE.
 7. Passagem 2, binário/listagem, CLI e aceitação.
