@@ -1,6 +1,6 @@
 # Pacote 4 — Passagem 1 e contador de localização
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado; integração de diretivas de dados pendente do pacote 5.
 
 ## Resultado esperado
 
@@ -69,12 +69,32 @@ Não carregar bytes na `Machine`.
 
 ## Critério de conclusão
 
-- [ ] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
-- [ ] `START`, `END`, labels, limites e erros possuem testes.
-- [ ] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Cada instrução tem endereço/tamanho estáveis para a segunda passagem.
+- [x] `START`, `END`, labels, limites e erros possuem testes.
+- [x] `docs/assembler/pass-one.md` mostra um intermediário SIC/XE real.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `LocatedLine.hpp`, `PassOne.hpp` e `PassOne.cpp` no namespace
+`assembler`, com testes em `PassOneTest.cpp` e documentação em
+[pass-one.md](../pass-one.md). Nenhum contrato público existente dos pacotes
+1, 2 e 3 ou da VM foi alterado.
+
+Decisões implementadas:
+
+- `PassOne::run` consome `SourceParseResult` ou `std::span<const SourceLine>`,
+  recusando montagem parcial quando há falhas sintáticas ou linhas `Invalid`;
+- consulta `findInstruction` e `parseInstructionOperand` do pacote 2 como fonte
+  única dos 38 mnemônicos, formatos (`2`, `3` e `4`) e validação de operandos
+  de instruções;
+- utiliza `SymbolTable`, `parseValue`, `parseKnownInteger` e `referenceOperand`
+  do pacote 3 para definir rótulos, registrar referências anteriores/futuras na
+  ordem física e validar inteiros em `Address20BitRange`;
+- avança `LOCCTR` com aritmética de 64 bits sem *wrap-around*, aceitando até o
+  último byte válido (`0xFFFFF`) e reportando `AddressOutOfRange` a partir de
+  `0x100000`;
+- preserva `BASE`, `NOBASE` e comentários na ordem original com `sizeBytes = 0`;
+- rejeita explicitamente `BYTE`, `WORD`, `RESB` e `RESW` com
+  `PassOneDiagnosticCode::DataDirectiveNotIntegrated` sem inventar tamanho `0`,
+  deixando o cálculo de tamanho de dados e reservas para integração pelo pacote 5.

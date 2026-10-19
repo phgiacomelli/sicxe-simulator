@@ -197,3 +197,27 @@ ctest --test-dir build/assembler-package2 --output-on-failure \
 ```
 
 As interfaces e a conversão dos diagnósticos estão em [ISA](assembler/isa.md).
+
+## Montador: pacote 4
+
+`tests/assembler/PassOneTest.cpp` exercita a passagem 1 e o contador de
+localização no alvo `AssemblerTests`:
+
+- endereços e tamanhos sequenciais para instruções de formatos 2, 3 e 4 (`+`) e `RSUB`;
+- referências futuras preservadas na `SymbolTable` sem alterar o tamanho fixado na passagem 1;
+- `START` presente/ausente, rótulo inicial de programa e `END` com ou sem rótulo de entrada (`initialPc`);
+- preservação de `BASE`, `NOBASE` e linhas de comentário na ordem original sem incrementar o `LOCCTR`;
+- diagnósticos de símbolo duplicado (com `previousDefinition`), símbolo indefinido e colisão com nome reservado;
+- rejeição de instruções fora do recorte (`ADDF`, `HALT`, `EQU`, `ORG`), `+` inválido, falta de `END`, declarações após `END` e `START`/`END` duplicados ou fora de lugar;
+- validação do último byte endereçável (`0xFFFFF`), próximo endereço inválido (`0x100000`) e overflow sem *wrap-around*;
+- rejeição explícita de `BYTE`, `WORD`, `RESB` e `RESW` antes da integração do pacote 5, sem inventar tamanho `0`;
+- recusa de montagem parcial quando `SourceParser::parse` reporta falha sintática e reconhecimento das 38 instruções da VM.
+
+Para executar os testes do pacote 4 após o build:
+
+```bash
+ctest --test-dir build -R 'PassOneTest' --output-on-failure
+```
+
+O contrato do intermediário `LocatedLine` e os códigos de diagnóstico da
+passagem 1 estão em [passagem 1 do montador](assembler/pass-one.md).

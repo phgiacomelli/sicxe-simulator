@@ -94,6 +94,9 @@ add_library(sicxe_assembler STATIC
     src/assembler/InstructionOperand.hpp
     src/assembler/Format2Encoder.cpp
     src/assembler/Format2Encoder.hpp
+    src/assembler/LocatedLine.hpp
+    src/assembler/PassOne.cpp
+    src/assembler/PassOne.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -171,6 +174,7 @@ if(BUILD_TESTING)
         tests/assembler/InstructionCatalogTest.cpp
         tests/assembler/InstructionOperandTest.cpp
         tests/assembler/Format2EncoderTest.cpp
+        tests/assembler/PassOneTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)

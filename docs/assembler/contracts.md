@@ -2,10 +2,12 @@
 
 Estado: fonte e tipos mínimos implementados no pacote 1; símbolos e valores
 de operandos implementados no pacote 3; catálogo, operandos de instrução e
-codificação de formato 2 implementados no pacote 2. `SymbolTable` consulta o
-catálogo como fonte única de mnemônicos reservados, mantendo as oito diretivas
-separadas. As passagens e a geração de bytes de formatos 3/4 permanecem planejadas.
-Comportamento e divisão de ownership exigem acordo dos consumidores.
+codificação de formato 2 implementados no pacote 2; passagem 1 e contador de
+localização (`LocatedLine` e `PassOne`) implementados no pacote 4. `SymbolTable`
+consulta o catálogo como fonte única de mnemônicos reservados, mantendo as oito
+diretivas separadas. As diretivas de dados, geração de bytes de formatos 3/4 e a
+segunda passagem permanecem planejadas. Comportamento e divisão de ownership
+exigem acordo dos consumidores.
 
 ## Fonte de verdade
 
@@ -56,12 +58,14 @@ As formas C++ da fonte, seus erros e a recuperação por linha estão em
 [fonte e contratos mínimos](source.md). O pacote 3 entrega `SymbolTable`
 e `OperandValue`, documentados em [símbolos](symbols.md). Seus diagnósticos
 tipados são convertidos para `AssemblyDiagnostic` antes de compor
-`AssemblyFailure`. `LocatedLine` e `assemble()` ainda serão implementados
-pelos pacotes seguintes. O pacote 2 acrescenta `InstructionSpec`,
+`AssemblyFailure`. O pacote 2 acrescenta `InstructionSpec`,
 `InstructionOperand` e `InstructionDiagnostic`, documentados em [ISA](isa.md),
 sem alterar campos ou assinaturas dos tipos existentes. O token do valor de
 memória é preservado como `SourceField` para o pacote 3/6; apenas contagens de
-shift são convertidas, usando `parseKnownInteger` existente.
+shift são convertidas, usando `parseKnownInteger` existente. O pacote 4 entrega
+`LocatedLine`, `PassOne` e `PassOneResult`, documentados em
+[passagem 1](pass-one.md); `assemble()` e a passagem 2 ainda serão
+implementados pelos pacotes seguintes.
 
 ## Dialeto mínimo da fonte
 
