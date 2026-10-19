@@ -9,10 +9,11 @@ bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
 A segunda etapa está em desenvolvimento em [montador de duas passagens](docs/assembler/README.md).
-O parser de fonte, os contratos mínimos, os símbolos e o pacote de
-[catálogo/operandos/formato 2](docs/assembler/isa.md) têm implementação em C++20.
+O parser de fonte, os contratos mínimos, os símbolos, o pacote de
+[catálogo/operandos/formato 2](docs/assembler/isa.md) e a
+[passagem 1 e contador de localização](docs/assembler/pass-one.md) têm implementação em C++20.
 O catálogo também é a fonte única dos mnemônicos reservados na tabela de símbolos.
-As duas passagens e a geração de programas ainda dependem dos próximos pacotes.
+As diretivas de dados, formatos 3/4, segunda passagem e geração de programas ainda dependem dos próximos pacotes.
 
 ## Tecnologias
 
@@ -68,9 +69,14 @@ registrada na [arquitetura](docs/architecture.md).
   tipos mínimos entregues, codificação e saída planejadas.
 - [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
   diagnósticos e recuperação por linha implementados no pacote 1.
+- [Catálogo da ISA, operandos e formato 2](docs/assembler/isa.md): tabela das 38
+  instruções, validação de operandos e codificação de formato 2 do pacote 2.
 - [Símbolos e valores de operandos](docs/assembler/symbols.md): tabela de
   rótulos locais, referências, resolução e leitura de inteiros/rótulos do
   pacote 3.
+- [Passagem 1 e contador de localização](docs/assembler/pass-one.md): cálculo de
+  endereços, tamanhos de instruções, `START`/`END`/`BASE`/`NOBASE` e
+  intermediário `LocatedLine` do pacote 4.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
