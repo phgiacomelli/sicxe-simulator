@@ -170,12 +170,12 @@ pelos pacotes 1/3 sem coordenação. Nenhuma assinatura existente foi alterada.
 
 ## Integração e validação
 
-A [revisão aprovada do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589) registra a unificação dos nomes
-reservados com o catálogo para o pacote 2. A implementação de `SymbolTable`
-e seus testes de integração permanecem pendentes para avaliação/correção pelo
-agente do chefe. As oito diretivas devem continuar separadas dos opcodes.
-A nova consulta já pode ser consumida sem depender da implementação da VM;
-a integração ainda não é considerada concluída.
+A integração prevista na [revisão do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589)
+está implementada: `SymbolTable` usa o catálogo como fonte única dos 38
+mnemônicos em `isReservedName`, `define`, `reference` e `resolve`.
+`parseValue` usa a mesma regra por meio de `isReservedName`. Somente as oito
+diretivas permanecem em uma lista separada; o catálogo não depende da tabela
+de símbolos nem da implementação da VM.
 
 Os testes em `InstructionCatalogTest`, `InstructionOperandTest`,
 `Format2EncoderTest` e `Format2DecoderTest` verificam a tabela exata, tamanhos,

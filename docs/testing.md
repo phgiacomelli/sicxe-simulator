@@ -176,17 +176,24 @@ cmake --build build/assembler-package2-core --parallel 4
 ctest --test-dir build/assembler-package2-core --output-on-failure -j 4
 ```
 
-Resultado: **345 testes com Qt** e **342 sem Qt**, todos aprovados, nenhum
-ignorado. Formatação restrita aos novos arquivos e `git diff --check`
-aprovados. A CI remota e a revisão externa ainda não foram verificadas.
-A integração de `SymbolTable` ao catálogo depende de coordenação, conforme
-[registro do pacote](assembler/work/02-instruction-catalog.md#registro-do-pr).
+Resultado inicial: **345 testes com Qt** e **342 sem Qt**, todos aprovados,
+nenhum ignorado. Na revisão do PR #26, a integração de `SymbolTable` ao catálogo
+recebeu três testes adicionais: todos os 38 mnemônicos em diferentes caixas
+pelas interfaces de símbolos e valores, diretivas separadas, nomes inválidos
+e identificadores não reservados. Os testes também verificam que falhas não
+inserem definições ou referências.
+
+Após essa integração, builds limpos Release no Fedora com GCC 15.3.1 passaram
+em **348 testes com Qt** e **345 sem Qt**. A fonte GoogleTest existente foi
+reutilizada via `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`; não houve instalação de
+dependências. Formatação dos arquivos alterados e `git diff --check` passaram.
+A CI e a revisão estão no [PR #26](https://github.com/phgiacomelli/sicxe-simulator/pull/26).
 
 Para rodar só os testes novos após o build:
 
 ```bash
 ctest --test-dir build/assembler-package2 --output-on-failure \
-  -R 'InstructionCatalog|InstructionOperand|Format2'
+  -R 'InstructionCatalog|InstructionOperand|Format2|SymbolTableTest'
 ```
 
 As interfaces e a conversão dos diagnósticos estão em [ISA](assembler/isa.md).

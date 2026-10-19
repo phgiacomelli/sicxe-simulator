@@ -1,7 +1,7 @@
 # Pacote 2 — Catálogo da ISA, operandos e formato 2
 
-Estado: implementado e validado localmente; coordenação de símbolos, CI remota
-e revisão externa pendentes. Ainda não concluído para integração.
+Estado: implementado e integrado aos símbolos. Validação e revisão registradas
+no [PR #26](https://github.com/phgiacomelli/sicxe-simulator/pull/26).
 
 ## Resultado esperado
 
@@ -22,10 +22,10 @@ Não mover a tabela da VM para o montador nem alterar o decoder para servir ao
 parser: os dois módulos têm responsabilidades distintas. Testes cruzados
 devem detectar divergência de opcodes e formatos.
 
-O pacote 3 já usa uma lista local dos 38 mnemônicos para impedir rótulos
-reservados. Ao entregar o catálogo, combinar com seu responsável a consulta
-de `SymbolTable` ao catálogo como fonte única desses nomes; manter as 8
-diretivas separadas, pois não são opcodes. Cobrir a integração com testes.
+`SymbolTable` consulta o catálogo como fonte única dos 38 mnemônicos
+reservados, conforme a integração prevista na revisão do pacote 3. As oito
+diretivas permanecem separadas, pois não são opcodes. A integração tem testes
+pelas interfaces públicas de símbolos e valores.
 
 O pacote 1 já oferece `assembler::SourceLine` e `ParsedStatement`;
 operação/rótulo possuem `SourceIdentifier::key` normalizada e `source`
@@ -76,13 +76,12 @@ executa para “completar” uma tabela externa.
 - [x] Catálogo coincide com o recorte da VM, sem lista de opcodes vermelhos.
 - [x] Formato 2 é utilizável diretamente pela passagem 2 e testado.
 - [x] `docs/assembler/isa.md` registra operadores e formatos aceitos.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Nomes reservados consultam o catálogo, com diretivas separadas e testes.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Implementação local na branch `feat/assembler-isa`, criada após atualizar
-`main` com `git pull --ff-only` (base `7eefe8e`). O checkout estava limpo;
-nenhum trabalho preexistente foi descartado. Não foi feito merge.
+Implementação na branch `feat/assembler-isa`, com base `7eefe8e` da `main`.
 
 Entregues `InstructionCatalog.*`, `InstructionOperand.*` e `Format2Encoder.*`,
 com testes próprios e [documentação da ISA](../isa.md). A alteração em
@@ -121,16 +120,17 @@ Verificação local:
 - `git diff --check` passou. Comandos reproduzíveis em
   [testes](../../testing.md#montador-pacote-2).
 
-Pendências para integração (roteiro de análise e correção no
-[handoff ao agente do chefe](02-instruction-catalog-handoff.md)):
+Conclusão da revisão:
 
-- Após o restabelecimento do acesso à API, a [revisão aprovada do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589)
-  foi consultada e registra a unificação dos mnemônicos com o catálogo para
-  o pacote 2. A implementação em `SymbolTable` e os testes de integração
-  continuam pendentes, preservados para análise/fix pelo agente do chefe.
-  As oito diretivas devem permanecer separadas dos opcodes. A evidência e o
-  roteiro da correção estão no handoff acima.
-- CI remota não executada/verificada para esta alteração; revisão de outro
-  integrante não realizada. O checklist de CI permanece aberto. Não foi
-  efetuado merge. A proposta de PR em rascunho, conforme o template, aguarda
-  avaliação do chefe do projeto e conclusão da integração com o pacote 3.
+- A integração prevista na [revisão aprovada do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589)
+  foi implementada em todos os caminhos de nomes reservados de `SymbolTable`,
+  preservando as assinaturas, as posições e os códigos existentes.
+- Três testes adicionais cobrem os 38 mnemônicos em caixa alta/baixa/mista,
+  as oito diretivas fora do catálogo, nomes inválidos e identificadores não
+  reservados. Falhas não inserem definições ou referências.
+- Builds limpos Release no Fedora passaram em **348 testes com Qt** e
+  **345 sem Qt**, usando a fonte GoogleTest já disponível no workspace.
+- A revisão de padrões e requisitos não encontrou outro bloqueador. A CI e
+  o parecer final são verificáveis no [PR #26](https://github.com/phgiacomelli/sicxe-simulator/pull/26).
+  O [registro de integração](02-instruction-catalog-handoff.md) encerra o
+  roteiro de pendências original.

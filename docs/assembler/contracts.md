@@ -2,9 +2,9 @@
 
 Estado: fonte e tipos mínimos implementados no pacote 1; símbolos e valores
 de operandos implementados no pacote 3; catálogo, operandos de instrução e
-codificação de formato 2 implementados localmente no pacote 2. As passagens e
-a geração de bytes de formatos 3/4 permanecem planejadas. A integração do
-catálogo em `SymbolTable` ainda exige acordo com o responsável pelo pacote 3.
+codificação de formato 2 implementados no pacote 2. `SymbolTable` consulta o
+catálogo como fonte única de mnemônicos reservados, mantendo as oito diretivas
+separadas. As passagens e a geração de bytes de formatos 3/4 permanecem planejadas.
 Comportamento e divisão de ownership exigem acordo dos consumidores.
 
 ## Fonte de verdade
