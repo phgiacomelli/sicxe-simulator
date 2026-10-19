@@ -13,7 +13,7 @@ consulta o catálogo e a validação de operandos da ISA (`InstructionCatalog` e
   localização (`LOCCTR`) em **bytes** dentro do espaço endereçável da VM
   (`0x00000..0xFFFFF`, capacidade total de `0x100000` bytes).
 - Produz uma sequência imutável de `LocatedLine` com categoria, endereço e tamanho
-  fixados para consumo direto da passagem 2, sem reinterpretar o texto original e
+  fixados para consumo da passagem 2, sem reler o arquivo-fonte e
   sem permitir reposicionamento ou promoção posterior de formato.
 - Consome `SourceLine` somente quando `SourceParseResult::succeeded()` é verdadeiro.
   Se o parser sintático reportou falha ou se qualquer linha `Invalid` for entregue
@@ -38,6 +38,11 @@ Cada `LocatedLine` preserva a `SourceLine` original e fixa:
   (`3`) ou `Format4` (`4`);
 - `directive` (`std::optional<LocatedDirectiveKind>`): `Start`, `End`, `Base`,
   `NoBase`, `Byte`, `Word`, `Resb` ou `Resw`.
+
+`LocatedLine` conserva os campos estruturados em `source.statement`, mas não
+armazena um `InstructionOperand` separado. Os consumidores dos pacotes 6/7
+podem reutilizar `parseInstructionOperand` sobre essa `SourceLine` para obter
+registradores e modos tipados, preservando endereço e tamanho já fixados.
 
 `PassOneResult` reúne:
 
@@ -108,9 +113,10 @@ E a tabela de símbolos (`result.symbols`) resultante:
   4 (`+` em instrução `Format34`) ocupa `4` bytes. Referências futuras não alteram
   o tamanho escolhido na passagem 1.
 - **`BASE` e `NOBASE`**: têm `sizeBytes = 0` e permanecem na posição original do
-  intermediário para que a passagem 2 atualize o estado do registrador base na ordem
-  da fonte. `BASE` aceita rótulo (registrado em `SymbolTable`) ou endereço de 20
-  bits; `NOBASE` não aceita operando.
+  intermediário para que a passagem 2 acompanhe o endereço-base assumido pelo
+  montador para calcular deslocamentos, na ordem da fonte. `BASE` não escreve
+  o registrador B da VM; o programa precisa carregá-lo. `BASE` aceita rótulo
+  (registrado em `SymbolTable`) ou endereço de 20 bits; `NOBASE` não aceita operando.
 - **`END`**: obrigatório; encerra as declarações ativas e aceita um rótulo de
   entrada opcional (registrado em `SymbolTable` e resolvido ao final da passagem 1
   para fixar `initialPc`). Declarações ativas após `END`, segundo `START` ou segundo
@@ -122,7 +128,9 @@ E a tabela de símbolos (`result.symbols`) resultante:
 - **Diretivas de dados antes do pacote 5**: enquanto o pacote 5 não estiver
   integrado, `BYTE`, `WORD`, `RESB` e `RESW` recebem
   `PassOneDiagnosticCode::DataDirectiveNotIntegrated` e invalidam o layout seguinte,
-  sem inventar tamanho `0`.
+  sem definir seu rótulo nem publicar uma `LocatedLine` de tamanho desconhecido.
+  Os limites de endereço usados pelo layout e por `Address20BitRange` têm
+  definição única em `AddressLimits.hpp`.
 
 ## Diagnósticos da passagem 1
 

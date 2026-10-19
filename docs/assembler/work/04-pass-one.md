@@ -96,5 +96,14 @@ Decisões implementadas:
   `0x100000`;
 - preserva `BASE`, `NOBASE` e comentários na ordem original com `sizeBytes = 0`;
 - rejeita explicitamente `BYTE`, `WORD`, `RESB` e `RESW` com
-  `PassOneDiagnosticCode::DataDirectiveNotIntegrated` sem inventar tamanho `0`,
-  deixando o cálculo de tamanho de dados e reservas para integração pelo pacote 5.
+  `PassOneDiagnosticCode::DataDirectiveNotIntegrated`, sem definir o rótulo ou
+  publicar uma linha de tamanho desconhecido; o cálculo de dados e reservas
+  permanece para integração pelo pacote 5;
+- limites de endereço do layout e de `Address20BitRange` compartilham a definição
+  em `AddressLimits.hpp`, sem alterar os valores ou as assinaturas do pacote 3.
+
+Na revisão do PR #27, o teste de rejeição das quatro diretivas foi reforçado e
+reproduziu a publicação indevida de símbolo/linha de tamanho zero antes da
+correção. Após o ajuste, builds limpos Release passaram em 356 testes sem Qt e
+359 com Qt, incluindo os 11 testes de `PassOneTest`. Formatação e
+`git diff --check` passaram. A CI e o parecer externo são registrados no PR.

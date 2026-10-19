@@ -213,6 +213,14 @@ localização no alvo `AssemblerTests`:
 - rejeição explícita de `BYTE`, `WORD`, `RESB` e `RESW` antes da integração do pacote 5, sem inventar tamanho `0`;
 - recusa de montagem parcial quando `SourceParser::parse` reporta falha sintática e reconhecimento das 38 instruções da VM.
 
+São 11 testes novos de passagem 1. Na revisão do PR #27, o teste das diretivas
+não integradas foi reforçado para confirmar ausência de símbolo/linha com tamanho
+desconhecido e de endereços para instruções posteriores. Esse teste falhou antes
+da correção e passou depois. Builds limpos Release no Fedora passaram em
+**356 testes sem Qt** e **359 com Qt**, com formatação e `git diff --check`
+aprovados. A fonte GoogleTest existente foi reutilizada por
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de dependências.
+
 Para executar os testes do pacote 4 após o build:
 
 ```bash
