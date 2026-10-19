@@ -25,6 +25,20 @@ Este handoff não representa esse acordo nem uma aprovação de merge.
 As pendências de CI/revisão não são falhas de código confirmadas. A integração
 de nomes reservados é o trabalho de código conhecido ainda por realizar.
 
+## Atualização antes da abertura do draft
+
+O acesso à API foi restabelecido. A [revisão aprovada do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589)
+por `phgiacomelli` registra: “A unificacao da lista de mnemonicos com o catalogo
+fica registrada para o pacote 2.” Essa é a evidência agora disponível da decisão
+de integração. As referências anteriores à ausência de confirmação e a
+`Forbidden` descrevem o estado da entrega analisada, não o acesso atual.
+
+A implementação de `SymbolTable` e seus testes de integração continuam
+pendentes e foram mantidos para avaliação/correção pelo agente do chefe,
+conforme solicitado. Conferir esse registro ao tratar o item 1; não solicitar
+novamente um acordo já suficiente para o escopo aprovado. O chefe pode esclarecer
+somente diferenças de escopo que ainda não estejam cobertas pela decisão.
+
 ## Leitura obrigatória
 
 Leia nesta ordem o [índice do montador](../README.md), os

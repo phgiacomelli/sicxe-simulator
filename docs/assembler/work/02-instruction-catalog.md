@@ -124,14 +124,13 @@ Verificação local:
 Pendências para integração (roteiro de análise e correção no
 [handoff ao agente do chefe](02-instruction-catalog-handoff.md)):
 
-- Não foi encontrado acordo com o responsável do pacote 3 na documentação
-  ou histórico inspecionados. A leitura de comentários do PR #24 pela API
-  GitHub recebeu `Forbidden`, portanto não foi possível verificar eventual
-  acordo remoto. Foi solicitado esclarecimento ao usuário; `SymbolTable.*`
-  e suas oito diretivas permanecem inalterados até haver esse acordo.
-  Substituir a lista local de mnemônicos pela consulta ao catálogo e testar
-  essa integração continuam pendentes dessa coordenação.
+- Após o restabelecimento do acesso à API, a [revisão aprovada do PR #24](https://github.com/phgiacomelli/sicxe-simulator/pull/24#pullrequestreview-5560213589)
+  foi consultada e registra a unificação dos mnemônicos com o catálogo para
+  o pacote 2. A implementação em `SymbolTable` e os testes de integração
+  continuam pendentes, preservados para análise/fix pelo agente do chefe.
+  As oito diretivas devem permanecer separadas dos opcodes. A evidência e o
+  roteiro da correção estão no handoff acima.
 - CI remota não executada/verificada para esta alteração; revisão de outro
   integrante não realizada. O checklist de CI permanece aberto. Não foi
   efetuado merge. A proposta de PR em rascunho, conforme o template, aguarda
-  avaliação do chefe do projeto e acordo sobre a integração com o pacote 3.
+  avaliação do chefe do projeto e conclusão da integração com o pacote 3.
