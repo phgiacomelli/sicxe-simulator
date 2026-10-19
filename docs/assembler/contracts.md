@@ -1,8 +1,10 @@
 # Contratos do montador SIC/XE
 
 Estado: fonte e tipos mínimos implementados no pacote 1; símbolos e valores
-de operandos implementados no pacote 3. As passagens e a geração de bytes
-permanecem planejadas.
+de operandos implementados no pacote 3; catálogo, operandos de instrução e
+codificação de formato 2 implementados no pacote 2. `SymbolTable` consulta o
+catálogo como fonte única de mnemônicos reservados, mantendo as oito diretivas
+separadas. As passagens e a geração de bytes de formatos 3/4 permanecem planejadas.
 Comportamento e divisão de ownership exigem acordo dos consumidores.
 
 ## Fonte de verdade
@@ -55,7 +57,11 @@ As formas C++ da fonte, seus erros e a recuperação por linha estão em
 e `OperandValue`, documentados em [símbolos](symbols.md). Seus diagnósticos
 tipados são convertidos para `AssemblyDiagnostic` antes de compor
 `AssemblyFailure`. `LocatedLine` e `assemble()` ainda serão implementados
-pelos pacotes seguintes.
+pelos pacotes seguintes. O pacote 2 acrescenta `InstructionSpec`,
+`InstructionOperand` e `InstructionDiagnostic`, documentados em [ISA](isa.md),
+sem alterar campos ou assinaturas dos tipos existentes. O token do valor de
+memória é preservado como `SourceField` para o pacote 3/6; apenas contagens de
+shift são convertidas, usando `parseKnownInteger` existente.
 
 ## Dialeto mínimo da fonte
 

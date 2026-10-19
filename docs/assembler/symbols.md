@@ -63,6 +63,9 @@ const auto value = assembler::parseValue("0x1000", {1, 12});
   `STCH`, `STL`, `STS`, `STT`, `STX`, `SUB`, `SUBR`, `TIX`, `TIXR`) nem com as
   **8 diretivas** do dialeto (`START`, `END`, `BYTE`, `WORD`, `RESB`, `RESW`,
   `BASE`, `NOBASE`).
+- `SymbolTable::isReservedName`, `define`, `reference` e `resolve` consultam
+  o [catálogo do montador](isa.md) como fonte única dos mnemônicos. A lista
+  local contém somente as oito diretivas; `parseValue` usa a mesma regra.
 - Identificadores de uma letra que não são mnemônicos nem diretivas (como `A`,
   `B` e `X`) são aceitos como nomes válidos de rótulo quando usados em posição
   simbólica.
