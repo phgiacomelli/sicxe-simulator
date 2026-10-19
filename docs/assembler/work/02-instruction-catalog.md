@@ -121,7 +121,8 @@ Verificação local:
 - `git diff --check` passou. Comandos reproduzíveis em
   [testes](../../testing.md#montador-pacote-2).
 
-Pendências para integração:
+Pendências para integração (roteiro de análise e correção no
+[handoff ao agente do chefe](02-instruction-catalog-handoff.md)):
 
 - Não foi encontrado acordo com o responsável do pacote 3 na documentação
   ou histórico inspecionados. A leitura de comentários do PR #24 pela API
