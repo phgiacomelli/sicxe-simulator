@@ -1,5 +1,7 @@
 #include "SymbolTable.hpp"
 
+#include "InstructionCatalog.hpp"
+
 #include <algorithm>
 #include <array>
 #include <utility>
@@ -7,12 +9,15 @@
 namespace assembler {
 namespace {
 
-constexpr std::array<std::string_view, 46> ReservedNames = {
-    "ADD",  "ADDR",   "AND",    "BASE", "BYTE",  "CLEAR",  "COMP", "COMPR", "DIV",  "DIVR",
-    "END",  "J",      "JEQ",    "JGT",  "JLT",   "JSUB",   "LDA",  "LDB",   "LDCH", "LDL",
-    "LDS",  "LDT",    "LDX",    "MUL",  "MULR",  "NOBASE", "OR",   "RESB",  "RESW", "RMO",
-    "RSUB", "SHIFTL", "SHIFTR", "STA",  "START", "STB",    "STCH", "STL",   "STS",  "STT",
-    "STX",  "SUB",    "SUBR",   "TIX",  "TIXR",  "WORD",
+constexpr std::array<std::string_view, 8> ReservedDirectives = {
+    "BASE",
+    "BYTE",
+    "END",
+    "NOBASE",
+    "RESB",
+    "RESW",
+    "START",
+    "WORD",
 };
 
 bool isAsciiLetter(char character) {
@@ -131,7 +136,9 @@ bool SymbolTable::isReservedName(std::string_view name) {
         return false;
     }
     const std::string normalized = normalizeName(name);
-    return std::binary_search(ReservedNames.begin(), ReservedNames.end(), normalized);
+    return std::binary_search(ReservedDirectives.begin(), ReservedDirectives.end(), normalized) ||
+           std::holds_alternative<std::reference_wrapper<const InstructionSpec>>(
+               findInstruction(normalized));
 }
 
 std::optional<SymbolDiagnostic>
@@ -140,7 +147,7 @@ SymbolTable::define(std::string_view label, std::uint32_t address, SourcePositio
         return makeInvalidNameDiagnostic(label, position);
     }
     std::string key = normalizeName(label);
-    if (std::binary_search(ReservedNames.begin(), ReservedNames.end(), key)) {
+    if (isReservedName(key)) {
         return makeReservedNameDiagnostic(label, position);
     }
     if (const auto existing = indexByName_.find(key); existing != indexByName_.end()) {
@@ -170,7 +177,7 @@ std::optional<SymbolDiagnostic> SymbolTable::reference(std::string_view label,
         return makeInvalidNameDiagnostic(label, position);
     }
     std::string key = normalizeName(label);
-    if (std::binary_search(ReservedNames.begin(), ReservedNames.end(), key)) {
+    if (isReservedName(key)) {
         return makeReservedNameDiagnostic(label, position);
     }
     references_.push_back(SymbolReference{std::move(key), std::string{label}, position});
@@ -190,7 +197,7 @@ SymbolResolutionResult SymbolTable::resolve(std::string_view label, SourcePositi
         return makeInvalidNameDiagnostic(label, position);
     }
     const std::string key = normalizeName(label);
-    if (std::binary_search(ReservedNames.begin(), ReservedNames.end(), key)) {
+    if (isReservedName(key)) {
         return makeReservedNameDiagnostic(label, position);
     }
     const auto existing = indexByName_.find(key);

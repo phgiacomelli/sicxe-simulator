@@ -88,6 +88,12 @@ add_library(sicxe_assembler STATIC
     src/assembler/SymbolTable.hpp
     src/assembler/OperandValue.cpp
     src/assembler/OperandValue.hpp
+    src/assembler/InstructionCatalog.cpp
+    src/assembler/InstructionCatalog.hpp
+    src/assembler/InstructionOperand.cpp
+    src/assembler/InstructionOperand.hpp
+    src/assembler/Format2Encoder.cpp
+    src/assembler/Format2Encoder.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -162,10 +168,19 @@ if(BUILD_TESTING)
         tests/assembler/AssemblyContractTest.cpp
         tests/assembler/SymbolTableTest.cpp
         tests/assembler/OperandValueTest.cpp
+        tests/assembler/InstructionCatalogTest.cpp
+        tests/assembler/InstructionOperandTest.cpp
+        tests/assembler/Format2EncoderTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
-    gtest_discover_tests(AssemblerTests)
+    gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
+
+    # Only the compatibility tests depend on the VM; the assembler stays independent.
+    add_executable(AssemblerDecoderTests tests/assembler/Format2DecoderTest.cpp)
+    set_target_properties(AssemblerDecoderTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(AssemblerDecoderTests PRIVATE sicxe_assembler SICXECore GTest::gtest_main)
+    gtest_discover_tests(AssemblerDecoderTests NO_PRETTY_VALUES)
 
     if(SICXE_BUILD_QT)
         find_package(Qt6 REQUIRED COMPONENTS Test)

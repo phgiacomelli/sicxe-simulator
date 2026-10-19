@@ -9,7 +9,9 @@ bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
 A segunda etapa está em desenvolvimento em [montador de duas passagens](docs/assembler/README.md).
-O parser de fonte e os contratos mínimos estão implementados em C++20.
+O parser de fonte, os contratos mínimos, os símbolos e o pacote de
+[catálogo/operandos/formato 2](docs/assembler/isa.md) têm implementação em C++20.
+O catálogo também é a fonte única dos mnemônicos reservados na tabela de símbolos.
 As duas passagens e a geração de programas ainda dependem dos próximos pacotes.
 
 ## Tecnologias

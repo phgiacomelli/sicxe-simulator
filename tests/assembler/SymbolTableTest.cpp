@@ -1,5 +1,7 @@
 #include "assembler/SymbolTable.hpp"
 
+#include "assembler/InstructionCatalog.hpp"
+#include "assembler/OperandValue.hpp"
 #include "assembler/SourceParser.hpp"
 
 #include <gtest/gtest.h>
@@ -9,6 +11,93 @@
 
 namespace {
 using namespace assembler;
+
+void expectReservedAcrossConsumers(std::string_view name) {
+    const SourcePosition position{7, 11};
+    SymbolTable table;
+    EXPECT_TRUE(SymbolTable::isReservedName(name));
+    const auto definition = table.define(name, 0x100, position);
+    ASSERT_TRUE(definition.has_value());
+    EXPECT_EQ(definition->code, SymbolDiagnosticCode::ReservedSymbolName);
+    EXPECT_EQ(definition->position, position);
+    const auto reference = table.reference(name, position);
+    ASSERT_TRUE(reference.has_value());
+    EXPECT_EQ(reference->code, SymbolDiagnosticCode::ReservedSymbolName);
+    EXPECT_EQ(reference->position, position);
+    const auto resolution = table.resolve(name, position);
+    ASSERT_TRUE(std::holds_alternative<SymbolDiagnostic>(resolution));
+    EXPECT_EQ(std::get<SymbolDiagnostic>(resolution).code,
+              SymbolDiagnosticCode::ReservedSymbolName);
+    EXPECT_EQ(std::get<SymbolDiagnostic>(resolution).position, position);
+    const auto operand = parseValue(name, position);
+    ASSERT_TRUE(std::holds_alternative<OperandDiagnostic>(operand));
+    EXPECT_EQ(std::get<OperandDiagnostic>(operand).code, OperandDiagnosticCode::ReservedSymbolName);
+    EXPECT_EQ(std::get<OperandDiagnostic>(operand).position, position);
+    EXPECT_TRUE(table.empty());
+    EXPECT_TRUE(table.references().empty());
+}
+
+TEST(SymbolTableTest, ReservesEveryCatalogMnemonicAcrossConsumersAndLetterCases) {
+    ASSERT_EQ(instructionCatalog().size(), 38U);
+    for (const auto& instruction : instructionCatalog()) {
+        std::string lower{instruction.mnemonic};
+        std::string mixed{instruction.mnemonic};
+        for (std::size_t index = 0; index < lower.size(); ++index) {
+            lower[index] = static_cast<char>(lower[index] - 'A' + 'a');
+            if (index % 2 == 0) {
+                mixed[index] = lower[index];
+            }
+        }
+        for (const auto& name : {std::string{instruction.mnemonic}, lower, mixed}) {
+            SCOPED_TRACE(name);
+            expectReservedAcrossConsumers(name);
+        }
+    }
+}
+
+TEST(SymbolTableTest, KeepsAllEightDirectivesReservedOutsideInstructionCatalog) {
+    for (const std::string_view name :
+         {"START", "END", "BYTE", "WORD", "RESB", "RESW", "BASE", "NOBASE"}) {
+        SCOPED_TRACE(name);
+        EXPECT_TRUE(std::holds_alternative<InstructionDiagnostic>(findInstruction(name)));
+        expectReservedAcrossConsumers(name);
+        std::string lower{name};
+        for (char& character : lower) {
+            character = static_cast<char>(character - 'A' + 'a');
+        }
+        expectReservedAcrossConsumers(lower);
+    }
+}
+
+TEST(SymbolTableTest, CatalogReservationPreservesInvalidNamesAndUnreservedIdentifiers) {
+    const SourcePosition position{2, 3};
+    for (const std::string_view name : {"+LDA", "1ADD", "_START", "ADD-LOCAL"}) {
+        SCOPED_TRACE(name);
+        SymbolTable table;
+        EXPECT_FALSE(SymbolTable::isReservedName(name));
+        const auto definition = table.define(name, 0x100, position);
+        ASSERT_TRUE(definition.has_value());
+        EXPECT_EQ(definition->code, SymbolDiagnosticCode::InvalidSymbolName);
+        const auto reference = table.reference(name, position);
+        ASSERT_TRUE(reference.has_value());
+        EXPECT_EQ(reference->code, SymbolDiagnosticCode::InvalidSymbolName);
+        EXPECT_EQ(std::get<SymbolDiagnostic>(table.resolve(name, position)).code,
+                  SymbolDiagnosticCode::InvalidSymbolName);
+        EXPECT_TRUE(table.empty());
+        EXPECT_TRUE(table.references().empty());
+    }
+    for (const std::string_view name : {"A", "B", "X", "TARGET", "ADD_LOCAL", "LDF"}) {
+        SCOPED_TRACE(name);
+        SymbolTable table;
+        EXPECT_FALSE(SymbolTable::isReservedName(name));
+        EXPECT_FALSE(table.define(name, 0x100, position).has_value());
+        EXPECT_FALSE(table.reference(name, position).has_value());
+        EXPECT_EQ(std::get<std::uint32_t>(table.resolve(name, position)), 0x100U);
+        const auto operand = parseValue(name, position);
+        ASSERT_TRUE(std::holds_alternative<OperandValue>(operand));
+        EXPECT_TRUE(std::holds_alternative<SymbolOperand>(std::get<OperandValue>(operand)));
+    }
+}
 
 TEST(SymbolTableTest, StartsEmptyWithoutDefinitionsOrPendingReferences) {
     const SymbolTable table;
