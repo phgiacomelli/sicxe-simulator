@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AddressLimits.hpp"
 #include "SourceLine.hpp"
 
 #include <cstddef>
@@ -8,9 +9,6 @@
 #include <string>
 
 namespace assembler {
-
-inline constexpr std::uint32_t MaxAddressableByte = 0xFFFFFU;
-inline constexpr std::uint32_t AddressSpaceBytes = 0x100000U;
 
 enum class LocatedLineCategory {
     Instruction,

@@ -79,6 +79,7 @@ add_library(sicxe_input
 target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_library(sicxe_assembler STATIC
+    src/assembler/AddressLimits.hpp
     src/assembler/SourceParser.cpp
     src/assembler/SourceParser.hpp
     src/assembler/SourceLine.hpp

@@ -67,23 +67,6 @@ std::optional<LocatedDirectiveKind> findDirectiveKind(std::string_view mnemonic)
     return std::nullopt;
 }
 
-LocatedLineCategory categoryForDirective(LocatedDirectiveKind directive) {
-    switch (directive) {
-        case LocatedDirectiveKind::Byte:
-        case LocatedDirectiveKind::Word:
-            return LocatedLineCategory::Data;
-        case LocatedDirectiveKind::Resb:
-        case LocatedDirectiveKind::Resw:
-            return LocatedLineCategory::Reservation;
-        case LocatedDirectiveKind::Start:
-        case LocatedDirectiveKind::End:
-        case LocatedDirectiveKind::Base:
-        case LocatedDirectiveKind::NoBase:
-            return LocatedLineCategory::Directive;
-    }
-    return LocatedLineCategory::Directive;
-}
-
 std::optional<PassOneDiagnostic>
 defineSymbol(SymbolTable& symbols, const SourceIdentifier& label, std::uint32_t address) {
     if (const auto diagnostic = symbols.define(label, address)) {
@@ -515,25 +498,6 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
             }
 
             // Data/reservation directives (BYTE, WORD, RESB, RESW) before Package 5 integration.
-            if (statement.label.has_value() && layoutValid && locationCounter <= MaxMemoryAddress) {
-                const auto dataAddr32 = static_cast<std::uint32_t>(locationCounter);
-                if (const auto diag = defineSymbol(symbols, *statement.label, dataAddr32)) {
-                    result.diagnostics.push_back(*diag);
-                }
-            }
-            if (layoutValid && locationCounter <= MaxMemoryAddress) {
-                result.lines.push_back(LocatedLine{
-                    line,
-                    categoryForDirective(*directive),
-                    static_cast<std::uint32_t>(locationCounter),
-                    0,
-                    std::string{mnemonic},
-                    false,
-                    std::nullopt,
-                    std::nullopt,
-                    *directive,
-                });
-            }
             result.diagnostics.push_back(PassOneDiagnostic{
                 PassOneDiagnosticCode::DataDirectiveNotIntegrated,
                 operationPosition,

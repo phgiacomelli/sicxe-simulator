@@ -432,8 +432,13 @@ TEST(PassOneTest, ExplicitlyRejectsDataAndReservationDirectivesBeforePackage5Wit
         EXPECT_EQ(result.diagnostics[0].code, PassOneDiagnosticCode::DataDirectiveNotIntegrated);
         EXPECT_EQ(result.diagnostics[0].position, (SourcePosition{2, 7}));
         // Must not invent a size or assign an address to AFTER
+        EXPECT_FALSE(result.findSymbol("DATA1").has_value());
+        EXPECT_TRUE(result.symbols.empty());
         EXPECT_FALSE(result.findSymbol("AFTER").has_value());
         EXPECT_EQ(result.programLength, 0U);
+        ASSERT_EQ(result.lines.size(), 2U);
+        EXPECT_EQ(result.lines.front().directive, LocatedDirectiveKind::Start);
+        EXPECT_EQ(result.lines.back().directive, LocatedDirectiveKind::End);
     }
 }
 
