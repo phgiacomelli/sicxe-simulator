@@ -1,6 +1,7 @@
 # Pacote 2 — Catálogo da ISA, operandos e formato 2
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado localmente; coordenação de símbolos, CI remota
+e revisão externa pendentes. Ainda não concluído para integração.
 
 ## Resultado esperado
 
@@ -72,12 +73,64 @@ executa para “completar” uma tabela externa.
 
 ## Critério de conclusão
 
-- [ ] Catálogo coincide com o recorte da VM, sem lista de opcodes vermelhos.
-- [ ] Formato 2 é utilizável diretamente pela passagem 2 e testado.
-- [ ] `docs/assembler/isa.md` registra operadores e formatos aceitos.
+- [x] Catálogo coincide com o recorte da VM, sem lista de opcodes vermelhos.
+- [x] Formato 2 é utilizável diretamente pela passagem 2 e testado.
+- [x] `docs/assembler/isa.md` registra operadores e formatos aceitos.
 - [ ] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces alteradas,
-testes e pendências.
+Implementação local na branch `feat/assembler-isa`, criada após atualizar
+`main` com `git pull --ff-only` (base `7eefe8e`). O checkout estava limpo;
+nenhum trabalho preexistente foi descartado. Não foi feito merge.
+
+Entregues `InstructionCatalog.*`, `InstructionOperand.*` e `Format2Encoder.*`,
+com testes próprios e [documentação da ISA](../isa.md). A alteração em
+`CMakeLists.txt` registra os novos arquivos e separa `AssemblerDecoderTests`,
+o único alvo novo que liga o montador ao núcleo da VM. Não houve mudança de
+dependências, tipos existentes do parser/símbolos ou comportamento da VM.
+
+Decisões:
+
+- Tabela `constexpr` de 38 entradas, exposta por descritores constantes;
+  dez opcodes de formato 2 e 28 do grupo de memória, com RSUB restrito ao 3.
+- `InstructionOperand` conserva operação, tokens e posições da fonte e
+  informa formato/tamanho; memória conserva valor como token, sem conversão
+  numérica, resolução de símbolos ou endereçamento. Shifts reutilizam
+  `parseKnownInteger` do pacote 3 para a contagem 1–16.
+- Diagnósticos específicos usam enum próprio e conversão documentada aos
+  códigos compartilhados já existentes; não foi necessário alterar o enum
+  público do pacote 1. Nenhuma interface existente foi modificada.
+- `encodeFormat2` valida os tipos fornecidos e emite somente opcode/nibbles;
+  não há passagem, layout, PC/base ou codificação de formatos 3/4.
+- Os PDFs não estavam disponíveis no workspace e não foram consultados.
+  Não se afirma divergência ou concordância com PDFs não examinados; os
+  bytes foram confrontados com o contrato e decoder disponíveis.
+
+Verificação local:
+
+- Formatação restrita aos seis novos arquivos de produção e aos cinco
+  arquivos de testes/suporte; `clang-format --dry-run --Werror` passou.
+- Builds limpos Release em `build/assembler-package2` e
+  `build/assembler-package2-core`; CTest passou em **345 testes com Qt** e
+  **342 sem Qt** (81 testes novos). Nenhum teste foi ignorado.
+- Tabela esperada independente com todas as 38 entradas, opcodes, formatos,
+  padrões e tamanhos; os dez opcodes de formato 2 fazem **656 round-trips**
+  ao decoder cobrindo todos os registradores e contagens válidos. Bytes
+  esperados manualmente e falhas com código/posição também são verificados.
+- `git diff --check` passou. Comandos reproduzíveis em
+  [testes](../../testing.md#montador-pacote-2).
+
+Pendências para integração:
+
+- Não foi encontrado acordo com o responsável do pacote 3 na documentação
+  ou histórico inspecionados. A leitura de comentários do PR #24 pela API
+  GitHub recebeu `Forbidden`, portanto não foi possível verificar eventual
+  acordo remoto. Foi solicitado esclarecimento ao usuário; `SymbolTable.*`
+  e suas oito diretivas permanecem inalterados até haver esse acordo.
+  Substituir a lista local de mnemônicos pela consulta ao catálogo e testar
+  essa integração continuam pendentes dessa coordenação.
+- CI remota não executada/verificada para esta alteração; revisão de outro
+  integrante não realizada. O checklist de CI permanece aberto. Não foi
+  efetuado merge. A proposta de PR em rascunho, conforme o template, aguarda
+  avaliação do chefe do projeto e acordo sobre a integração com o pacote 3.

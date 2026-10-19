@@ -50,9 +50,11 @@ não lê registros de objeto nem aplica relocação. Veja os
 
 A base atual do montador é `sicxe_assembler`, com `SourceParser`, os tipos
 de fonte/diagnóstico/resultado, `SymbolTable` e `OperandValue` em
-`src/assembler/`. Essa biblioteca não depende de Qt nem de `SICXECore`;
+`src/assembler/`, além do catálogo da ISA, operandos de instrução e codificador
+de formato 2 do pacote 2. Essa biblioteca não depende de Qt nem de `SICXECore`;
 as passagens e saídas ainda estão planejadas. O comportamento implementado
-está em [fonte](assembler/source.md) e [símbolos](assembler/symbols.md).
+está em [fonte](assembler/source.md), [símbolos](assembler/symbols.md) e
+[ISA](assembler/isa.md).
 
 ## Visão geral
 

@@ -140,3 +140,53 @@ e `git diff --check` também passaram.
 
 As regras e os códigos de diagnóstico estão em
 [símbolos do montador](assembler/symbols.md).
+
+
+## Montador: pacote 2
+
+`InstructionCatalogTest`, `InstructionOperandTest` e `Format2EncoderTest`
+rodam em `AssemblerTests`, que continua ligando somente `sicxe_assembler` e
+GoogleTest. `AssemblerDecoderTests` contém os testes cruzados de
+`Format2DecoderTest` e `InstructionCatalogDecoderTest`; somente esse alvo
+liga também `SICXECore`. Ambos funcionam sem Qt.
+
+Os 81 testes novos cobrem a tabela independente exata das 38 instruções,
+formatos/tamanhos, consulta imutável, operandos de cada família, tokens e
+posições próprias, registradores, contagens 1–16, restrições de indexação,
+`+`, `RSUB`, literais/expressões recusados e falhas com código/posição.
+Os testes cruzados fazem 656 round-trips dos dez opcodes de formato 2,
+incluindo todos os oito registradores válidos nas posições aplicáveis e
+os 16 nibbles de shift. Os bytes dos testes de memória são probes manuais
+para verificar o catálogo; não há encoder de formatos 3/4 neste pacote.
+
+Validação local em diretórios novos, com GCC 14.2, CMake 3.31.6, Qt 6.8.2,
+GoogleTest 1.16 e clang-format 19 (ferramentas do ambiente Debian 13):
+
+```bash
+# A partir da raiz do repositório, com as ferramentas no PATH:
+
+cmake -S . -B build/assembler-package2 -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build/assembler-package2 --parallel 4
+ctest --test-dir build/assembler-package2 --output-on-failure -j 4
+
+cmake -S . -B build/assembler-package2-core -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DSICXE_BUILD_QT=OFF \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Qt6=TRUE
+cmake --build build/assembler-package2-core --parallel 4
+ctest --test-dir build/assembler-package2-core --output-on-failure -j 4
+```
+
+Resultado: **345 testes com Qt** e **342 sem Qt**, todos aprovados, nenhum
+ignorado. Formatação restrita aos novos arquivos e `git diff --check`
+aprovados. A CI remota e a revisão externa ainda não foram verificadas.
+A integração de `SymbolTable` ao catálogo depende de coordenação, conforme
+[registro do pacote](assembler/work/02-instruction-catalog.md#registro-do-pr).
+
+Para rodar só os testes novos após o build:
+
+```bash
+ctest --test-dir build/assembler-package2 --output-on-failure \
+  -R 'InstructionCatalog|InstructionOperand|Format2'
+```
+
+As interfaces e a conversão dos diagnósticos estão em [ISA](assembler/isa.md).
