@@ -30,6 +30,8 @@ enum class AssemblyDiagnosticCode {
     NegativeValueNotAllowed,
     ValueOutOfRange,
     SymbolNotAllowed,
+    EmptyProgram,
+    LayoutMismatch,
 };
 
 struct AssemblyDiagnostic {
