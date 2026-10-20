@@ -8,15 +8,18 @@ operandos, as 38 instruções reconhecidas, ciclo atômico da máquina, entrada 
 bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
-A segunda etapa está em desenvolvimento em [montador de duas passagens](docs/assembler/README.md).
+A segunda etapa entrega o [montador de duas passagens](docs/assembler/README.md),
+com os sete pacotes implementados e o pipeline final validado no
+[PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
 O parser de fonte, os contratos mínimos, os símbolos, o pacote de
 [catálogo/operandos/formato 2](docs/assembler/isa.md) e a
 [passagem 1 e contador de localização](docs/assembler/pass-one.md) têm implementação em C++20.
 O catálogo também é a fonte única dos mnemônicos reservados na tabela de símbolos.
 As [diretivas de dados e reservas](docs/assembler/data.md) também estão
 implementadas e integradas ao contador. A [codificação das instruções](docs/assembler/encoding.md)
-de formatos 2/3/4 está implementada; segunda passagem e geração de programas
-ainda dependem do pacote 7.
+de formatos 2/3/4 está integrada à segunda passagem: `assemble()` gera a imagem
+fixa e a listagem, e `SICXEAssembler` grava `.bin` e `.lst`. Veja o
+[guia de uso](docs/assembler/usage.md). A VM continua recebendo apenas bytes.
 
 ## Tecnologias
 
@@ -69,7 +72,7 @@ registrada na [arquitetura](docs/architecture.md).
 - [Segunda etapa — montador](docs/assembler/README.md): recorte, arquitetura de
   duas passagens e divisão entre sete integrantes.
 - [Contratos do montador](docs/assembler/contracts.md): dialeto, interfaces,
-  tipos mínimos entregues, codificação e saída planejadas.
+  tipos mínimos entregues, codificação e saída implementadas.
 - [Fonte do montador](docs/assembler/source.md): parser, campos, posições,
   diagnósticos e recuperação por linha implementados no pacote 1.
 - [Catálogo da ISA, operandos e formato 2](docs/assembler/isa.md): tabela das 38
@@ -84,6 +87,8 @@ registrada na [arquitetura](docs/architecture.md).
   `BYTE`/`WORD`/`RESB`/`RESW` do pacote 5 do montador.
 - [Codificação das instruções](docs/assembler/encoding.md): formatos 2/3/4,
   prioridades de PC/base, limites e diagnósticos do pacote 6.
+- [Uso do montador](docs/assembler/usage.md): CLI, segunda passagem, binário,
+  listagem e programa de demonstração executável na VM, do pacote 7.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
@@ -111,6 +116,29 @@ endereço inicial e tamanho da faixa. A VM não possui `HALT` nem parada automá
 no fim dos bytes carregados: pause ou observe uma falha. Para resetar ou carregar
 outro programa durante execução contínua, pause primeiro. Consulte o
 [roteiro](docs/demo.md) para um programa pronto para colar.
+
+## Montar um programa
+
+O build também cria `SICXEAssembler`, independente de Qt:
+
+```bash
+./build/SICXEAssembler tests/assembler/fixtures/sum-and-table.asm \
+  -o build/sum-and-table.bin -l build/sum-and-table.lst
+```
+
+As saídas não podem existir previamente; os diretórios devem existir e
+suportar hard links. A demonstração soma 1 a 5, dobra e adiciona 7: resultado
+37. Carregue o `.bin` na interface com endereço de carga e PC inicial `100`
+(hexadecimal); após 28 passos, A vale 37 e a palavra em `12C` contém 37.
+Pause no laço final, pois não há `HALT`. Opções, limitações e APIs estão no
+[guia de uso](docs/assembler/usage.md).
+
+Para compilar montador e testes sem Qt:
+
+```bash
+cmake -S . -B build-core -DSICXE_BUILD_QT=OFF
+cmake --build build-core --parallel 4
+```
 
 ## Testes
 

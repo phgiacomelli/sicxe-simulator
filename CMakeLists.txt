@@ -79,6 +79,14 @@ add_library(sicxe_input
 target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_library(sicxe_assembler STATIC
+    src/assembler/Assembler.cpp
+    src/assembler/Assembler.hpp
+    src/assembler/PassTwo.cpp
+    src/assembler/PassTwo.hpp
+    src/assembler/RawImageWriter.cpp
+    src/assembler/RawImageWriter.hpp
+    src/assembler/ListingWriter.cpp
+    src/assembler/ListingWriter.hpp
     src/assembler/AddressLimits.hpp
     src/assembler/SourceParser.cpp
     src/assembler/SourceParser.hpp
@@ -104,6 +112,16 @@ add_library(sicxe_assembler STATIC
     src/assembler/InstructionEncoder.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+add_library(sicxe_assembler_cli STATIC
+    src/assembler/AssemblerCli.cpp
+    src/assembler/AssemblerCli.hpp
+    src/assembler/OutputFiles.cpp
+    src/assembler/OutputFiles.hpp
+)
+target_link_libraries(sicxe_assembler_cli PUBLIC sicxe_assembler)
+add_executable(SICXEAssembler src/assembler/main.cpp)
+target_link_libraries(SICXEAssembler PRIVATE sicxe_assembler_cli)
 
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
@@ -172,6 +190,7 @@ if(BUILD_TESTING)
     gtest_discover_tests(SICXESimulatorTests)
 
     add_executable(AssemblerTests
+        tests/assembler/AssemblerTest.cpp
         tests/assembler/SourceParserTest.cpp
         tests/assembler/AssemblyContractTest.cpp
         tests/assembler/SymbolTableTest.cpp
@@ -187,13 +206,28 @@ if(BUILD_TESTING)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
 
+    add_executable(AssemblerCliTests tests/assembler/AssemblerCliTest.cpp)
+    set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(AssemblerCliTests PRIVATE sicxe_assembler_cli GTest::gtest_main)
+    gtest_discover_tests(AssemblerCliTests NO_PRETTY_VALUES)
+    add_test(NAME AssemblerCliHelp COMMAND SICXEAssembler --help)
+    set_tests_properties(AssemblerCliHelp PROPERTIES PASS_REGULAR_EXPRESSION "Uso: SICXEAssembler")
+    add_test(NAME AssemblerCliSmoke COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEAssembler>
+        -DFIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/fixtures/sum-and-table.asm
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/assembler-cli-smoke
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/CliSmoke.cmake)
+
     # Only compatibility/execution tests depend on the VM; the assembler stays independent.
     add_executable(AssemblerDecoderTests
+        tests/assembler/AssemblerAcceptanceTest.cpp
         tests/assembler/Format2DecoderTest.cpp
         tests/assembler/InstructionEncoderIntegrationTest.cpp
     )
     set_target_properties(AssemblerDecoderTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerDecoderTests PRIVATE sicxe_assembler SICXECore GTest::gtest_main)
+    target_compile_definitions(AssemblerDecoderTests PRIVATE
+        ASSEMBLER_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/fixtures")
     gtest_discover_tests(AssemblerDecoderTests NO_PRETTY_VALUES)
 
     if(SICXE_BUILD_QT)
