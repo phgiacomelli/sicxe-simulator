@@ -79,6 +79,14 @@ add_library(sicxe_input
 target_include_directories(sicxe_input PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_library(sicxe_assembler STATIC
+    src/assembler/Assembler.cpp
+    src/assembler/Assembler.hpp
+    src/assembler/PassTwo.cpp
+    src/assembler/PassTwo.hpp
+    src/assembler/RawImageWriter.cpp
+    src/assembler/RawImageWriter.hpp
+    src/assembler/ListingWriter.cpp
+    src/assembler/ListingWriter.hpp
     src/assembler/AddressLimits.hpp
     src/assembler/SourceParser.cpp
     src/assembler/SourceParser.hpp
@@ -104,6 +112,16 @@ add_library(sicxe_assembler STATIC
     src/assembler/InstructionEncoder.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+add_library(sicxe_assembler_cli STATIC
+    src/assembler/AssemblerCli.cpp
+    src/assembler/AssemblerCli.hpp
+    src/assembler/OutputFiles.cpp
+    src/assembler/OutputFiles.hpp
+)
+target_link_libraries(sicxe_assembler_cli PUBLIC sicxe_assembler)
+add_executable(SICXEAssembler src/assembler/main.cpp)
+target_link_libraries(SICXEAssembler PRIVATE sicxe_assembler_cli)
 
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
