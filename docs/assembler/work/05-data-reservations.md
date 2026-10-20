@@ -1,6 +1,7 @@
 # Pacote 5 — Dados e reservas SIC/XE
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e integrado à passagem 1; validação e revisão registradas
+no PR #28.
 
 ## Resultado esperado
 
@@ -57,12 +58,50 @@ constantes floating point.
 
 ## Critério de conclusão
 
-- [ ] Dados e reservas se integram ao contador sem reparsear a linha.
-- [ ] Bytes, tamanhos, limites e falhas cobertos por testes públicos.
-- [ ] `docs/assembler/data.md` registra sintaxe e codificação.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Dados e reservas se integram ao contador sem reparsear a linha.
+- [x] Bytes, tamanhos, limites e falhas cobertos por testes públicos.
+- [x] `docs/assembler/data.md` registra sintaxe e codificação.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Pull Request: [#28](https://github.com/phgiacomelli/sicxe-simulator/pull/28).
+
+Entregues `DataDirective.hpp/.cpp`, testes públicos e integração de `measureData`
+ao contador do pacote 4. Sintaxe, tipos de resultado e diagnósticos estão em
+[data.md](../data.md). A implementação segue as convenções mínimas do dialeto
+já contratado, sem acrescentar interpretações dos PDFs distribuídos fora do Git.
+
+Decisões e interfaces:
+
+- Um planejamento privado comum mede e valida os operandos nas duas operações;
+  a medição não produz bytes. Não se reabre nem se reanalisa a linha de fonte.
+- `WORD` usa `parseValue`/`validateInteger`/`referenceOperand` na primeira
+  passagem e `resolveOperand` na codificação, preservando referências futuras.
+- Reservas usam `parseKnownInteger`, com verificação antes de multiplicar;
+  `DataReservation` contém tamanho, sem vetor de zeros. O preenchimento `.bin`
+  fica no pacote 7.
+- Nenhuma assinatura ou campo público dos pacotes 1–4 foi alterado. A integração
+  usa `InvalidDirectiveOperand`/`AddressOutOfRange` já existentes em `PassOne`;
+  a API de dados preserva detalhes tipados do pacote 3.
+- Fora do ownership principal, foram atualizados `PassOne.cpp`, seu teste,
+  CMake e documentos de estado/contratos. A integração com o pacote 4 foi
+  conferida na revisão do PR #28, preservando o algoritmo geral do contador.
+
+Testes adicionados cobrem ASCII/hex, vazios, WORD signed/unsigned de 24 bits,
+referências anteriores/futuras, indefinidos, reservas zero/máximas, overflow,
+consistência de tamanhos e limites do contador. Resultados efetivos de build,
+formatação e CTest: builds Release em diretórios novos passaram em **373 testes
+com Qt** e **370 sem Qt**, usando GCC 16.2.1 e GoogleTest 1.17.0. A fonte do
+GoogleTest obtida na configuração completa foi reutilizada no build sem Qt via
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`. Formatação pelo alvo `format` e verificação
+`clang-format --dry-run --Werror` executadas em container Fedora 43 com
+clang-format 21; `git diff --check` também passou. Nenhum teste anterior falhou.
+CI [Format, build and test](https://github.com/phgiacomelli/sicxe-simulator/actions/runs/39355349537)
+aprovada no commit `28d745a`, incluindo formatação, build e testes com e sem Qt.
+A revisão de padrões e requisitos do PR #28 não identificou bloqueadores de
+código. Os ajustes documentais atualizaram a arquitetura e qualificaram como
+histórico o comportamento de rejeição do PR #27. A revisão também confirmou
+os resultados da suíte completa com e sem Qt em builds limpos no Fedora.
+O parecer e a CI do commit final são verificáveis no PR #28.
+Passagem 2 completa, writer e codificação de instruções continuam fora deste pacote.

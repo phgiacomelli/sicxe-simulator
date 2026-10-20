@@ -50,12 +50,13 @@ não lê registros de objeto nem aplica relocação. Veja os
 
 A base atual do montador é `sicxe_assembler`, com `SourceParser`, os tipos
 de fonte/diagnóstico/resultado, `SymbolTable`, `OperandValue`, o catálogo da ISA,
-operandos de instrução, codificador de formato 2, `LocatedLine` e `PassOne` em
-`src/assembler/`. Essa biblioteca não depende de Qt nem de `SICXECore`;
-as diretivas de dados, formatos 3/4, passagem 2 e saídas ainda estão planejadas.
+operandos de instrução, codificador de formato 2, `LocatedLine`, `PassOne` e
+`DataDirective` em `src/assembler/`. Dados e reservas já se integram ao contador
+da passagem 1. Essa biblioteca não depende de Qt nem de `SICXECore`;
+formatos 3/4, passagem 2 e saídas ainda estão planejados.
 O comportamento implementado está em [fonte](assembler/source.md),
 [símbolos](assembler/symbols.md), [ISA](assembler/isa.md) e
-[passagem 1](assembler/pass-one.md).
+[passagem 1](assembler/pass-one.md) e [dados e reservas](assembler/data.md).
 
 ## Visão geral
 

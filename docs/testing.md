@@ -210,7 +210,7 @@ localização no alvo `AssemblerTests`:
 - diagnósticos de símbolo duplicado (com `previousDefinition`), símbolo indefinido e colisão com nome reservado;
 - rejeição de instruções fora do recorte (`ADDF`, `HALT`, `EQU`, `ORG`), `+` inválido, falta de `END`, declarações após `END` e `START`/`END` duplicados ou fora de lugar;
 - validação do último byte endereçável (`0xFFFFF`), próximo endereço inválido (`0x100000`) e overflow sem *wrap-around*;
-- rejeição explícita de `BYTE`, `WORD`, `RESB` e `RESW` antes da integração do pacote 5, sem inventar tamanho `0`;
+- integração de `BYTE`, `WORD`, `RESB` e `RESW`, com tamanhos estáveis e rótulos seguintes no endereço correto (pacote 5);
 - recusa de montagem parcial quando `SourceParser::parse` reporta falha sintática e reconhecimento das 38 instruções da VM.
 
 São 11 testes novos de passagem 1. Na revisão do PR #27, o teste das diretivas
@@ -229,3 +229,32 @@ ctest --test-dir build -R 'PassOneTest' --output-on-failure
 
 O contrato do intermediário `LocatedLine` e os códigos de diagnóstico da
 passagem 1 estão em [passagem 1 do montador](assembler/pass-one.md).
+
+## Montador: pacote 5
+
+`tests/assembler/DataDirectiveTest.cpp` exercita `measureData` e `encodeData`
+pela interface pública e integra as diretivas à `PassOne` real:
+
+- ASCII com preservação de caixa, espaços, pontuação, NUL e `7F`; rejeição de
+  bytes não ASCII; hexadecimal com pares, caixa mista, dígito inválido e ímpar;
+- literais vazios e tamanhos máximos, sem emissão na medição;
+- `WORD` com limites de 24 bits, negativos em complemento de dois, overflow,
+  símbolos anteriores/futuros, autorreferência e indefinidos;
+- reservas zero, normais e máximas sem buffer de bytes; rejeição de rótulos,
+  expressões, negativos e multiplicação que excederia a capacidade;
+- consistência entre tamanho medido e codificado, detecção de intermediário
+  divergente e preservação da fronteira do último byte endereçável;
+- erros de diretiva impedem rótulos/endereço fictício nas linhas posteriores;
+  duas montagens sucessivas não compartilham símbolos.
+
+```bash
+ctest --test-dir build -R 'DataDirectiveTest|PassOneTest' --output-on-failure
+```
+
+Contratos, diagnósticos e escolhas estão em [dados e reservas](assembler/data.md).
+
+Na revisão do PR #28, builds limpos Release no Fedora confirmaram **370 testes
+sem Qt** e **373 com Qt**, além da formatação dos C++ alterados e
+`git diff --check`. A fonte GoogleTest existente foi reutilizada via
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalar dependências. Parecer e CI
+do commit final ficam registrados no PR.

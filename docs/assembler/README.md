@@ -1,6 +1,6 @@
 # Segunda etapa — montador SIC/XE de duas passagens
 
-Estado: pacotes 1–4 implementados; pacotes 5–7 planejados.
+Estado: pacotes 1–5 implementados; pacotes 6–7 planejados.
 
 As duas referências, distribuídas à equipe fora do Git, têm papéis diferentes:
 `PRIMEIRO_TRABALHO_SIC_XE.pdf` define a **máquina SIC/XE deste projeto**
@@ -25,8 +25,9 @@ Atualmente, `sicxe_assembler` oferece o parser, os tipos mínimos descritos em
 [fonte](source.md), a tabela de símbolos e valores de operandos em
 [símbolos](symbols.md), o catálogo, operandos de instrução e formato 2
 em [ISA](isa.md) e a primeira passagem com contador de localização em
-[passagem 1](pass-one.md). As diretivas de dados, formatos 3/4, `.bin`, `.lst` e o CLI ainda
-dependem dos pacotes 5–7; a interface da VM continua recebendo bytes.
+[passagem 1](pass-one.md), além dos [dados e reservas](data.md) integrados ao
+contador. Formatos 3/4, `.bin`, `.lst` e o CLI ainda dependem dos pacotes 6–7;
+a interface da VM continua recebendo bytes.
 
 ```text
 fonte SIC/XE → parser → passagem 1 → linhas localizadas + símbolos
@@ -89,7 +90,7 @@ tarefa de documentação ou de integração alheia.
 | [2 — ISA e operandos](work/02-instruction-catalog.md) | Catálogo de 38 instruções e formato 2 | 1 | Implementado; integrado aos símbolos |
 | [3 — Símbolos](work/03-symbols.md) | Definições, referências e valores numéricos/simbólicos | 1 | Implementado |
 | [4 — Passagem 1](work/04-pass-one.md) | Contador, rótulos, `START`/`END` e intermediário | 1, 2, 3 | Implementado |
-| [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Planejado |
+| [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Implementado; integrado à passagem 1 |
 | [6 — Codificação XE](work/06-instruction-encoding.md) | Formatos 3/4 e modos de endereçamento | 1, 2, 3, 4, 5 | Planejado |
 | [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Planejado |
 
