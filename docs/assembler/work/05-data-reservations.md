@@ -1,6 +1,6 @@
 # Pacote 5 — Dados e reservas SIC/XE
 
-Estado: implementado; validação local concluída, CI e revisão pendentes.
+Estado: implementado; validação local e CI concluídas, revisão pendente.
 
 ## Resultado esperado
 
@@ -60,9 +60,11 @@ constantes floating point.
 - [x] Dados e reservas se integram ao contador sem reparsear a linha.
 - [x] Bytes, tamanhos, limites e falhas cobertos por testes públicos.
 - [x] `docs/assembler/data.md` registra sintaxe e codificação.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
+
+Pull Request: [#28](https://github.com/phgiacomelli/sicxe-simulator/pull/28).
 
 Entregues `DataDirective.hpp/.cpp`, testes públicos e integração de `measureData`
 ao contador do pacote 4. Sintaxe, tipos de resultado e diagnósticos estão em
@@ -94,5 +96,7 @@ GoogleTest obtida na configuração completa foi reutilizada no build sem Qt via
 `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`. Formatação pelo alvo `format` e verificação
 `clang-format --dry-run --Werror` executadas em container Fedora 43 com
 clang-format 21; `git diff --check` também passou. Nenhum teste anterior falhou.
-CI e revisão externa ainda precisam ser confirmadas antes do merge.
+CI [Format, build and test](https://github.com/phgiacomelli/sicxe-simulator/actions/runs/39355349537)
+aprovada no commit `28d745a`, incluindo formatação, build e testes com e sem Qt.
+A revisão externa permanece pendente antes do merge.
 Passagem 2 completa, writer e codificação de instruções continuam fora deste pacote.
