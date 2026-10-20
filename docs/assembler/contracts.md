@@ -6,8 +6,9 @@ codificação de formato 2 implementados no pacote 2; passagem 1 e contador de
 localização (`LocatedLine` e `PassOne`) implementados no pacote 4. `SymbolTable`
 consulta o catálogo como fonte única de mnemônicos reservados, mantendo as oito
 diretivas separadas. Dados e reservas estão implementados no pacote 5 e
-integrados ao contador; geração de bytes de formatos 3/4 e a segunda passagem
-permanecem planejadas. Comportamento e divisão de ownership
+integrados ao contador; a codificação de instruções dos formatos 2/3/4 foi
+implementada no pacote 6. A segunda passagem permanece planejada.
+Comportamento e divisão de ownership
 exigem acordo dos consumidores.
 
 ## Fonte de verdade
@@ -69,6 +70,10 @@ shift são convertidas, usando `parseKnownInteger` existente. O pacote 4 entrega
 implementados pelos pacotes seguintes. O pacote 5 entrega `measureData` e
 `encodeData`, com dados ou reservas explícitas, conforme [data.md](data.md),
 sem alterar as interfaces anteriores.
+
+O pacote 6 entrega `encodeInstruction(locatedLine, symbols, baseState)` e
+`BaseState`, com resultado e diagnósticos em [encoding.md](encoding.md).
+O chamador mantém `BASE`/`NOBASE` em ordem; o encoder não altera o layout.
 
 ## Dialeto mínimo da fonte
 

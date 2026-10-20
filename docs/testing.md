@@ -258,3 +258,32 @@ sem Qt** e **373 com Qt**, além da formatação dos C++ alterados e
 `git diff --check`. A fonte GoogleTest existente foi reutilizada via
 `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalar dependências. Parecer e CI
 do commit final ficam registrados no PR.
+
+## Montador: pacote 6
+
+`InstructionEncoderTest.cpp` roda em `AssemblerTests`, sem dependência da VM.
+Cobre bytes esperados manualmente para todos os modos, formato 2 delegado,
+`RSUB`, limites de campos/deslocamentos, prioridade PC/base, base zero ou
+desativada, erros encapsulados, intermediário inconsistente e ausência de estado
+entre chamadas.
+
+`InstructionEncoderIntegrationTest.cpp` roda em `AssemblerDecoderTests`, com
+`SICXECore`, inclusive na configuração sem Qt. Cobre os 38 opcodes pela API do
+encoder e 540 combinações de modos/estratégias nas 27 instruções de memória,
+conferindo decoder e resolução efetiva. Integra os layouts de `PassOne` e
+`DataDirective`, testa dois programas na `Machine` somente por bytes e preserva
+a restrição existente de PC pós-fetch no fim da memória.
+
+```bash
+ctest --test-dir build -R 'InstructionEncoder' --output-on-failure
+```
+
+As prioridades, diagnósticos e limites estão em [codificação](assembler/encoding.md).
+
+Na revisão do PR #29, builds limpos Release no Fedora confirmaram **385 testes
+sem Qt** e **388 com Qt**, incluindo os 15 testes novos, as 540 combinações
+de endereçamento e os dois programas executados pela VM. Formatação dos C++
+alterados e `git diff --check` passaram. A fonte GoogleTest existente foi
+reutilizada por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de
+dependências. O ajuste de revisão reutiliza a constante compartilhada do campo
+de 12 bits; não altera bytes, formatos ou prioridades de endereçamento.
