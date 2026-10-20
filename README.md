@@ -9,7 +9,8 @@ bytes codificados e interface Qt para execução e inspeção. Os programas de
 aceitação e os testes da interface acompanham a implementação.
 
 A segunda etapa entrega o [montador de duas passagens](docs/assembler/README.md),
-com o pacote final implementado e validado localmente, pendente de revisão e CI remota.
+com os sete pacotes implementados e o pipeline final validado no
+[PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
 O parser de fonte, os contratos mínimos, os símbolos, o pacote de
 [catálogo/operandos/formato 2](docs/assembler/isa.md) e a
 [passagem 1 e contador de localização](docs/assembler/pass-one.md) têm implementação em C++20.
