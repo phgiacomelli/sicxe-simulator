@@ -279,3 +279,11 @@ ctest --test-dir build -R 'InstructionEncoder' --output-on-failure
 ```
 
 As prioridades, diagnósticos e limites estão em [codificação](assembler/encoding.md).
+
+Na revisão do PR #29, builds limpos Release no Fedora confirmaram **385 testes
+sem Qt** e **388 com Qt**, incluindo os 15 testes novos, as 540 combinações
+de endereçamento e os dois programas executados pela VM. Formatação dos C++
+alterados e `git diff --check` passaram. A fonte GoogleTest existente foi
+reutilizada por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de
+dependências. O ajuste de revisão reutiliza a constante compartilhada do campo
+de 12 bits; não altera bytes, formatos ou prioridades de endereçamento.

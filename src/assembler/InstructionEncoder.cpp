@@ -154,8 +154,10 @@ encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState
         const auto displacement = target - pc;
         if (displacement >= -2048 && displacement <= 2047) {
             flags |= 0x20;
-            field = static_cast<std::uint32_t>(displacement) & 0xFFFU;
-        } else if (baseState && target >= *baseState && target - *baseState <= 4095) {
+            field = static_cast<std::uint32_t>(displacement) &
+                    static_cast<std::uint32_t>(Address12BitRange.max);
+        } else if (baseState && target >= *baseState &&
+                   target - *baseState <= Address12BitRange.max) {
             flags |= 0x40;
             field = static_cast<std::uint32_t>(target - *baseState);
         } else {

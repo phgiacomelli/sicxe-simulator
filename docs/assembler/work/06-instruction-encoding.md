@@ -1,6 +1,6 @@
 # Pacote 6 — Codificação das instruções SIC/XE
 
-Estado: implementado; testes locais e CI verdes; revisão externa pendente.
+Estado: implementado; validação e revisão registradas no PR #29.
 
 ## Resultado esperado
 
@@ -105,5 +105,11 @@ clang-format 21; `git diff --check` também passou. Os 15 novos testes incluem
 round-trip dos 38 opcodes e dois programas com execução a partir de bytes.
 CI [Format, build and test](https://github.com/phgiacomelli/sicxe-simulator/actions/runs/39486689526)
 aprovada no commit `d59e822`, incluindo formatação, build e testes com e sem Qt.
-Passagem 2 completa, arquivos de saída e CLI permanecem no Pacote 7; revisão
-externa é necessária antes do merge.
+Passagem 2 completa, arquivos de saída e CLI permanecem no Pacote 7.
+
+Na revisão do PR #29, os requisitos do pacote e as fronteiras do projeto foram
+conferidos sem identificar funcionalidade faltante ou ampliação de escopo.
+O ajuste de código reutiliza `Address12BitRange.max` no limite base-relative e
+na máscara do campo, preservando bytes e comportamento. Os estados de revisão
+foram atualizados no índice e no roadmap. O parecer e a CI do commit final
+ficam registrados no PR.
