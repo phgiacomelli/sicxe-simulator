@@ -252,3 +252,9 @@ ctest --test-dir build -R 'DataDirectiveTest|PassOneTest' --output-on-failure
 ```
 
 Contratos, diagnósticos e escolhas estão em [dados e reservas](assembler/data.md).
+
+Na revisão do PR #28, builds limpos Release no Fedora confirmaram **370 testes
+sem Qt** e **373 com Qt**, além da formatação dos C++ alterados e
+`git diff --check`. A fonte GoogleTest existente foi reutilizada via
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalar dependências. Parecer e CI
+do commit final ficam registrados no PR.

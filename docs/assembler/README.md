@@ -90,7 +90,7 @@ tarefa de documentação ou de integração alheia.
 | [2 — ISA e operandos](work/02-instruction-catalog.md) | Catálogo de 38 instruções e formato 2 | 1 | Implementado; integrado aos símbolos |
 | [3 — Símbolos](work/03-symbols.md) | Definições, referências e valores numéricos/simbólicos | 1 | Implementado |
 | [4 — Passagem 1](work/04-pass-one.md) | Contador, rótulos, `START`/`END` e intermediário | 1, 2, 3 | Implementado |
-| [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Implementado; testes e CI verdes; aguarda revisão |
+| [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Implementado; integrado à passagem 1 |
 | [6 — Codificação XE](work/06-instruction-encoding.md) | Formatos 3/4 e modos de endereçamento | 1, 2, 3, 4, 5 | Planejado |
 | [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Planejado |
 

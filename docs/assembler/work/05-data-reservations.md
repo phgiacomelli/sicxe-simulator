@@ -1,6 +1,7 @@
 # Pacote 5 — Dados e reservas SIC/XE
 
-Estado: implementado; validação local e CI concluídas, revisão pendente.
+Estado: implementado e integrado à passagem 1; validação e revisão registradas
+no PR #28.
 
 ## Resultado esperado
 
@@ -84,8 +85,8 @@ Decisões e interfaces:
   usa `InvalidDirectiveOperand`/`AddressOutOfRange` já existentes em `PassOne`;
   a API de dados preserva detalhes tipados do pacote 3.
 - Fora do ownership principal, foram atualizados `PassOne.cpp`, seu teste,
-  CMake e documentos de estado/contratos. A integração requer revisão do
-  responsável pelo pacote 4 antes do merge.
+  CMake e documentos de estado/contratos. A integração com o pacote 4 foi
+  conferida na revisão do PR #28, preservando o algoritmo geral do contador.
 
 Testes adicionados cobrem ASCII/hex, vazios, WORD signed/unsigned de 24 bits,
 referências anteriores/futuras, indefinidos, reservas zero/máximas, overflow,
@@ -98,5 +99,9 @@ GoogleTest obtida na configuração completa foi reutilizada no build sem Qt via
 clang-format 21; `git diff --check` também passou. Nenhum teste anterior falhou.
 CI [Format, build and test](https://github.com/phgiacomelli/sicxe-simulator/actions/runs/39355349537)
 aprovada no commit `28d745a`, incluindo formatação, build e testes com e sem Qt.
-A revisão externa permanece pendente antes do merge.
+A revisão de padrões e requisitos do PR #28 não identificou bloqueadores de
+código. Os ajustes documentais atualizaram a arquitetura e qualificaram como
+histórico o comportamento de rejeição do PR #27. A revisão também confirmou
+os resultados da suíte completa com e sem Qt em builds limpos no Fedora.
+O parecer e a CI do commit final são verificáveis no PR #28.
 Passagem 2 completa, writer e codificação de instruções continuam fora deste pacote.

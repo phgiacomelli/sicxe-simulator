@@ -97,10 +97,10 @@ Decisões implementadas:
   último byte válido (`0xFFFFF`) e reportando `AddressOutOfRange` a partir de
   `0x100000`;
 - preserva `BASE`, `NOBASE` e comentários na ordem original com `sizeBytes = 0`;
-- rejeita explicitamente `BYTE`, `WORD`, `RESB` e `RESW` com
+- na entrega original do PR #27, rejeitava `BYTE`, `WORD`, `RESB` e `RESW` com
   `PassOneDiagnosticCode::DataDirectiveNotIntegrated`, sem definir o rótulo ou
-  publicar uma linha de tamanho desconhecido; o cálculo de dados e reservas
-  permanece para integração pelo pacote 5;
+  publicar uma linha de tamanho desconhecido. Esse comportamento foi substituído
+  pela integração do pacote 5 no PR #28, documentada em [dados](../data.md);
 - limites de endereço do layout e de `Address20BitRange` compartilham a definição
   em `AddressLimits.hpp`, sem alterar os valores ou as assinaturas do pacote 3.
 

@@ -155,7 +155,7 @@ Há sete pacotes, um PR por integrante:
    implementados; veja [símbolos do montador](assembler/symbols.md).
 4. Passagem 1 e contador de localização — implementados; veja
    [passagem 1 do montador](assembler/pass-one.md).
-5. Dados e reservas — implementados; testes e CI verdes; aguarda revisão; veja
+5. Dados e reservas — implementados e integrados à passagem 1; veja
    [dados do montador](assembler/data.md).
 6. Codificação das instruções XE.
 7. Passagem 2, binário/listagem, CLI e aceitação.
