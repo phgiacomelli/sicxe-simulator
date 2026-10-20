@@ -1,6 +1,6 @@
 # Pacote 6 — Codificação das instruções SIC/XE
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado e validado localmente; CI e revisão externa pendentes.
 
 ## Resultado esperado
 
@@ -62,13 +62,45 @@ formato SIC legado de fonte, formato 1 ou opcode vermelho.
 
 ## Critério de conclusão
 
-- [ ] As 28 instruções de memória podem ser codificadas nos formatos
+- [x] As 28 instruções de memória podem ser codificadas nos formatos
   permitidos, com testes dos modos e limites.
-- [ ] Bytes gerados são aceitos pelo decoder; falha não emite bytes.
-- [ ] `docs/assembler/encoding.md` descreve prioridades e limites.
+- [x] Bytes gerados são aceitos pelo decoder; falha não emite bytes.
+- [x] `docs/assembler/encoding.md` descreve prioridades e limites.
 - [ ] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `InstructionEncoder.hpp/.cpp`, testes unitários e integração com
+decoder/resolver/máquina. Interfaces, diagnósticos e exemplos estão em
+[encoding.md](../encoding.md). Os formatos permitidos são 27 instruções de
+memória em 3/4 e `RSUB` exclusivamente em 3, além das dez de formato 2 delegadas.
+
+Decisões:
+
+- `encodeInstruction` recebe linha e símbolos constantes e `BaseState` explícito
+  (`optional<uint32_t>`); ausência de base é diferente de base ativa em zero.
+- Reutiliza catálogo/operandos/formato 2 e resolução de valores dos Pacotes 2/3,
+  sem alterar seus contratos nem os tipos dos Pacotes 4/5.
+- Confere os campos redundantes do intermediário antes da emissão; não promove
+  formato nem altera endereço/tamanho. Referências e estado de base não vazam
+  entre chamadas.
+- O chamador futuro do Pacote 7 mantém BASE/NOBASE. O encoder não recebe VM nem
+  faz I/O. Fixtures de execução nos testes não introduzem uma passagem 2 pública.
+- O limite de layout no último byte foi preservado; a restrição de PC pós-fetch
+  da VM existente foi documentada e exercitada separadamente.
+- Sem nova interpretação dos PDFs distribuídos fora do Git: foram seguidos os
+  contratos do dialeto e a implementação atual da VM.
+
+Ownership adicional: CMake e documentos de arquitetura/estado/testes. Nenhuma
+alteração em núcleo, Qt ou implementação dos Pacotes 2–5 é necessária.
+Builds Release em diretórios novos passaram em **388 testes com Qt** e
+**385 sem Qt**, usando GCC 16.2.1, Qt 6.11.2 e GoogleTest 1.17.0. Nenhum teste
+falhou. A fonte de GoogleTest existente foi reutilizada via
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`. O alvo `format` e a verificação global
+`clang-format --dry-run --Werror` passaram em container Fedora 43 com
+clang-format 21; `git diff --check` também passou. Os 15 novos testes incluem
+540 combinações de modos/estratégias nas 27 instruções de memória,
+round-trip dos 38 opcodes e dois programas com execução a partir de bytes.
+CI será registrada após a publicação do PR.
+Passagem 2 completa, arquivos de saída e CLI permanecem no Pacote 7; revisão
+externa é necessária antes do merge.
