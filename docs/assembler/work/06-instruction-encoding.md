@@ -1,6 +1,6 @@
 # Pacote 6 — Codificação das instruções SIC/XE
 
-Estado: implementado e validado localmente; CI e revisão externa pendentes.
+Estado: implementado; testes locais e CI verdes; revisão externa pendente.
 
 ## Resultado esperado
 
@@ -66,9 +66,11 @@ formato SIC legado de fonte, formato 1 ou opcode vermelho.
   permitidos, com testes dos modos e limites.
 - [x] Bytes gerados são aceitos pelo decoder; falha não emite bytes.
 - [x] `docs/assembler/encoding.md` descreve prioridades e limites.
-- [ ] Build, formatação, CTest e CI verdes.
+- [x] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
+
+Pull Request: [#29](https://github.com/phgiacomelli/sicxe-simulator/pull/29).
 
 Entregues `InstructionEncoder.hpp/.cpp`, testes unitários e integração com
 decoder/resolver/máquina. Interfaces, diagnósticos e exemplos estão em
@@ -101,6 +103,7 @@ falhou. A fonte de GoogleTest existente foi reutilizada via
 clang-format 21; `git diff --check` também passou. Os 15 novos testes incluem
 540 combinações de modos/estratégias nas 27 instruções de memória,
 round-trip dos 38 opcodes e dois programas com execução a partir de bytes.
-CI será registrada após a publicação do PR.
+CI [Format, build and test](https://github.com/phgiacomelli/sicxe-simulator/actions/runs/39486689526)
+aprovada no commit `d59e822`, incluindo formatação, build e testes com e sem Qt.
 Passagem 2 completa, arquivos de saída e CLI permanecem no Pacote 7; revisão
 externa é necessária antes do merge.

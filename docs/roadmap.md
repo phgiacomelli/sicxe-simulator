@@ -158,8 +158,8 @@ Há sete pacotes, um PR por integrante:
    [passagem 1 do montador](assembler/pass-one.md).
 5. Dados e reservas — implementados e integrados à passagem 1; veja
    [dados do montador](assembler/data.md).
-6. Codificação das instruções XE — implementada e validada localmente; aguarda
-   CI e revisão; veja
+6. Codificação das instruções XE — implementada; testes e CI verdes; aguarda
+   revisão; veja
    [codificação](assembler/encoding.md).
 7. Passagem 2, binário/listagem, CLI e aceitação.
 
