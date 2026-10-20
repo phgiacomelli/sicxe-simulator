@@ -190,6 +190,7 @@ if(BUILD_TESTING)
     gtest_discover_tests(SICXESimulatorTests)
 
     add_executable(AssemblerTests
+        tests/assembler/AssemblerTest.cpp
         tests/assembler/SourceParserTest.cpp
         tests/assembler/AssemblyContractTest.cpp
         tests/assembler/SymbolTableTest.cpp
@@ -205,13 +206,28 @@ if(BUILD_TESTING)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
 
+    add_executable(AssemblerCliTests tests/assembler/AssemblerCliTest.cpp)
+    set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(AssemblerCliTests PRIVATE sicxe_assembler_cli GTest::gtest_main)
+    gtest_discover_tests(AssemblerCliTests NO_PRETTY_VALUES)
+    add_test(NAME AssemblerCliHelp COMMAND SICXEAssembler --help)
+    set_tests_properties(AssemblerCliHelp PROPERTIES PASS_REGULAR_EXPRESSION "Uso: SICXEAssembler")
+    add_test(NAME AssemblerCliSmoke COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEAssembler>
+        -DFIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/fixtures/sum-and-table.asm
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/assembler-cli-smoke
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/CliSmoke.cmake)
+
     # Only compatibility/execution tests depend on the VM; the assembler stays independent.
     add_executable(AssemblerDecoderTests
+        tests/assembler/AssemblerAcceptanceTest.cpp
         tests/assembler/Format2DecoderTest.cpp
         tests/assembler/InstructionEncoderIntegrationTest.cpp
     )
     set_target_properties(AssemblerDecoderTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerDecoderTests PRIVATE sicxe_assembler SICXECore GTest::gtest_main)
+    target_compile_definitions(AssemblerDecoderTests PRIVATE
+        ASSEMBLER_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/fixtures")
     gtest_discover_tests(AssemblerDecoderTests NO_PRETTY_VALUES)
 
     if(SICXE_BUILD_QT)
