@@ -1,8 +1,9 @@
 # Montagem de programas: passagem 2, arquivos e CLI
 
-Estado: pacote 7 implementado e validado localmente. Revisão cruzada e CI
-remota ainda devem ocorrer no PR. O montador é uma ferramenta separada da
-VM: recebe assembly e produz bytes; a VM continua recebendo somente bytes.
+Estado: pacote 7 implementado, validado localmente e revisado tecnicamente,
+com CI verde no [PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
+O montador é uma ferramenta separada da VM: recebe assembly e produz bytes;
+a VM continua recebendo somente bytes.
 
 ## Compilar e montar
 

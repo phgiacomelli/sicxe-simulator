@@ -1,7 +1,8 @@
 # Pacote 7 — Passagem 2, saída e aceitação
 
-Estado: implementado e validado localmente; revisão cruzada e CI remota
-pendentes antes do merge. Branch: `feat/assembler-pass-two`.
+Estado: implementado, validado localmente e revisado tecnicamente, com CI verde
+no [PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
+Branch de implementação: `feat/assembler-pass-two`.
 
 ## Resultado esperado
 
@@ -78,7 +79,7 @@ encoder para resolver falha de integração: corrigir no pacote dono.
 - [x] Aceitação demonstra compatibilidade com a VM sem mudar a VM.
 - [x] README, testes, uso, roadmap e índice atualizados.
 - [x] Build, formatação e CTest locais verdes com e sem Qt.
-- [ ] CI remota verde e revisão cruzada no PR.
+- [x] CI remota verde e revisão técnica registrada no PR.
 
 ## Registro do PR
 
@@ -117,7 +118,7 @@ Nenhuma nova interpretação dos PDFs: foram seguidos o recorte SIC/XE e as
 convenções mínimas já acordadas em [contratos](../contracts.md). Nada de
 instruções vermelhas, loader/linker, relocação, expressões ou editor assembly.
 
-### Testes e pendências
+### Testes e revisão
 
 26 testes novos: 11 de pipeline/writers, 11 de CLI com arquivos reais, dois
 de aceitação e dois do executável pelo CTest. Cobrem falhas sintáticas,
@@ -134,5 +135,8 @@ Builds locais novos passaram em **411 testes sem Qt** (Debug) e **414 com Qt**
 fontes com `-Wall -Wextra -Wpedantic -Werror` também passaram. Comandos e detalhes
 em [testes](../../testing.md#montador-pacote-7).
 
-Pendências de fluxo: revisão por outro integrante e CI remota no futuro PR.
-Registrar o link do PR e o resultado da CI quando estiverem disponíveis.
+A revisão técnica do PR #30 verificou padrões, escopo, pipeline e publicação
+dos arquivos, sem bloqueadores funcionais. A validação independente repetiu
+os **411 testes sem Qt e 414 com Qt**, ambos em Release. O job remoto
+`Format, build and test` passou. O parecer é técnico e não representa
+aprovação humana de outro integrante.

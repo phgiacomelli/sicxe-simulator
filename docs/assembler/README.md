@@ -1,7 +1,8 @@
 # Segunda etapa — montador SIC/XE de duas passagens
 
-Estado: pacotes 1–7 implementados; pacote 7 validado localmente, pendente de
-revisão cruzada e CI remota antes do merge.
+Estado: pacotes 1–7 implementados e integrados. O pacote final tem testes
+locais, revisão técnica e CI verde registrados no
+[PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
 
 As duas referências, distribuídas à equipe fora do Git, têm papéis diferentes:
 `PRIMEIRO_TRABALHO_SIC_XE.pdf` define a **máquina SIC/XE deste projeto**
@@ -95,7 +96,7 @@ tarefa de documentação ou de integração alheia.
 | [4 — Passagem 1](work/04-pass-one.md) | Contador, rótulos, `START`/`END` e intermediário | 1, 2, 3 | Implementado |
 | [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Implementado; integrado à passagem 1 |
 | [6 — Codificação XE](work/06-instruction-encoding.md) | Formatos 3/4 e modos de endereçamento | 1, 2, 3, 4, 5 | Implementado; integrado aos módulos anteriores |
-| [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Implementado localmente; revisão e CI remota pendentes |
+| [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Implementado; pipeline integrado e validado |
 
 As dependências são de **merge**, não impedem desenvolvimento paralelo.
 O pacote 1 entrega os tipos compartilhados mínimos junto do parser; não

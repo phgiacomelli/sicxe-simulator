@@ -8,9 +8,9 @@ consulta o catálogo como fonte única de mnemônicos reservados, mantendo as oi
 diretivas separadas. Dados e reservas estão implementados no pacote 5 e
 integrados ao contador; a codificação de instruções dos formatos 2/3/4 foi
 implementada no pacote 6. A segunda passagem, writers em memória e CLI estão
-implementados no pacote 7, com validação local; revisão e CI remota pendentes.
-Comportamento e divisão de ownership
-exigem acordo dos consumidores.
+implementados no pacote 7, com validação local, revisão técnica e CI verde no
+[PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30).
+Mudanças de comportamento e divisão de ownership exigem acordo dos consumidores.
 
 ## Fonte de verdade
 

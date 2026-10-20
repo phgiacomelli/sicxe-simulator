@@ -335,7 +335,11 @@ local); os comandos acima omitem esse ajuste opcional de cache. Resultado:
 **411 testes sem Qt e 414 com Qt**, todos aprovados, nenhum ignorado. A interface
 Qt foi testada em `offscreen` pelo CTest. `clang-format --dry-run --Werror` em
 todos os C++ do projeto e `-Wall -Wextra -Wpedantic -Werror` nos novos fontes
-também passaram. A CI remota e a revisão cruzada continuam pendentes do PR.
+também passaram. Na revisão técnica do
+[PR #30](https://github.com/phgiacomelli/sicxe-simulator/pull/30), builds novos
+em Release repetiram os **411 testes sem Qt e 414 com Qt**, todos aprovados.
+O job remoto `Format, build and test` também passou. A revisão não encontrou
+bloqueadores de padrões ou de escopo no pipeline e na publicação dos arquivos.
 
 Também foi compilado o alvo `SICXEAssembler` em outro build Release, com
 `SICXE_BUILD_QT=OFF` e `BUILD_TESTING=OFF`, sem Qt/GoogleTest. Esse executável
