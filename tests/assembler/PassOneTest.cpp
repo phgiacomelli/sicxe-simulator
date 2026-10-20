@@ -408,7 +408,9 @@ TEST(PassOneTest, ValidatesLastValidAddressNextInvalidAddressAndOverflowWithoutW
     }
 }
 
-TEST(PassOneTest, ExplicitlyRejectsDataAndReservationDirectivesBeforePackage5WithoutInventingSize) {
+TEST(PassOneTest, IntegratesDataAndReservationDirectivesWithStableSizes) {
+    const std::size_t sizes[] = {3, 3, 4, 6};
+    std::size_t index = 0;
     for (const std::string_view directiveSource : {"      START 0x1000\n"
                                                    "DATA1 BYTE  C'EOF'\n"
                                                    "AFTER LDA   #1\n"
@@ -427,18 +429,19 @@ TEST(PassOneTest, ExplicitlyRejectsDataAndReservationDirectivesBeforePackage5Wit
                                                    "      END\n"}) {
         SCOPED_TRACE(directiveSource);
         const auto result = runSource(directiveSource);
-        EXPECT_FALSE(result.succeeded());
-        ASSERT_EQ(result.diagnostics.size(), 1U);
-        EXPECT_EQ(result.diagnostics[0].code, PassOneDiagnosticCode::DataDirectiveNotIntegrated);
-        EXPECT_EQ(result.diagnostics[0].position, (SourcePosition{2, 7}));
-        // Must not invent a size or assign an address to AFTER
-        EXPECT_FALSE(result.findSymbol("DATA1").has_value());
-        EXPECT_TRUE(result.symbols.empty());
-        EXPECT_FALSE(result.findSymbol("AFTER").has_value());
-        EXPECT_EQ(result.programLength, 0U);
-        ASSERT_EQ(result.lines.size(), 2U);
+        ASSERT_TRUE(result.succeeded());
+        ASSERT_TRUE(result.findSymbol("DATA1").has_value());
+        ASSERT_TRUE(result.findSymbol("AFTER").has_value());
+        EXPECT_EQ(result.findSymbol("DATA1")->address, 0x1000U);
+        EXPECT_EQ(result.findSymbol("AFTER")->address, 0x1000U + sizes[index]);
+        EXPECT_EQ(result.programLength, sizes[index] + 3);
+        ASSERT_EQ(result.lines.size(), 4U);
+        EXPECT_EQ(result.lines[1].sizeBytes, sizes[index]);
+        EXPECT_EQ(result.lines[1].category,
+                  index < 2 ? LocatedLineCategory::Data : LocatedLineCategory::Reservation);
         EXPECT_EQ(result.lines.front().directive, LocatedDirectiveKind::Start);
         EXPECT_EQ(result.lines.back().directive, LocatedDirectiveKind::End);
+        ++index;
     }
 }
 

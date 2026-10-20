@@ -98,6 +98,8 @@ add_library(sicxe_assembler STATIC
     src/assembler/LocatedLine.hpp
     src/assembler/PassOne.cpp
     src/assembler/PassOne.hpp
+    src/assembler/DataDirective.cpp
+    src/assembler/DataDirective.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -176,6 +178,7 @@ if(BUILD_TESTING)
         tests/assembler/InstructionOperandTest.cpp
         tests/assembler/Format2EncoderTest.cpp
         tests/assembler/PassOneTest.cpp
+        tests/assembler/DataDirectiveTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
