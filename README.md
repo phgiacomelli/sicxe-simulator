@@ -14,8 +14,9 @@ O parser de fonte, os contratos mínimos, os símbolos, o pacote de
 [passagem 1 e contador de localização](docs/assembler/pass-one.md) têm implementação em C++20.
 O catálogo também é a fonte única dos mnemônicos reservados na tabela de símbolos.
 As [diretivas de dados e reservas](docs/assembler/data.md) também estão
-implementadas e integradas ao contador. Formatos 3/4, segunda passagem e geração
-de programas ainda dependem dos próximos pacotes.
+implementadas e integradas ao contador. A [codificação das instruções](docs/assembler/encoding.md)
+de formatos 2/3/4 está implementada; segunda passagem e geração de programas
+ainda dependem do pacote 7.
 
 ## Tecnologias
 
@@ -81,6 +82,8 @@ registrada na [arquitetura](docs/architecture.md).
   intermediário `LocatedLine` do pacote 4.
 - [Dados e reservas](docs/assembler/data.md): medição e codificação de
   `BYTE`/`WORD`/`RESB`/`RESW` do pacote 5 do montador.
+- [Codificação das instruções](docs/assembler/encoding.md): formatos 2/3/4,
+  prioridades de PC/base, limites e diagnósticos do pacote 6.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
