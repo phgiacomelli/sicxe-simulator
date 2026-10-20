@@ -1,5 +1,6 @@
 #include "PassOne.hpp"
 
+#include "DataDirective.hpp"
 #include "InstructionCatalog.hpp"
 #include "InstructionOperand.hpp"
 #include "OperandValue.hpp"
@@ -497,15 +498,50 @@ PassOneResult PassOne::run(std::span<const SourceLine> parsedLines) {
                 continue;
             }
 
-            // Data/reservation directives (BYTE, WORD, RESB, RESW) before Package 5 integration.
-            result.diagnostics.push_back(PassOneDiagnostic{
-                PassOneDiagnosticCode::DataDirectiveNotIntegrated,
-                operationPosition,
-                "Diretiva de dados/reserva '" + std::string{mnemonic} +
-                    "' ainda nao integrada; depende do pacote 5.",
+            if (!layoutValid) {
+                continue;
+            }
+            const auto measured = measureData(line, symbols);
+            if (const auto* diagnostic = std::get_if<DataDiagnostic>(&measured)) {
+                result.diagnostics.push_back(PassOneDiagnostic{
+                    PassOneDiagnosticCode::InvalidDirectiveOperand,
+                    diagnostic->position,
+                    diagnostic->message,
+                    std::nullopt,
+                });
+                layoutValid = false;
+                continue;
+            }
+            const auto& data = std::get<DataMeasurement>(measured);
+            const auto nextLocationCounter = locationCounter + data.sizeBytes;
+            if (locationCounter > MaxMemoryAddress || nextLocationCounter > MemoryCapacity) {
+                result.diagnostics.push_back(PassOneDiagnostic{
+                    PassOneDiagnosticCode::AddressOutOfRange,
+                    operationPosition,
+                    "Dados/reserva excedem o espaco enderecavel 0x00000..0xFFFFF.",
+                    std::nullopt,
+                });
+                layoutValid = false;
+                continue;
+            }
+            if (statement.label) {
+                if (const auto diagnostic = defineSymbol(
+                        symbols, *statement.label, static_cast<std::uint32_t>(locationCounter))) {
+                    result.diagnostics.push_back(*diagnostic);
+                }
+            }
+            result.lines.push_back(LocatedLine{
+                line,
+                data.reservation ? LocatedLineCategory::Reservation : LocatedLineCategory::Data,
+                static_cast<std::uint32_t>(locationCounter),
+                data.sizeBytes,
+                std::string{mnemonic},
+                false,
                 std::nullopt,
+                std::nullopt,
+                *directive,
             });
-            layoutValid = false;
+            locationCounter = nextLocationCounter;
             continue;
         }
 
