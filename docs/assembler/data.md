@@ -66,7 +66,7 @@ Antes de codificar, `encodeData` confere tamanho, categoria, diretiva e ausênci
 de formato estendido contra `LocatedLine`, além do limite endereço + tamanho.
 Um layout divergente falha em vez de alterar o contador ou emitir bytes parciais.
 Reservas nunca alocam um vetor de zeros. Somente o writer `.bin` do pacote 7
-preencherá o espaço ao serializar a imagem final.
+preenche o espaço ao construir a imagem final em memória.
 
 ## Integração com a passagem 1
 
@@ -125,6 +125,6 @@ bytes, overflow, divergência de layout e integração com endereços da passage
 `PassOneTest` verifica as quatro diretivas onde antes exigia sua rejeição.
 Comandos de verificação permanecem em [CONTRIBUTING](../../CONTRIBUTING.md).
 
-O módulo não codifica instruções nem implementa a passagem 2 completa, writer,
-CLI, relocação ou avaliação de expressões. Esses trabalhos continuam com os
-pacotes responsáveis.
+O módulo não codifica instruções nem implementa a passagem 2 completa, writer
+ou CLI: esses consumidores estão no pacote 7, descrito em [uso](usage.md).
+Relocação e avaliação de expressões permanecem fora do escopo do projeto.

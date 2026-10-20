@@ -47,8 +47,8 @@ no endereço zero. Não existe sentinela numérica para indicar ausência de bas
 O chamador fornece o estado vigente para cada instrução. Base inválida é erro
 mesmo em uma chamada cuja instrução não precisaria dela.
 
-A futura passagem 2, do Pacote 7, deverá percorrer as linhas na ordem da fonte,
-resolver o operando de `BASE` pela tabela final e limpar o estado em `NOBASE`.
+A passagem 2, do pacote 7, percorre as linhas na ordem da fonte,
+resolve o operando de `BASE` pela tabela final e limpa o estado em `NOBASE`.
 Isso não pertence ao encoder: ele recebe somente instruções e uma base já
 resolvida. `BASE` não carrega o registrador B; o programa deve fazê-lo antes de
 executar uma instrução base-relative. O encoder não lê B ou X em tempo de montagem.
@@ -139,6 +139,8 @@ regra de layout já aceita por `PassOne`; um teste documenta essa distinção.
 Não há garantia de que bytes decodificáveis possam executar em qualquer estado
 de memória/registradores. A VM conserva suas validações de execução.
 
-O pacote não oferece `assemble()`, `PassTwo`, writer, `.bin`, `.lst`, CLI,
-relocação, formato SIC legado ou instruções adicionais. A composição das imagens
-dos programas de teste é somente uma fixture em memória, sem API de saída.
+O encoder não oferece `assemble()`, `PassTwo`, writer ou CLI: essa integração
+está no pacote 7, descrito em [uso](usage.md). As fixtures próprias do pacote 6
+continuam em memória; a aceitação do pacote 7 usa o pipeline público completo.
+Relocação, fonte em formato SIC legado e instruções adicionais permanecem
+fora do escopo.

@@ -94,9 +94,9 @@ e comentário reconhecido ficam disponíveis. O parser continua na próxima
 linha, preservando a ordem física dos diagnósticos. Ele não verifica
 presença de `START`/`END`, símbolos ou quantidade de instruções.
 
-## Contrato do resultado futuro da montagem
+## Contrato do resultado da montagem
 
-`AssemblyResult.hpp` materializa os valores que o pacote 7 usará:
+`AssemblyResult.hpp` materializa os valores usados pelo pacote 7:
 
 - `AssemblySuccess`: `loadAddress`, `initialPc`, imagem `bytes`, `listing`
   e `symbols`;
@@ -107,10 +107,10 @@ presença de `START`/`END`, símbolos ou quantidade de instruções.
 
 `AssemblyResult` é `std::variant<AssemblySuccess, AssemblyFailure>`:
 uma falha não oferece imagem ou listagem de sucesso parcial. Os valores
-são contratos de dados; neste pacote não existe `assemble()`, validação
-de imagem final, passagem 1/2, writer ou CLI. Os produtores futuros devem
-garantir imagem não vazia, faixas válidas, bytes e reservas mutuamente
-exclusivos na mesma linha e endereços coerentes com o layout.
+são contratos de dados, não responsabilidades do parser. A implementação
+atual de `assemble()`/`PassTwo` e `RawImageWriter`, do pacote 7, garante
+imagem não vazia, faixas válidas, bytes e reservas mutuamente exclusivos
+na mesma linha e endereços coerentes com o layout; veja [uso](usage.md).
 
 ## Verificação
 
