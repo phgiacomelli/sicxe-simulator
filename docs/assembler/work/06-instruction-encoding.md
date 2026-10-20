@@ -86,7 +86,7 @@ Decisões:
 - Confere os campos redundantes do intermediário antes da emissão; não promove
   formato nem altera endereço/tamanho. Referências e estado de base não vazam
   entre chamadas.
-- O chamador futuro do Pacote 7 mantém BASE/NOBASE. O encoder não recebe VM nem
+- O chamador `PassTwo` do pacote 7 mantém BASE/NOBASE. O encoder não recebe VM nem
   faz I/O. Fixtures de execução nos testes não introduzem uma passagem 2 pública.
 - O limite de layout no último byte foi preservado; a restrição de PC pós-fetch
   da VM existente foi documentada e exercitada separadamente.

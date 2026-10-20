@@ -287,3 +287,67 @@ alterados e `git diff --check` passaram. A fonte GoogleTest existente foi
 reutilizada por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, sem instalação de
 dependências. O ajuste de revisão reutiliza a constante compartilhada do campo
 de 12 bits; não altera bytes, formatos ou prioridades de endereçamento.
+
+## Montador: pacote 7
+
+O pacote final acrescenta **26 testes**, sem alterar a VM:
+
+- 11 em `AssemblerTest.cpp` (`AssemblerTests`): pipeline real, bytes esperados
+  à mão, listagem exata, símbolos/referências futuras, dados/reservas, ordem de
+  `BASE`/`NOBASE`, base zero e independência entre chamadas. Exercitam erros
+  sintáticos/semânticos/tardios sem sucesso parcial, programa vazio, último
+  byte, reserva de 1 MiB e layout inconsistente pelas APIs públicas.
+- 11 em `AssemblerCliTest.cpp` (`AssemblerCliTests`): leitura e gravação em
+  diretórios temporários reais, caminhos com espaços e em diretórios distintos,
+  bytes `00`/`80`/`FF`/`0A`/`0D`, ajuda/argumentos/retornos, diagnóstico com
+  arquivo/linha/coluna, falhas de fonte/destino, preservação da entrada e das
+  saídas existentes, destinos iguais e link simbólico pendente. O caso de link
+  pode ser ignorado em plataformas que não permitem sua criação; no Fedora
+  local ele passou normalmente.
+- Dois em `AssemblerAcceptanceTest.cpp` (`AssemblerDecoderTests`): as 38
+  instruções montadas e decodificadas pelo pipeline completo; e a fixture
+  [sum-and-table.asm](../tests/assembler/fixtures/sum-and-table.asm), comparada
+  com 4160 bytes calculados manualmente e executada por 28 passos na `Machine`.
+  Compara registradores e memória completa: `SUM = 15`, `RESULT = A = 37`,
+  B=`0x1138`, PC=`0x126`. A máquina recebe apenas os bytes e endereços.
+- `AssemblerCliHelp` e `AssemblerCliSmoke` invocam o executável real. O smoke
+  usa nomes com espaços, verifica binário completo (prefixo/reserva/sufixo),
+  listagem/carga e recusa de sobrescrita ao repetir a chamada. Seus arquivos
+  gerados ficam em um subdiretório próprio do build; não são versionados.
+
+Validação local no Fedora, em diretórios novos, sem instalar dependências:
+
+```bash
+cmake -S . -B build/assembler-package7 -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DSICXE_BUILD_QT=OFF
+cmake --build build/assembler-package7 --parallel 4
+ctest --test-dir build/assembler-package7 --output-on-failure --parallel 4
+
+cmake -S . -B build/assembler-package7-qt -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DSICXE_BUILD_QT=ON
+cmake --build build/assembler-package7-qt --parallel 4
+ctest --test-dir build/assembler-package7-qt --output-on-failure --parallel 4
+```
+
+A fonte GoogleTest já disponível em `build/_deps/googletest-src` foi reutilizada
+nas duas configurações por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST` (caminho absoluto
+local); os comandos acima omitem esse ajuste opcional de cache. Resultado:
+**411 testes sem Qt e 414 com Qt**, todos aprovados, nenhum ignorado. A interface
+Qt foi testada em `offscreen` pelo CTest. `clang-format --dry-run --Werror` em
+todos os C++ do projeto e `-Wall -Wextra -Wpedantic -Werror` nos novos fontes
+também passaram. A CI remota e a revisão cruzada continuam pendentes do PR.
+
+Também foi compilado o alvo `SICXEAssembler` em outro build Release, com
+`SICXE_BUILD_QT=OFF` e `BUILD_TESTING=OFF`, sem Qt/GoogleTest. Esse executável
+montou a demonstração e gerou `.bin` de 4160 bytes e `.lst`, informando carga
+e entrada `0x000100`.
+
+Para executar apenas os casos do pacote 7, depois do build:
+
+```bash
+ctest --test-dir build --output-on-failure \
+  -R 'AssemblerTest|AssemblerCli|AssemblerAcceptanceTest'
+```
+
+O [guia de uso](assembler/usage.md) documenta a montagem, a política de arquivos
+sem sobrescrita, a exigência de hard links e os valores esperados na interface.

@@ -1,6 +1,7 @@
 # Segunda etapa — montador SIC/XE de duas passagens
 
-Estado: pacotes 1–6 implementados; pacote 7 planejado.
+Estado: pacotes 1–7 implementados; pacote 7 validado localmente, pendente de
+revisão cruzada e CI remota antes do merge.
 
 As duas referências, distribuídas à equipe fora do Git, têm papéis diferentes:
 `PRIMEIRO_TRABALHO_SIC_XE.pdf` define a **máquina SIC/XE deste projeto**
@@ -27,7 +28,8 @@ Atualmente, `sicxe_assembler` oferece o parser, os tipos mínimos descritos em
 em [ISA](isa.md) e a primeira passagem com contador de localização em
 [passagem 1](pass-one.md), além dos [dados e reservas](data.md) integrados ao
 contador. A [codificação das instruções](encoding.md) oferece formatos 2/3/4;
-passagem 2, `.bin`, `.lst` e o CLI ainda dependem do pacote 7.
+`assemble()`, passagem 2, `.bin`, `.lst` e CLI estão implementados no pacote 7,
+conforme o [guia de uso e integração](usage.md).
 A interface da VM continua recebendo bytes.
 
 ```text
@@ -93,7 +95,7 @@ tarefa de documentação ou de integração alheia.
 | [4 — Passagem 1](work/04-pass-one.md) | Contador, rótulos, `START`/`END` e intermediário | 1, 2, 3 | Implementado |
 | [5 — Dados e reservas](work/05-data-reservations.md) | `BYTE`/`WORD`/`RESB`/`RESW` e integração ao layout | 1, 3, 4 | Implementado; integrado à passagem 1 |
 | [6 — Codificação XE](work/06-instruction-encoding.md) | Formatos 3/4 e modos de endereçamento | 1, 2, 3, 4, 5 | Implementado; integrado aos módulos anteriores |
-| [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Planejado |
+| [7 — Passagem 2 e saídas](work/07-pass-two-output.md) | Pipeline final, `.bin`, listagem, CLI e aceitação | 1–6 | Implementado localmente; revisão e CI remota pendentes |
 
 As dependências são de **merge**, não impedem desenvolvimento paralelo.
 O pacote 1 entrega os tipos compartilhados mínimos junto do parser; não

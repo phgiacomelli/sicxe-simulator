@@ -134,15 +134,16 @@ Os pacotes 2, 3, 5 e 6 podem preparar testes e estruturas antes de suas
 dependências estarem integradas, mas o merge funcional deve respeitar essa
 ordem.
 
-## Segunda etapa — montador de duas passagens em desenvolvimento
+## Segunda etapa — montador de duas passagens implementado localmente
 
 O objetivo é transformar assembly SIC/XE em bytes de máquina e listagem por
-duas passagens, com imagem binária bruta fixa para teste na VM. Os pacotes 1–6
+duas passagens, com imagem binária bruta fixa para teste na VM. Os pacotes 1–7
 estão implementados, incluindo o catálogo como fonte de mnemônicos reservados
 para símbolos e a passagem 1 com contador de localização e intermediário
 `LocatedLine`, além dos dados e reservas integrados ao layout.
-A codificação das instruções também está implementada. A montagem completa
-ainda depende do pacote 7.
+A codificação das instruções está integrada à passagem 2, com `assemble()`,
+writers de binário/listagem, CLI e aceitação por execução na VM. O pacote 7
+foi validado localmente; revisão cruzada e CI remota ainda são necessárias no PR.
 Seu recorte e suas exclusões estão no [índice da segunda etapa](assembler/README.md),
 com as interfaces em [contratos](assembler/contracts.md).
 
@@ -161,7 +162,8 @@ Há sete pacotes, um PR por integrante:
 6. Codificação das instruções XE — implementada e integrada aos módulos
    anteriores; veja
    [codificação](assembler/encoding.md).
-7. Passagem 2, binário/listagem, CLI e aceitação.
+7. Passagem 2, binário/listagem, CLI e aceitação — implementados localmente;
+   veja [uso do montador](assembler/usage.md). Revisão e CI remota pendentes.
 
 O primeiro PR integra contratos e parser; depois 2 e 3 podem ser integrados
 independentemente, 4 usa ambos, 5 acrescenta dados ao intermediário, 6

@@ -7,7 +7,8 @@ localização (`LocatedLine` e `PassOne`) implementados no pacote 4. `SymbolTabl
 consulta o catálogo como fonte única de mnemônicos reservados, mantendo as oito
 diretivas separadas. Dados e reservas estão implementados no pacote 5 e
 integrados ao contador; a codificação de instruções dos formatos 2/3/4 foi
-implementada no pacote 6. A segunda passagem permanece planejada.
+implementada no pacote 6. A segunda passagem, writers em memória e CLI estão
+implementados no pacote 7, com validação local; revisão e CI remota pendentes.
 Comportamento e divisão de ownership
 exigem acordo dos consumidores.
 
@@ -23,7 +24,7 @@ do professor. Nenhuma convenção pode gerar bytes que o `Decoder` rejeite.
 
 ## Interface externa e intermediário
 
-Uma chamada equivalente a `assemble(sourceText)` devolve sucesso com
+`assembler::assemble(std::string_view sourceText)`, em `Assembler.hpp`, devolve sucesso com
 endereço `START`, PC de entrada, bytes finais, linhas da listagem e tabela
 de símbolos; ou falha com diagnósticos estruturados. Ela não abre arquivos,
 não recebe `Machine`/widgets e não mantém estado entre chamadas. Erro em
@@ -54,7 +55,8 @@ Os tipos do pacote 1 vivem no namespace `assembler`:
 - `AssemblyDiagnostic` tem código tipado, posição e mensagem.
 - `AssemblyResult` é a variante entre `AssemblySuccess` (endereços,
   bytes, listagem e símbolos) e `AssemblyFailure` (somente diagnósticos).
-  Esses tipos não implementam a montagem nem validam a imagem final.
+  Esses tipos são dados; `assemble()`/`PassTwo` e `RawImageWriter` produzem e
+  validam o resultado final, sem modificar os contratos anteriores.
 
 As formas C++ da fonte, seus erros e a recuperação por linha estão em
 [fonte e contratos mínimos](source.md). O pacote 3 entrega `SymbolTable`
@@ -66,14 +68,18 @@ sem alterar campos ou assinaturas dos tipos existentes. O token do valor de
 memória é preservado como `SourceField` para o pacote 3/6; apenas contagens de
 shift são convertidas, usando `parseKnownInteger` existente. O pacote 4 entrega
 `LocatedLine`, `PassOne` e `PassOneResult`, documentados em
-[passagem 1](pass-one.md); `assemble()` e a passagem 2 ainda serão
-implementados pelos pacotes seguintes. O pacote 5 entrega `measureData` e
+[passagem 1](pass-one.md). O pacote 5 entrega `measureData` e
 `encodeData`, com dados ou reservas explícitas, conforme [data.md](data.md),
 sem alterar as interfaces anteriores.
 
 O pacote 6 entrega `encodeInstruction(locatedLine, symbols, baseState)` e
 `BaseState`, com resultado e diagnósticos em [encoding.md](encoding.md).
-O chamador mantém `BASE`/`NOBASE` em ordem; o encoder não altera o layout.
+`PassTwo::run(const PassOneResult&)`, do pacote 7, mantém `BASE`/`NOBASE` em
+ordem, resolve a base com a tabela final e delega instruções/dados aos módulos
+existentes. Confere os tamanhos contra `LocatedLine` sem alterar o layout.
+Erros de qualquer etapa impedem um `AssemblySuccess`, inclusive em falha tardia.
+Os novos diagnósticos `EmptyProgram` e `LayoutMismatch` identificam imagem
+vazia e divergência do intermediário. APIs e exemplos estão em [uso](usage.md).
 
 ## Dialeto mínimo da fonte
 
@@ -155,6 +161,19 @@ inicial para a VM e retorna código não zero em erro. A VM deve carregar
 o `.bin` **no mesmo `START`**; não há relocação. Não criar `.obj` com
 `H/T/M/E`, `M` ou loader: nem o primeiro trabalho nem os slides definem
 esse contrato de arquivo para a SIC/XE do projeto.
+
+`RawImageWriter` valida e constrói bytes em memória; `ListingWriter` formata
+listagem e diagnósticos. O I/O fica em `sicxe_assembler_cli`, separado da
+biblioteca pura `sicxe_assembler`. A listagem inclui texto original e símbolos
+em ordem de definição; erros são reportados no stderr, sem `.lst` de sucesso.
+
+`SICXEAssembler SOURCE [-o OUTPUT.bin] [-l OUTPUT.lst]` não sobrescreve saídas,
+que devem ser distintas e ter diretórios existentes. Grava os dois conteúdos
+temporários antes de publicar, usando hard links (suporte obrigatório no sistema
+de arquivos). Desfaz o binário recém-publicado se falhar ao publicar a listagem;
+uma falha adicional de remoção é reportada como `RollbackFailed`, com caminho
+para recuperação manual. Não há transação durável entre os dois arquivos.
+Veja [política de saída e códigos da CLI](usage.md#política-dos-arquivos-de-saída).
 
 ## Mudanças de contrato
 
