@@ -1,6 +1,6 @@
 # Pacote 4 — Passagem 1 e contador de localização
 
-Estado: implementado e validado; integração de diretivas de dados pendente do pacote 5.
+Estado: implementado e validado; diretivas de dados integradas pelo pacote 5.
 
 ## Resultado esperado
 
@@ -16,8 +16,9 @@ Arquivos sugeridos: `src/assembler/PassOne.*`,
 `src/assembler/LocatedLine.hpp`, `tests/assembler/PassOneTest.cpp`,
 `docs/assembler/pass-one.md`. Este PR estabiliza o intermediário; o
 pacote 5 integra nele os tamanhos das diretivas de dados com revisão do
-responsável por este pacote. Até essa integração, `BYTE/WORD/RESB/RESW`
-devem receber erro explícito, nunca tamanho inventado.
+responsável por este pacote. A integração está descrita em
+[dados e reservas](../data.md); operandos inválidos continuam impedindo
+a publicação de linhas de tamanho inventado.
 
 Consumir as `assembler::SourceLine` do pacote 1 somente quando
 `SourceParseResult::succeeded()` for verdadeiro. `SourceLine::statement`
@@ -59,7 +60,8 @@ alterar os casos existentes. A passagem 2 não reabre nem reposiciona linhas.
 - erros de duplicação/indefinição, instrução desconhecida, `END` ausente
   ou texto posterior;
 - último endereço válido, próximo endereço inválido e overflow;
-- rejeição explícita de diretiva de dados antes do pacote 5.
+- integração das quatro diretivas de dados e reservas com tamanhos validados
+  pelo pacote 5 (substitui a rejeição anterior à integração).
 
 ## Fora do escopo
 

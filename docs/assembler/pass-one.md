@@ -125,10 +125,10 @@ E a tabela de símbolos (`result.symbols`) resultante:
   (`std::uint64_t`) e valida `address <= 0xFFFFF` e `address + sizeBytes <= 0x100000`.
   O byte `0xFFFFF` é aceito; qualquer instrução que inicie em `0x100000` ou
   ultrapasse `0xFFFFF` produz `AddressOutOfRange` e interrompe o cálculo de layout.
-- **Diretivas de dados antes do pacote 5**: enquanto o pacote 5 não estiver
-  integrado, `BYTE`, `WORD`, `RESB` e `RESW` recebem
-  `PassOneDiagnosticCode::DataDirectiveNotIntegrated` e invalidam o layout seguinte,
-  sem definir seu rótulo nem publicar uma `LocatedLine` de tamanho desconhecido.
+- **Dados e reservas**: `BYTE`, `WORD`, `RESB` e `RESW` usam `measureData`
+  do pacote 5 e o mesmo contador em bytes. A medição não emite bytes; falhas
+  invalidam o layout seguinte sem definir o rótulo da linha inválida.
+  Contratos e exemplos estão em [data.md](data.md).
   Os limites de endereço usados pelo layout e por `Address20BitRange` têm
   definição única em `AddressLimits.hpp`.
 
@@ -138,7 +138,7 @@ E a tabela de símbolos (`result.symbols`) resultante:
 | --- | --- | --- |
 | `InvalidSourceLine` | Entrada com erro sintático do `SourceParser` ou linha `Invalid` | `InvalidOperation` |
 | `DuplicateSymbol` | Rótulo redefinido (inclui `previousDefinition`) | `DuplicateSymbol` |
-| `UndefinedSymbol` | Símbolo referenciado em instrução, `BASE` ou `END` nunca definido | `UndefinedSymbol` |
+| `UndefinedSymbol` | Símbolo referenciado em instrução, `WORD`, `BASE` ou `END` nunca definido | `UndefinedSymbol` |
 | `InvalidLabel` | Rótulo inválido ou colisão com mnemônico/diretiva reservada | `InvalidLabel` |
 | `UnknownOperation` | Operação fora das 38 instruções e das 8 diretivas (ex.: `ADDF`, `EQU`, `ORG`) | `InvalidOperation` |
 | `ExtendedFormatNotAllowed` | Prefixo `+` em formato 2, `RSUB` ou diretiva | `InvalidOperation` |
@@ -149,7 +149,7 @@ E a tabela de símbolos (`result.symbols`) resultante:
 | `DuplicateEnd` | Segunda diretiva `END` | `InvalidOperation` |
 | `StatementAfterEnd` | Declaração ativa após `END` | `InvalidOperation` |
 | `InvalidEndOperand` | Operando de `END` numérico, expressão ou nome reservado | `UnexpectedField` |
-| `InvalidDirectiveOperand` | Operando inválido em `BASE` ou operando presente em `NOBASE` | `UnexpectedField` |
+| `InvalidDirectiveOperand` | Operando inválido em `BASE`/dados/reservas ou operando presente em `NOBASE` | `UnexpectedField` |
 | `InvalidInstructionOperand` | Operando de instrução inválido segundo `InstructionOperand` / `OperandValue` | `UnexpectedField` |
-| `DataDirectiveNotIntegrated` | `BYTE`, `WORD`, `RESB` ou `RESW` antes da integração do pacote 5 | `InvalidOperation` |
+| `DataDirectiveNotIntegrated` | Legado preservado; não emitido após a integração do pacote 5 | `InvalidOperation` |
 | `AddressOutOfRange` | `LOCCTR` ou instrução excede `0x00000..0xFFFFF` | `ValueOutOfRange` |

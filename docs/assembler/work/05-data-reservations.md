@@ -1,6 +1,6 @@
 # Pacote 5 — Dados e reservas SIC/XE
 
-Estado: planejado. Responsável: a definir.
+Estado: implementado; validação local concluída, CI e revisão pendentes.
 
 ## Resultado esperado
 
@@ -57,12 +57,42 @@ constantes floating point.
 
 ## Critério de conclusão
 
-- [ ] Dados e reservas se integram ao contador sem reparsear a linha.
-- [ ] Bytes, tamanhos, limites e falhas cobertos por testes públicos.
-- [ ] `docs/assembler/data.md` registra sintaxe e codificação.
+- [x] Dados e reservas se integram ao contador sem reparsear a linha.
+- [x] Bytes, tamanhos, limites e falhas cobertos por testes públicos.
+- [x] `docs/assembler/data.md` registra sintaxe e codificação.
 - [ ] Build, formatação, CTest e CI verdes.
 
 ## Registro do PR
 
-Preencher ao implementar: decisões, divergências dos PDFs, interfaces
-alteradas, testes e pendências.
+Entregues `DataDirective.hpp/.cpp`, testes públicos e integração de `measureData`
+ao contador do pacote 4. Sintaxe, tipos de resultado e diagnósticos estão em
+[data.md](../data.md). A implementação segue as convenções mínimas do dialeto
+já contratado, sem acrescentar interpretações dos PDFs distribuídos fora do Git.
+
+Decisões e interfaces:
+
+- Um planejamento privado comum mede e valida os operandos nas duas operações;
+  a medição não produz bytes. Não se reabre nem se reanalisa a linha de fonte.
+- `WORD` usa `parseValue`/`validateInteger`/`referenceOperand` na primeira
+  passagem e `resolveOperand` na codificação, preservando referências futuras.
+- Reservas usam `parseKnownInteger`, com verificação antes de multiplicar;
+  `DataReservation` contém tamanho, sem vetor de zeros. O preenchimento `.bin`
+  fica no pacote 7.
+- Nenhuma assinatura ou campo público dos pacotes 1–4 foi alterado. A integração
+  usa `InvalidDirectiveOperand`/`AddressOutOfRange` já existentes em `PassOne`;
+  a API de dados preserva detalhes tipados do pacote 3.
+- Fora do ownership principal, foram atualizados `PassOne.cpp`, seu teste,
+  CMake e documentos de estado/contratos. A integração requer revisão do
+  responsável pelo pacote 4 antes do merge.
+
+Testes adicionados cobrem ASCII/hex, vazios, WORD signed/unsigned de 24 bits,
+referências anteriores/futuras, indefinidos, reservas zero/máximas, overflow,
+consistência de tamanhos e limites do contador. Resultados efetivos de build,
+formatação e CTest: builds Release em diretórios novos passaram em **373 testes
+com Qt** e **370 sem Qt**, usando GCC 16.2.1 e GoogleTest 1.17.0. A fonte do
+GoogleTest obtida na configuração completa foi reutilizada no build sem Qt via
+`FETCHCONTENT_SOURCE_DIR_GOOGLETEST`. Formatação pelo alvo `format` e verificação
+`clang-format --dry-run --Werror` executadas em container Fedora 43 com
+clang-format 21; `git diff --check` também passou. Nenhum teste anterior falhou.
+CI e revisão externa ainda precisam ser confirmadas antes do merge.
+Passagem 2 completa, writer e codificação de instruções continuam fora deste pacote.
