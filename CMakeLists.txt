@@ -100,6 +100,8 @@ add_library(sicxe_assembler STATIC
     src/assembler/PassOne.hpp
     src/assembler/DataDirective.cpp
     src/assembler/DataDirective.hpp
+    src/assembler/InstructionEncoder.cpp
+    src/assembler/InstructionEncoder.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -179,13 +181,17 @@ if(BUILD_TESTING)
         tests/assembler/Format2EncoderTest.cpp
         tests/assembler/PassOneTest.cpp
         tests/assembler/DataDirectiveTest.cpp
+        tests/assembler/InstructionEncoderTest.cpp
     )
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
 
-    # Only the compatibility tests depend on the VM; the assembler stays independent.
-    add_executable(AssemblerDecoderTests tests/assembler/Format2DecoderTest.cpp)
+    # Only compatibility/execution tests depend on the VM; the assembler stays independent.
+    add_executable(AssemblerDecoderTests
+        tests/assembler/Format2DecoderTest.cpp
+        tests/assembler/InstructionEncoderIntegrationTest.cpp
+    )
     set_target_properties(AssemblerDecoderTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerDecoderTests PRIVATE sicxe_assembler SICXECore GTest::gtest_main)
     gtest_discover_tests(AssemblerDecoderTests NO_PRETTY_VALUES)
