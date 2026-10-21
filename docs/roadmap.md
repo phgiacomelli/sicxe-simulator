@@ -118,8 +118,9 @@ O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
 completa estão no [índice dos pacotes de trabalho](vm/work/README.md).
 
 Os pacotes 1 a 6 estão implementados e cobertos por testes locais. O workflow
-da CI está configurado para build, formatação e testes com Qt, e também
-build/testes do núcleo sem Qt. O pacote 6 também passou na CI remota.
+da CI verifica formatação e executa um único build Release com Qt e toda a
+suíte de testes. A configuração sem Qt permanece disponível para validação
+local, mas não é executada na CI. O pacote 6 também passou na CI remota.
 
 ## Ordem de integração da VM
 

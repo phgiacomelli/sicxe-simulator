@@ -39,9 +39,9 @@ repositório, sem ignorar outros arquivos-fonte `.asm`.
   substituição de arquivo existente, falhas de leitura/publicação e ausência
   de saídas parciais nos casos definidos em contratos. Em erro de montagem,
   verificar que a expansão nova permanece no arquivo.
-- Rodar o fluxo sem Qt; também verificar configuração normal com Qt. CI
-  executa os novos testes em ambas as configurações, sem remover cobertura
-  atual do montador ou da VM.
+- Validar localmente o fluxo sem Qt e a configuração normal com Qt. A CI
+  executa os novos testes no único build com Qt, junto da cobertura atual
+  do montador e da VM; não há segundo build sem Qt no workflow.
 
 ## Não fazer
 

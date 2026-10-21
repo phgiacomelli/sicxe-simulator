@@ -4,6 +4,12 @@
 
 Os testes usam GoogleTest e QTest e são registrados no CTest pelo CMake.
 
+A CI verifica formatação e executa **um único build Release com Qt** e toda
+a suíte registrada nessa configuração, incluindo núcleo, montador, macros e
+testes Qt. Não há segundo build/testes com `SICXE_BUILD_QT=OFF` no workflow.
+A opção sem Qt continua disponível para validação local; os resultados com e
+sem Qt registrados abaixo são históricos das respectivas entregas.
+
 A suíte atual cobre `Memory`, `RegisterFile`, `Decoder`, `AddressResolver`, os
 contratos de `ExecutionEffect`, as três famílias de operações, o dispatcher, a
 validação de efeitos e o ciclo completo da `Machine`. Os testes do resolver
