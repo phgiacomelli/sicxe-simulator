@@ -173,7 +173,7 @@ Os sete integrantes podem trabalhar em paralelo nas respectivas branches,
 mas os merges funcionais respeitam dependências e CI verde. Nenhuma etapa
 introduz assembly na VM, linker ou loader de objeto.
 
-## Terceira etapa — processador de macros planejado
+## Terceira etapa — processador de macros em desenvolvimento
 
 O próximo objetivo é processar macros **em uma passagem, antes da montagem**,
 sob um módulo principal integrador do macro-montador. A fonte expandida será
@@ -183,6 +183,9 @@ dentro de macros. A VM permanece consumindo apenas os bytes finais.
 
 O [índice da etapa](macros/README.md) e os [contratos](macros/contracts.md)
 descrevem o método, as convenções de sintaxe e a divisão em sete pacotes.
-Ordem de merge: pacote 1; depois 2 e 3 em paralelo; 4; 5; 6; 7. Todos os
-pacotes estão **planejados, não implementados**. O PDF de macros é
+Ordem de merge: pacote 1; depois 2 e 3 em paralelo; 4; 5; 6; 7. O pacote 1
+está **implementado localmente**, com scanner permissivo, posições, tipos de
+diagnóstico/origem/resultado e declaração de `expand()`. Revisão cruzada e
+CI remota pendentes; os pacotes 2–7 continuam planejados. Ainda não há motor
+de expansão, CLI de macros ou geração de `MASMAPRG.ASM`. O PDF de macros é
 distribuído à equipe fora do Git, como os PDFs anteriores.

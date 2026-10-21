@@ -21,10 +21,12 @@ de formatos 2/3/4 está integrada à segunda passagem: `assemble()` gera a image
 fixa e a listagem, e `SICXEAssembler` grava `.bin` e `.lst`. Veja o
 [guia de uso](docs/assembler/usage.md). A VM continua recebendo apenas bytes.
 
-A terceira etapa, ainda **planejada**, acrescentará o
+A terceira etapa, **em desenvolvimento**, acrescentará o
 [processador de macros](docs/macros/README.md) antes do montador, em uma
-passagem, com sete pacotes de trabalho. Nenhum pacote dessa etapa está
-implementado.
+passagem, com sete pacotes de trabalho. O pacote 1 entrega scanner permissivo
+e contratos compartilhados em `sicxe_macros`, sem Qt/VM/I/O. Os pacotes 2–7
+continuam planejados: `expand()` está somente declarada, sem motor ou CLI
+de macros. Veja as [interfaces entregues](docs/macros/contracts.md#interfaces-c-entregues-no-pacote-1).
 
 ## Tecnologias
 
@@ -97,7 +99,7 @@ registrada na [arquitetura](docs/vm/architecture.md).
 - [Uso do montador](docs/assembler/usage.md): CLI, segunda passagem, binário,
   listagem e programa de demonstração executável na VM, do pacote 7.
 - [Terceira etapa — macros](docs/macros/README.md): objetivo, fluxo em uma
-  passagem, fronteiras e sete pacotes planejados.
+  passagem, fronteiras e estado dos sete pacotes.
 - [Contratos de macros](docs/macros/contracts.md): sintaxe adotada,
   aninhamento, diagnósticos e integração com o montador existente.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do

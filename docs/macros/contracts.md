@@ -1,7 +1,9 @@
 # Contratos do processador de macros
 
-Estado: **planejamento, ainda sem implementação**. Este é o ponto único para
-decisões compartilhadas. A prioridade é o texto do professor: a expansão
+Estado: **pacote 1 implementado localmente; pacotes 2–7 planejados**. Scanner
+e tipos compartilhados disponíveis; `expand()` está somente declarada, sem
+motor ou CLI de macros. Revisão cruzada e CI remota pendentes. Este é o ponto
+único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma
 passagem**, recebe o arquivo-fonte informado para montagem e gera outro
@@ -18,9 +20,9 @@ decisão explícita e atualização deste contrato.
 
 ## Seam e direção das dependências
 
-`src/macros/` conterá a biblioteca pura `sicxe_macros`, sem Qt, VM, I/O ou
-codificação SIC/XE. Seu seam externo será uma operação equivalente a
-`macro::expand(std::string_view sourceText)`, que devolve **ou** texto
+`src/macros/` contém a biblioteca pura `sicxe_macros`, sem Qt, VM, I/O ou
+codificação SIC/XE. O pacote 1 também não depende do montador. Seu seam externo
+está declarado como `macro::expand(std::string_view sourceText)`, que devolverá **ou** texto
 expandido e origem das linhas **ou** diagnósticos tipados. O resultado possui
 seus dados; chamadas sucessivas não compartilham tabela nem serial.
 Detalhes como pilha de parâmetros, tabela de definições e modos são internos
@@ -127,6 +129,102 @@ resultado de sucesso mantém, por linha gerada,
 origem na fonte e cadeia de chamadas; o integrador pode assim relacionar
 falhas do montador em `MASMAPRG.ASM` à fonte original, preservando também
 o número da linha expandida para consulta direta.
+
+## Interfaces C++ entregues no pacote 1
+
+Os tipos abaixo vivem no namespace `macro`, separados dos tipos do montador.
+Headers usam `#pragma once`; todos os textos e vetores pertencem ao resultado.
+
+### Scanner e posições
+
+`SourceScanner::scan(std::string_view)` retorna `SourceScanResult`, com
+`lines` em ordem física. Não consulta o catálogo nem chama `SourceParser`.
+O scanner percorre os bytes da fonte sem coletar definições ou classificar
+chamadas: a leitura lexical não antecipa a visibilidade das macros do motor.
+
+- `SourcePosition { line, column }`: ambos iniciados em 1, coluna de byte,
+  inclusive para tabs e texto UTF-8. Não é posição visual na interface.
+- `SourceField { text, position }`: grafia original do campo e seu início.
+- `SourceLine`: `number`, `text` sem terminador, `kind`, campos opcionais
+  `label`, `operation`, `operand`, `comment`, além de `openQuote` opcional e
+  `terminated`. `kind` é `Blank`, `Comment` ou `Code`; **Code não significa
+  assembly válido**. Campos ausentes continuam opcionais; não há inferência
+  de operação a partir de um token sem recuo na primeira coluna.
+- O rótulo é o primeiro token quando começa na coluna 1. Operação é o token
+  seguinte, ou o primeiro após recuo. O restante antes do comentário é um
+  único operando opaco, sem os espaços/tabs externos; espaços internos e
+  vírgulas são preservados. O texto integral mantém inclusive espaços finais.
+- `comment` inclui o marcador `.` ou `;`. Uma linha inteira de comentário
+  não expõe campos de código. Aspas em comentários não abrem constantes.
+- `openQuote` guarda a posição da aspa simples que ficou aberta na linha.
+  É informação lexical, não uma falha automática. O estado não atravessa a
+  quebra de linha. O consumidor decide se houve erro de sintaxe de macro;
+  assembly comum inválido continua sendo responsabilidade do montador.
+- `terminated` indica se havia LF, CRLF ou CR após a linha. Fonte vazia tem
+  zero linhas; terminador final não produz uma linha fictícia adicional.
+- `SourceLine::directive()` retorna `MacroDirective::DefinitionBegin` para
+  operação `MCDEFN`, `DefinitionEnd` para `MCEND`, ou `None`. A comparação
+  ASCII ignora caixa, mas exige token completo: `+MCDEFN` não é diretiva.
+  Reconhecer não valida rótulo/operando indevido ou pareamento de níveis.
+- `SourceScanResult::normalizedText()` copia `text` e substitui cada
+  terminador existente por LF, preservando ausência de terminador final.
+  **Não é expansão**: mantém diretivas, parâmetros, `.SER` e comentários,
+  inclusive comentários estruturais que serão tratados por outros pacotes.
+
+O scanner aceita campos temporariamente inválidos, inclusive rótulos com
+`.SER`, operações desconhecidas, parâmetros e operandos incompletos. Não
+divide argumentos nem interpreta `NOME=valor`: a validação do pacote 3 ainda
+deverá rejeitar essa sintaxe em protótipos/chamadas. Não existe `succeeded()`
+no resultado lexical, pois o scanner não certifica validade de macro/assembly.
+
+### Origem, diagnósticos e resultado futuro
+
+`SourceOrigin.hpp` define:
+
+- `ExpansionFrame { macroName, definition, invocation }`: nome da macro,
+  posição da operação do protótipo e posição da operação da chamada, ambas
+  na fonte original. Para chamada aninhada, `invocation` pode estar no corpo
+  de uma definição; a cadeia mantém as chamadas que levaram a esse ponto.
+- `SourceOrigin { expandedLine, source, calls }`: número físico de saída
+  começando em 1, posição inicial da linha original que forneceu o texto e
+  cadeia de chamadas da mais externa à mais interna. Linha copiada diretamente
+  tem cadeia vazia. Linhas de comentário destacadas podem apontar ao marcador
+  original. Isso é rastreabilidade por linha, não um mapa exato de colunas
+  após substituição de textos de comprimentos diferentes.
+
+`MacroDiagnostic { code, position, message, calls }` possui código tipado,
+posição na fonte original, mensagem e cadeia de chamadas na mesma ordem.
+Os códigos iniciais são `MissingPrototype`, `InvalidPrototype`, `UnexpectedEnd`,
+`UnterminatedDefinition`, `ReservedName`, `InvalidArgument`,
+`RecursiveExpansion` e `ExpansionLimitExceeded`. Representam categorias já
+previstas neste contrato; **o scanner não as emite**. Os pacotes responsáveis
+implementarão a detecção e poderão acrescentar códigos específicos, documentados
+e revisados pelos consumidores. Testes usam código/posição, não mensagem literal
+como identificador de erro; os valores numéricos do enum não são formato externo.
+
+`MacroResult.hpp` define:
+
+- `MacroSuccess { expandedText, origins }`: texto LF e uma origem por linha
+  física emitida, em ordem, com `expandedLine` consecutivo. Fonte expandida
+  vazia pode ter texto e mapa vazios.
+- `MacroFailure { diagnostics }`: somente diagnósticos, sem texto parcial.
+- `MacroResult = std::variant<MacroSuccess, MacroFailure>`.
+
+Esses tipos são valores; não validam por si sós as invariantes do produtor.
+O contexto dos pacotes 5/6 produzirá o mapa; o integrador do pacote 7 fará
+o remapeamento dos erros do montador sem alterar seus tipos existentes.
+
+`MacroProcessor.hpp` declara `MacroResult expand(std::string_view sourceText)`.
+**Ainda não há definição linkável dessa função**: ela pertence ao pacote 6.
+Consumidores atuais podem usar scanner e tipos, não chamar a expansão. Não há
+stub de sucesso, código de erro provisório ou implementação que devolva uma
+fonte ainda com macros como se tivesse sido expandida.
+
+Na integração, alinhar os campos de linha com os pacotes 2/3, os tipos de
+origem com o pacote 5 e o resultado público com o pacote 6. Pilha interna,
+tabela de definições e estratégias de substituição não fazem parte desse seam.
+
+## Política de comentários na expansão
 
 Linhas comuns, vazias e comentários são copiadas em ordem. O arquivo
 expandido usa LF de modo determinístico; o scanner aceita LF, CRLF e CR.

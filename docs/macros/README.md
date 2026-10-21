@@ -1,6 +1,8 @@
 # Terceira etapa — processador de macros SIC/XE
 
-Estado: **planejado; nenhum dos sete pacotes está implementado**. Este plano
+Estado: **pacote 1 implementado localmente; pacotes 2–7 planejados**.
+Scanner e contratos disponíveis em `sicxe_macros`; motor e CLI ainda não
+implementados. Revisão cruzada e CI remota do pacote 1 pendentes. Este plano
 usa `ProcessadorDeMacros.pdf` (distribuído à equipe fora do Git) e a orientação
 complementar do professor. O [contrato comum](contracts.md) distingue
 exigências do professor de convenções adotadas para esta entrega. A separação
@@ -58,20 +60,25 @@ Cada pacote inclui implementação, testes, documentação afetada e um PR próp
 Dependências abaixo são **ordem de integração**; os integrantes podem preparar
 testes e implementação em paralelo nas suas branches.
 
-| Pacote | Responsabilidade principal | Depende de |
-| --- | --- | --- |
-| [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge |
-| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 |
-| [3 — Argumentos](work/03-arguments.md) | Parâmetros formais e reais posicionais, omissão e diagnósticos | 1 |
-| [4 — Substituição](work/04-substitution.md) | Referências formais com escopo aninhado e renderização do esqueleto | 1, 2, 3 |
-| [5 — Contexto de expansão](work/05-local-labels.md) | `.SER`, serial determinístico, colisões e rastreabilidade das linhas geradas | 1, 4 |
-| [6 — Motor de uma passagem](work/06-expansion-engine.md) | Modos de cópia/definição/expansão, chamadas aninhadas e falhas de ciclo | 1–5 |
-| [7 — Integrador e aceitação](work/07-integration.md) | CLI do macro-montador, `MASMAPRG.ASM`, ligação com montador e testes ponta a ponta | 1–6 |
+| Pacote | Responsabilidade principal | Depende de | Estado |
+| --- | --- | --- | --- |
+| [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge | Implementado localmente; revisão/CI pendentes |
+| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Planejado |
+| [3 — Argumentos](work/03-arguments.md) | Parâmetros formais e reais posicionais, omissão e diagnósticos | 1 | Planejado |
+| [4 — Substituição](work/04-substitution.md) | Referências formais com escopo aninhado e renderização do esqueleto | 1, 2, 3 | Planejado |
+| [5 — Contexto de expansão](work/05-local-labels.md) | `.SER`, serial determinístico, colisões e rastreabilidade das linhas geradas | 1, 4 | Planejado |
+| [6 — Motor de uma passagem](work/06-expansion-engine.md) | Modos de cópia/definição/expansão, chamadas aninhadas e falhas de ciclo | 1–5 | Planejado |
+| [7 — Integrador e aceitação](work/07-integration.md) | CLI do macro-montador, `MASMAPRG.ASM`, ligação com montador e testes ponta a ponta | 1–6 | Planejado |
 
 Após 1, os pacotes 2 e 3 podem ser integrados independentemente. Depois:
 4 → 5 → 6 → 7. O pacote 7 pode preparar a CLI e os cenários antes, mas só
 integra o fluxo final com os módulos anteriores estáveis. O pacote 6 não deve
 absorver I/O, e o 7 não deve reimplementar expansão ou montagem.
+
+As [interfaces C++ do pacote 1](contracts.md#interfaces-c-entregues-no-pacote-1)
+descrevem scanner, posições, diagnósticos e origem. `expand()` está apenas
+declarada para o pacote 6 implementar; `normalizedText()` é cópia lexical,
+não expansão. Ainda não é possível gerar `MASMAPRG.ASM` pelo projeto.
 
 ## Critério de conclusão
 
