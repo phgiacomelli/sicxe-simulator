@@ -7,13 +7,16 @@ sua própria verificação.
 ## Antes de começar
 
 1. Atualize sua `main` local.
-2. Leia [a arquitetura da VM](docs/architecture.md) e a documentação do módulo
+2. Leia [a arquitetura da VM](docs/vm/architecture.md) e a documentação do módulo
    que será alterado. Para a segunda etapa, leia também o
    [índice](docs/assembler/README.md) e os [contratos](docs/assembler/contracts.md)
-   do montador.
+   do montador. Para a terceira etapa, leia o
+   [índice](docs/macros/README.md) e os [contratos](docs/macros/contracts.md)
+   de macros, além dos contratos do montador que consumirá a fonte expandida.
 3. Confirme no [roadmap](docs/roadmap.md) a ordem atual do projeto.
-4. Leia o seu pacote de trabalho: [VM](docs/work/README.md) ou
-   [montador](docs/assembler/README.md). Identifique ownership, dependências e
+4. Leia o seu pacote de trabalho: [VM](docs/vm/work/README.md) ou
+   [montador](docs/assembler/README.md) ou
+   [macros](docs/macros/README.md). Identifique ownership, dependências e
    critérios de conclusão.
 
 Mudanças em interfaces compartilhadas devem ser combinadas com os integrantes
@@ -29,13 +32,18 @@ registros de formato objeto; fazer linking ou aplicar relocação.
 Texto hexadecimal pode ser aceito somente como representação dos bytes de
 entrada. Da mesma forma, um arquivo binário bruto é apenas uma sequência de bytes,
 não um arquivo objeto. A definição completa dessa fronteira está na
-[arquitetura da VM](docs/architecture.md#fronteira-entre-vm-e-montador).
+[arquitetura da VM](docs/vm/architecture.md#fronteira-entre-vm-e-montador).
 
 O montador da segunda etapa recebe assembly e produz bytes/listagem, mas não
 executa instruções nem entra em `Machine`, `MachineController` ou widgets.
 Não criar linker, loader de objeto nem relocação na VM para testar o montador:
 exportar `.bin` no endereço fixo e usar a entrada já existente. As escolhas
 de dialeto/saída estão em [contratos](docs/assembler/contracts.md).
+
+O processador de macros da terceira etapa é anterior à montagem: transforma
+fonte com macros em `MASMAPRG.ASM`. Não calcula endereços nem gera bytes;
+o montador existente continua fazendo as duas passagens. O integrador
+orquestra ambos, sem colocar sintaxe de macro no montador puro ou na VM.
 
 ## Branches
 
@@ -79,10 +87,13 @@ testes e documentação quando isso tornar a revisão mais clara.
 
 - Altere prioritariamente os arquivos pertencentes ao seu pacote.
 - Registre no pull request qualquer alteração necessária fora desse ownership.
-- Preserve a direção de dependências descrita em `docs/architecture.md`.
+- Preserve a direção de dependências descrita em `docs/vm/architecture.md`.
 - Mantenha o núcleo independente de Qt.
 - Na segunda etapa, mantenha `src/assembler/` independente de Qt e da
   implementação da VM; testes podem verificar compatibilidade pelos bytes.
+- Na terceira etapa, mantenha `src/macros/` independente de Qt e da VM;
+  mudanças na sintaxe ou interface compartilhada seguem
+  [contratos de macros](docs/macros/contracts.md).
 - Regras de endereçamento pertencem ao `AddressResolver`; regras das operações
   pertencem ao `Executor`; somente a `Machine` coordena o ciclo completo.
 - Evite duplicar uma decisão arquitetural em mais de um documento. Atualize a
@@ -101,7 +112,7 @@ testes e documentação quando isso tornar a revisão mais clara.
   infraestrutura devem ser convertidas no módulo que conhece seu significado.
 - Operações do executor calculam efeitos e permanecem sem mutação. A ordem de
   validação e commit pertence exclusivamente à `Machine`, conforme a
-  [arquitetura](docs/architecture.md).
+  [arquitetura](docs/vm/architecture.md).
 
 ## Verificação local
 
@@ -154,6 +165,8 @@ Um pull request está pronto para integração quando:
 - nenhuma responsabilidade de montador foi introduzida na VM;
 - nos PRs da segunda etapa, nenhum comportamento de VM foi introduzido no
   montador e os [contratos](docs/assembler/contracts.md) foram preservados;
+- nos PRs da terceira etapa, a expansão continua anterior às duas passagens,
+  sem mover responsabilidades do montador para `src/macros/` ou para a VM;
 - pendências conhecidas estão declaradas;
 - não existem alterações não relacionadas ao objetivo;
 - pelo menos um integrante fora do pacote revisou a mudança.
