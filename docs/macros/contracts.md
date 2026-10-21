@@ -1,8 +1,9 @@
 # Contratos do processador de macros
 
-Estado: **pacote 1 implementado localmente; pacotes 2–7 planejados**. Scanner
+Estado: **pacote 1 implementado e validado; pacotes 2–7 planejados**. Scanner
 e tipos compartilhados disponíveis; `expand()` está somente declarada, sem
-motor ou CLI de macros. Revisão cruzada e CI remota pendentes. Este é o ponto
+motor ou CLI de macros. Revisão técnica e CI verde registradas no
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma

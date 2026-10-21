@@ -184,8 +184,9 @@ dentro de macros. A VM permanece consumindo apenas os bytes finais.
 O [índice da etapa](macros/README.md) e os [contratos](macros/contracts.md)
 descrevem o método, as convenções de sintaxe e a divisão em sete pacotes.
 Ordem de merge: pacote 1; depois 2 e 3 em paralelo; 4; 5; 6; 7. O pacote 1
-está **implementado localmente**, com scanner permissivo, posições, tipos de
-diagnóstico/origem/resultado e declaração de `expand()`. Revisão cruzada e
-CI remota pendentes; os pacotes 2–7 continuam planejados. Ainda não há motor
+está **implementado e validado**, com scanner permissivo, posições, tipos de
+diagnóstico/origem/resultado e declaração de `expand()`. A revisão técnica e a
+CI verde estão registradas no [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31);
+os pacotes 2–7 continuam planejados. Ainda não há motor
 de expansão, CLI de macros ou geração de `MASMAPRG.ASM`. O PDF de macros é
 distribuído à equipe fora do Git, como os PDFs anteriores.

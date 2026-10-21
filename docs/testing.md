@@ -407,7 +407,11 @@ compilou isoladamente, incluído por um arquivo de entrada mínimo.
 
 A biblioteca foi compilada separadamente com `BUILD_TESTING=OFF` e
 `SICXE_BUILD_QT=OFF`, pelo alvo `sicxe_macros`, sem Qt/GoogleTest ou compilação
-dos alvos do montador/VM. Revisão cruzada e CI remota ficam pendentes do PR.
+dos alvos do montador/VM. A revisão técnica do
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31) repetiu os
+**425 testes sem Qt e 428 com Qt** em builds Release novos, todos aprovados.
+O job remoto `Format, build and test` também passou. Não foram encontrados
+bloqueadores de padrões ou de requisitos no pacote 1.
 
 Para rodar somente os casos do pacote depois do build:
 

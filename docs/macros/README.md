@@ -1,8 +1,9 @@
 # Terceira etapa — processador de macros SIC/XE
 
-Estado: **pacote 1 implementado localmente; pacotes 2–7 planejados**.
+Estado: **pacote 1 implementado e validado; pacotes 2–7 planejados**.
 Scanner e contratos disponíveis em `sicxe_macros`; motor e CLI ainda não
-implementados. Revisão cruzada e CI remota do pacote 1 pendentes. Este plano
+implementados. Revisão técnica e CI verde do pacote 1 registradas no
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este plano
 usa `ProcessadorDeMacros.pdf` (distribuído à equipe fora do Git) e a orientação
 complementar do professor. O [contrato comum](contracts.md) distingue
 exigências do professor de convenções adotadas para esta entrega. A separação
@@ -62,7 +63,7 @@ testes e implementação em paralelo nas suas branches.
 
 | Pacote | Responsabilidade principal | Depende de | Estado |
 | --- | --- | --- | --- |
-| [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge | Implementado localmente; revisão/CI pendentes |
+| [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge | Implementado; revisado e validado |
 | [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Planejado |
 | [3 — Argumentos](work/03-arguments.md) | Parâmetros formais e reais posicionais, omissão e diagnósticos | 1 | Planejado |
 | [4 — Substituição](work/04-substitution.md) | Referências formais com escopo aninhado e renderização do esqueleto | 1, 2, 3 | Planejado |

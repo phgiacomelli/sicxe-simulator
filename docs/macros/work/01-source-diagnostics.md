@@ -1,7 +1,8 @@
 # Pacote 1 — fonte de macros, diagnósticos e seam público
 
-Responsável: um integrante. Estado: **implementado localmente**, pendente de
-revisão cruzada e CI remota. Merge primeiro.
+Responsável: um integrante. Estado: **implementado e validado**, com revisão
+técnica e CI verde no [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31).
+Primeiro pacote na ordem de integração.
 Ler [índice](../README.md), [contratos](../contracts.md),
 [gramática do montador](../../assembler/contracts.md) e `CONTRIBUTING.md`.
 
@@ -106,7 +107,13 @@ compilou separadamente com Qt e testes desligados.
 - [x] Declaração de `expand()` disponível, sem implementação antecipada.
 - [x] Interfaces e estado dos documentos atualizados.
 - [x] Build, CTest e formatação locais aprovados com e sem Qt.
-- [ ] Revisão cruzada e CI remota no PR.
+- [x] Revisão técnica registrada e CI remota verde no PR #31.
+
+A revisão técnica verificou separadamente padrões e requisitos, sem
+bloqueadores de código ou desvios de escopo. Os registros de conclusão foram
+atualizados no próprio PR. Builds novos em Release repetiram os **425 testes
+sem Qt e 428 com Qt**, todos aprovados. Esse parecer não representa aprovação
+humana de outro integrante.
 
 No PR, pedir conferência dos campos ao pacote 2 (captura) e ao 3 (argumentos),
 da origem ao pacote 5 e do resultado ao pacote 6. Diagnósticos semânticos,
