@@ -123,6 +123,19 @@ target_link_libraries(sicxe_assembler_cli PUBLIC sicxe_assembler)
 add_executable(SICXEAssembler src/assembler/main.cpp)
 target_link_libraries(SICXEAssembler PRIVATE sicxe_assembler_cli)
 
+add_library(sicxe_macros STATIC
+    src/macros/SourcePosition.hpp
+    src/macros/SourceLine.hpp
+    src/macros/SourceLine.cpp
+    src/macros/SourceScanner.hpp
+    src/macros/SourceScanner.cpp
+    src/macros/SourceOrigin.hpp
+    src/macros/MacroDiagnostic.hpp
+    src/macros/MacroResult.hpp
+    src/macros/MacroProcessor.hpp
+)
+target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
@@ -205,6 +218,14 @@ if(BUILD_TESTING)
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
+
+    add_executable(MacroTests
+        tests/macros/SourceScannerTest.cpp
+        tests/macros/MacroContractTest.cpp
+    )
+    set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
+    gtest_discover_tests(MacroTests NO_PRETTY_VALUES)
 
     add_executable(AssemblerCliTests tests/assembler/AssemblerCliTest.cpp)
     set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)

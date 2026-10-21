@@ -355,3 +355,70 @@ ctest --test-dir build --output-on-failure \
 
 O [guia de uso](assembler/usage.md) documenta a montagem, a política de arquivos
 sem sobrescrita, a exigência de hard links e os valores esperados na interface.
+
+## Macros: pacote 1
+
+O alvo `MacroTests` contém **14 testes novos**, sem depender de Qt, VM ou
+montador e sem mocks:
+
+- 12 em `tests/macros/SourceScannerTest.cpp`, pela interface
+  `macro::SourceScanner::scan`: campos textuais, posições físicas de byte,
+  LF/CRLF/CR, ausência de linha fictícia após terminador final, comentários
+  inteiros/inline, separadores entre aspas e reconhecimento de `MCDEFN`/`MCEND`
+  somente como operação completa. Verificam cópia LF sem expansão, campos de
+  assembly inválidos preservados, `.SER`/parâmetros/marcadores SIC/XE, aspa
+  aberta sem estado na próxima linha, tabs/UTF-8, NUL e duração dos dados.
+- Dois em `tests/macros/MacroContractTest.cpp`: valores públicos de sucesso
+  com texto/origens/cadeia aninhada e falha só com diagnósticos. Modificam e
+  destroem as strings de entrada para conferir propriedade dos dados. Uma
+  asserção de compilação, em expressão não avaliada, confere a declaração de
+  `expand()` sem exigir uma implementação antecipada ou stub.
+
+Os testes não validam captura, argumentos, substituição, serial, motor ou
+arquivos de macro: os pacotes 2–7 ainda são responsáveis por essas entregas.
+`normalizedText()` é cópia lexical; seu teste confirma que diretivas e
+comentários estruturais continuam presentes, não que houve expansão.
+
+Validação local no Fedora, em diretórios novos:
+
+```bash
+cmake -S . -B build/macros-package1-core -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug -DSICXE_BUILD_QT=OFF
+cmake --build build/macros-package1-core --parallel 4
+ctest --test-dir build/macros-package1-core --output-on-failure --parallel 4
+
+cmake -S . -B build/macros-package1-qt -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DSICXE_BUILD_QT=ON
+cmake --build build/macros-package1-qt --parallel 4
+ctest --test-dir build/macros-package1-qt --output-on-failure --parallel 4
+```
+
+GoogleTest já disponível em `build/_deps/googletest-src` foi reutilizado nas
+duas configurações por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`, com caminho
+absoluto local, sem instalação de dependências. Os comandos acima omitem
+esse ajuste opcional de cache.
+
+Resultado: **425 testes sem Qt e 428 com Qt**, todos aprovados, nenhum
+ignorado. Incluem os testes existentes do montador, núcleo, adaptador e
+interface, esta em `offscreen` pelo CTest na configuração com Qt.
+Formatação de todos os C++ do projeto e compilação dos dois novos `.cpp`
+com `-Wall -Wextra -Wpedantic -Werror` passaram. Cada novo header também
+compilou isoladamente, incluído por um arquivo de entrada mínimo.
+
+A biblioteca foi compilada separadamente com `BUILD_TESTING=OFF` e
+`SICXE_BUILD_QT=OFF`, pelo alvo `sicxe_macros`, sem Qt/GoogleTest ou compilação
+dos alvos do montador/VM. A revisão técnica do
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31) repetiu os
+**425 testes sem Qt e 428 com Qt** em builds Release novos, todos aprovados.
+O job remoto `Format, build and test` também passou. Não foram encontrados
+bloqueadores de padrões ou de requisitos no pacote 1.
+
+Para rodar somente os casos do pacote depois do build:
+
+```bash
+ctest --test-dir build/macros-package1-core --output-on-failure \
+  -R 'SourceScannerTest|MacroContractTest'
+```
+
+As interfaces e limites atuais estão em
+[contratos de macros](macros/contracts.md#interfaces-c-entregues-no-pacote-1).
