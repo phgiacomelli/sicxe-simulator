@@ -219,6 +219,14 @@ if(BUILD_TESTING)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
 
+    add_executable(MacroTests
+        tests/macros/SourceScannerTest.cpp
+        tests/macros/MacroContractTest.cpp
+    )
+    set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
+    gtest_discover_tests(MacroTests NO_PRETTY_VALUES)
+
     add_executable(AssemblerCliTests tests/assembler/AssemblerCliTest.cpp)
     set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerCliTests PRIVATE sicxe_assembler_cli GTest::gtest_main)
