@@ -7,7 +7,7 @@ cruzados `AssemblerDecoderTests` liga o montador ao núcleo da VM.
 
 A referência disponível foi o [contrato do grupo](contracts.md), confrontado
 com `src/core/Instruction.hpp`, `src/core/Decoder.cpp` e a
-[documentação do decoder](../decoder.md). Os PDFs distribuídos fora do Git não
+[documentação do decoder](../vm/decoder.md). Os PDFs distribuídos fora do Git não
 estavam disponíveis e não foram consultados.
 
 ## Catálogo público e imutável

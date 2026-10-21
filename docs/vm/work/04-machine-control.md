@@ -59,7 +59,7 @@ src/core/execution/ControlOperations.hpp
 tests/ControlOperationsTest.cpp
 tests/ExecutorTest.cpp
 tests/MachineTest.cpp
-docs/machine-cycle.md
+docs/vm/machine-cycle.md
 ```
 
 ## Interfaces a fornecer
@@ -141,7 +141,7 @@ não pode depender da ordem acidental entre `registerWrite`, `conditionCode` e
 - [x] Toda falha observável preserva o estado arquitetural.
 - [x] Carga e reset possuem comportamento documentado e testado.
 - [x] A interface pública necessária ao pacote 5 está estável.
-- [x] `docs/machine-cycle.md` explica pipeline, commit e falhas.
+- [x] `docs/vm/machine-cycle.md` explica pipeline, commit e falhas.
 - [x] CI verde e testes de integração passam em build limpa.
 
 ### Verificação local

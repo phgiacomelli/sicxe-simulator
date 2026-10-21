@@ -1,7 +1,7 @@
 # Demonstração da primeira etapa — VM
 
 Este roteiro começa com um checkout limpo. Instale as dependências descritas no
-[README](../README.md), configure, compile e execute:
+[README](../../README.md), configure, compile e execute:
 
 ```bash
 cmake -S . -B build

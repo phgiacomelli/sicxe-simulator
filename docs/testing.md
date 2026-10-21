@@ -49,7 +49,7 @@ equivalência das entradas, erros de leitura, limites de carga, preservação da
 sessão, comandos enfileirados, snapshots imutáveis, detalhes das falhas,
 responsividade e pausa entre instruções. O teste Qt usa `QCoreApplication`,
 sem necessidade de display. O build sem Qt é descrito em
-[program-input.md](program-input.md#build-e-integração).
+[program-input.md](vm/program-input.md#build-e-integração).
 
 `tests/ui/InterfaceTest.cpp` usa QTest e a plataforma `offscreen` para verificar
 os controles por estado, entrada hexadecimal e binária no diálogo, erros de
@@ -65,7 +65,7 @@ esperado. Cada caso passa pelo parser, `MachineController` e `Machine`; a
 comparação verifica todos os registradores, memória completa e código de falha.
 O limite de passos é do teste, não da VM. Os cenários cobrem operações, modos de
 endereçamento, desvios, sub-rotina, formato 4, shifts e falhas principais.
-O [roteiro de demonstração](demo.md) reproduz o fluxo manual.
+O [roteiro de demonstração](vm/demo.md) reproduz o fluxo manual.
 
 No workflow da CI, `InterfaceTests` recebe `QT_QPA_PLATFORM=offscreen` pelo
 CTest, portanto não precisa de display. A CI executa esses testes em modo
@@ -107,7 +107,7 @@ A CI do PR do pacote 1 passou. A revisão cruzada dos contratos foi
 dispensada na integração, mas permanece recomendada aos consumidores.
 
 Para build sem Qt, use a configuração de
-[program-input.md](program-input.md#build-e-integração); ela também compila
+[program-input.md](vm/program-input.md#build-e-integração); ela também compila
 o montador. O comportamento do parser está em
 [fonte do montador](assembler/source.md).
 

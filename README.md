@@ -21,6 +21,11 @@ de formatos 2/3/4 está integrada à segunda passagem: `assemble()` gera a image
 fixa e a listagem, e `SICXEAssembler` grava `.bin` e `.lst`. Veja o
 [guia de uso](docs/assembler/usage.md). A VM continua recebendo apenas bytes.
 
+A terceira etapa, ainda **planejada**, acrescentará o
+[processador de macros](docs/macros/README.md) antes do montador, em uma
+passagem, com sete pacotes de trabalho. Nenhum pacote dessa etapa está
+implementado.
+
 ## Tecnologias
 
 - C++20
@@ -40,34 +45,36 @@ Instruções fora desse conjunto são tratadas como opcodes desconhecidos. A VM
 recebe código de máquina já codificado; montador, linker e relocação não
 fazem parte **da VM**. A referência a Java no enunciado é legada: o professor
 deixou a escolha da linguagem ao grupo, que adotou C++20 e Qt 6. A decisão está
-registrada na [arquitetura](docs/architecture.md).
+registrada na [arquitetura](docs/vm/architecture.md).
 
 ## Documentação
 
+- [Índice da documentação](docs/README.md): VM, montador, macros, roadmap e
+  testes.
 - Enunciado original (`PRIMEIRO_TRABALHO_SIC_XE.pdf`, distribuído fora do Git):
   especificação fornecida para o trabalho; a indicação de Java foi substituída
   pela orientação do professor citada acima.
-- [Arquitetura](docs/architecture.md): módulos, responsabilidades e fluxo de
+- [Arquitetura](docs/vm/architecture.md): módulos, responsabilidades e fluxo de
   uma instrução.
-- [Decoder](docs/decoder.md): formatos reconhecidos, validações, resultados e
+- [Decoder](docs/vm/decoder.md): formatos reconhecidos, validações, resultados e
   falhas de decodificação.
-- [Endereçamento](docs/addressing.md): operandos tipados, cálculos de endereço,
+- [Endereçamento](docs/vm/addressing.md): operandos tipados, cálculos de endereço,
   Condition Code e falhas de resolução.
-- [Contratos de execução](docs/execution-contracts.md): efeitos atômicos,
+- [Contratos de execução](docs/vm/execution-contracts.md): efeitos atômicos,
   falhas estruturadas e regra do PC pós-fetch.
-- [Transferência e lógica](docs/execution-data.md): fontes, destinos, larguras,
+- [Transferência e lógica](docs/vm/execution-data.md): fontes, destinos, larguras,
   efeitos e falhas das operações do pacote 2.
-- [Aritmética](docs/execution-arithmetic.md): semântica signed de 24 bits,
+- [Aritmética](docs/vm/execution-arithmetic.md): semântica signed de 24 bits,
   comparações, shifts e indexação do pacote 3.
-- [Ciclo da máquina](docs/machine-cycle.md): pipeline, validação e commit de
+- [Ciclo da máquina](docs/vm/machine-cycle.md): pipeline, validação e commit de
   efeitos, atomicidade, falhas, controle de fluxo, carga, reset e snapshot do
   pacote 4.
-- [Entrada de programas](docs/program-input.md): formatos, falhas, comandos e
+- [Entrada de programas](docs/vm/program-input.md): formatos, falhas, comandos e
   sinais do adaptador Qt do pacote 5.
 - [Testes](docs/testing.md): como executar os testes.
-- [Demonstração](docs/demo.md): roteiro reproduzível da interface.
+- [Demonstração](docs/vm/demo.md): roteiro reproduzível da interface.
 - [Roadmap](docs/roadmap.md): estado das etapas.
-- [Pacotes de trabalho](docs/work/README.md): divisão detalhada entre os seis
+- [Pacotes de trabalho](docs/vm/work/README.md): divisão detalhada entre os seis
   integrantes da VM.
 - [Segunda etapa — montador](docs/assembler/README.md): recorte, arquitetura de
   duas passagens e divisão entre sete integrantes.
@@ -89,9 +96,16 @@ registrada na [arquitetura](docs/architecture.md).
   prioridades de PC/base, limites e diagnósticos do pacote 6.
 - [Uso do montador](docs/assembler/usage.md): CLI, segunda passagem, binário,
   listagem e programa de demonstração executável na VM, do pacote 7.
+- [Terceira etapa — macros](docs/macros/README.md): objetivo, fluxo em uma
+  passagem, fronteiras e sete pacotes planejados.
+- [Contratos de macros](docs/macros/contracts.md): sintaxe adotada,
+  aninhamento, diagnósticos e integração com o montador existente.
 - Slides do montador (`Montador.pdf`, distribuído fora do Git): referência do
   professor para a segunda etapa, com o recorte SIC/XE explicitado na
   documentação acima.
+- Slides de macros (`ProcessadorDeMacros.pdf`, distribuído fora do Git):
+  referência do professor para a terceira etapa; exemplos genéricos não
+  ampliam a ISA SIC/XE do projeto.
 - [Como contribuir](CONTRIBUTING.md): fluxo de branches, commits, revisão e
   critérios para integrar mudanças.
 
@@ -115,7 +129,7 @@ diagnóstico são atualizados após cada passo. A memória pode ser consultada p
 endereço inicial e tamanho da faixa. A VM não possui `HALT` nem parada automática
 no fim dos bytes carregados: pause ou observe uma falha. Para resetar ou carregar
 outro programa durante execução contínua, pause primeiro. Consulte o
-[roteiro](docs/demo.md) para um programa pronto para colar.
+[roteiro](docs/vm/demo.md) para um programa pronto para colar.
 
 ## Montar um programa
 
@@ -148,7 +162,7 @@ ctest --test-dir build --output-on-failure
 
 Os testes da interface rodam sem janela visível usando a plataforma Qt
 `offscreen`, inclusive na CI. Para build e testes do núcleo sem Qt, veja
-[entrada de programas](docs/program-input.md#build-e-integração).
+[entrada de programas](docs/vm/program-input.md#build-e-integração).
 
 ## Code Style
 

@@ -1,9 +1,9 @@
 # Pacotes de trabalho da primeira etapa — VM
 
 Esta pasta detalha a divisão, o ownership e os critérios de conclusão de cada
-pacote. Cada integrante deve ler [o guia de contribuição](../../CONTRIBUTING.md),
+pacote. Cada integrante deve ler [o guia de contribuição](../../../CONTRIBUTING.md),
 a [arquitetura](../architecture.md) e somente então o documento do seu pacote.
-Os sete pacotes do montador ficam em [docs/assembler](../assembler/README.md);
+Os sete pacotes do montador ficam em [docs/assembler](../../assembler/README.md);
 não reutilizar os números desta primeira etapa para a segunda.
 
 | Pacote | Responsabilidade | Dependência principal | Estado |
@@ -15,7 +15,7 @@ não reutilizar os números desta primeira etapa para a segunda.
 | [5](05-qt-adapter.md) | Entrada de programas e adaptação Qt | Interface pública do pacote 4 | Concluído |
 | [6](06-interface-acceptance.md) | Interface gráfica e aceitação | Pacotes 4 e 5 | Concluído; testes locais e CI |
 
-O [roadmap](../roadmap.md) é a fonte principal para o estado global. A coluna
+O [roadmap](../../roadmap.md) é a fonte principal para o estado global. A coluna
 `Estado` desta tabela apenas resume essa informação como ponto de entrada para
 cada integrante e deve ser atualizada no mesmo PR que altera o roadmap.
 

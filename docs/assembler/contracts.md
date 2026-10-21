@@ -15,8 +15,8 @@ Mudanças de comportamento e divisão de ownership exigem acordo dos consumidore
 ## Fonte de verdade
 
 `PRIMEIRO_TRABALHO_SIC_XE.pdf`, distribuído fora do Git, define o recorte
-arquitetural. A VM existente, documentada em [decoder](../decoder.md) e
-[endereçamento](../addressing.md), concretiza os bytes aceitos. Os
+arquitetural. A VM existente, documentada em [decoder](../vm/decoder.md) e
+[endereçamento](../vm/addressing.md), concretiza os bytes aceitos. Os
 slides `Montador.pdf`, também distribuídos fora do Git, fornecem o método
 de duas passagens. Onde os PDFs não especificam uma sintaxe de assembly,
 as regras abaixo são **convenções mínimas do grupo**, não novos requisitos

@@ -30,7 +30,7 @@ Arquivos sugeridos:
 src/core/execution/ArithmeticOperations.cpp
 src/core/execution/ArithmeticOperations.hpp
 tests/ArithmeticOperationsTest.cpp
-docs/execution-arithmetic.md
+docs/vm/execution-arithmetic.md
 ```
 
 ## Interface a fornecer
@@ -107,7 +107,7 @@ ExecuteResult executeArithmeticOperation(const DecodedInstruction& instruction,
 - [x] Divisão por zero não produz efeito arquitetural.
 - [x] CC é atualizado somente pelo helper compartilhado.
 - [x] Nenhuma operação altera diretamente o estado.
-- [x] `docs/execution-arithmetic.md` registra a semântica e os limites.
+- [x] `docs/vm/execution-arithmetic.md` registra a semântica e os limites.
 - [x] CI verde e integração revisada pelo responsável do pacote 4.
 
 ## Decisões e estado final

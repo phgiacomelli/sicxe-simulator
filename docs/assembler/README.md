@@ -48,6 +48,10 @@ Não introduzir parsing de assembly, rótulos ou diretivas em `src/core/`,
 relocação na carga, editor assembly, macros, montador de um passo ou
 *load-and-go*.
 
+Essa exclusão de macros vale para a **implementação desta segunda etapa**:
+o [processador planejado para a terceira etapa](../macros/README.md) será
+um módulo anterior e separado, sem mudar o contrato de `assembler::assemble`.
+
 ## Recorte funcional
 
 - Exatamente as **38 instruções** não vermelhas do primeiro trabalho, já

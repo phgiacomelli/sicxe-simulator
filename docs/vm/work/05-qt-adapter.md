@@ -32,7 +32,7 @@ src/application/MachineController.hpp
 tests/application/HexParserTest.cpp
 tests/application/RawBinaryReaderTest.cpp
 tests/application/MachineControllerTest.cpp
-docs/program-input.md
+docs/vm/program-input.md
 ```
 
 Este pacote pode alterar o CMake para adicionar o módulo de aplicação e QTest,
@@ -101,7 +101,7 @@ estratégias simultâneas.
 - [x] Controller não expõe estado mutável da máquina.
 - [x] Execução contínua não congela a UI.
 - [x] Núcleo não inclui headers nem bibliotecas Qt.
-- [x] `docs/program-input.md` descreve formatos e exemplos.
+- [x] `docs/vm/program-input.md` descreve formatos e exemplos.
 - [x] CI verde e revisão externa (interface pronta para o pacote 6).
 
 ## Entrega e decisões

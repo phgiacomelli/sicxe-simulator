@@ -38,7 +38,7 @@ Arquivos sugeridos:
 src/core/execution/DataOperations.cpp
 src/core/execution/DataOperations.hpp
 tests/DataOperationsTest.cpp
-docs/execution-data.md
+docs/vm/execution-data.md
 ```
 
 O responsável não deve implementar estas operações diretamente em
@@ -112,7 +112,7 @@ não confirma escritas em memória ou registradores.
 - [x] Não existe lógica de `n/i/x/b/p/e` neste módulo.
 - [x] Nenhuma operação modifica diretamente `Memory` ou `RegisterFile`.
 - [x] Efeitos de byte e palavra são diferenciados.
-- [x] `docs/execution-data.md` contém a matriz fonte/destino/largura.
+- [x] `docs/vm/execution-data.md` contém a matriz fonte/destino/largura.
 - [x] CI verde e integração revisada pelo responsável do pacote 4.
 
 ## Decisões e estado final

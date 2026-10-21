@@ -7,7 +7,7 @@ cada módulo e o fluxo de execução de uma instrução.
 
 A VM executa programas SIC/XE já codificados. Tradução de assembly não
 pertence **à VM**: é responsabilidade do montador de duas passagens da
-[segunda etapa](assembler/README.md). Linking, formato objeto para
+[segunda etapa](../assembler/README.md). Linking, formato objeto para
 loader e relocação durante a carga não pertencem a nenhuma das duas etapas.
 
 ## Decisões de interpretação do enunciado
@@ -46,7 +46,7 @@ conter registros e informações a serem interpretados por um loader.
 O montador exporta esse binário **para o endereço de carga
 declarado** e uma listagem. Não produz objeto textual `H/T/M/E`; a VM
 não lê registros de objeto nem aplica relocação. Veja os
-[contratos da segunda etapa](assembler/contracts.md).
+[contratos da segunda etapa](../assembler/contracts.md).
 
 A base atual do montador é `sicxe_assembler`, com `SourceParser`, os tipos
 de fonte/diagnóstico/resultado, `SymbolTable`, `OperandValue`, o catálogo da ISA,
@@ -58,11 +58,11 @@ nem de `SICXECore`. O pipeline puro produz bytes e listagem em memória.
 `sicxe_assembler_cli` concentra argumentos, leitura e publicação dos arquivos;
 `SICXEAssembler` adapta `argv`. Também não dependem de Qt ou da VM. Somente
 testes de integração ligam montador e `SICXECore`, passando bytes à máquina.
-O comportamento implementado está em [fonte](assembler/source.md),
-[símbolos](assembler/symbols.md), [ISA](assembler/isa.md) e
-[passagem 1](assembler/pass-one.md), [dados e reservas](assembler/data.md) e
-[codificação das instruções](assembler/encoding.md), com o pipeline final e
-CLI em [uso do montador](assembler/usage.md).
+O comportamento implementado está em [fonte](../assembler/source.md),
+[símbolos](../assembler/symbols.md), [ISA](../assembler/isa.md) e
+[passagem 1](../assembler/pass-one.md), [dados e reservas](../assembler/data.md) e
+[codificação das instruções](../assembler/encoding.md), com o pipeline final e
+CLI em [uso do montador](../assembler/usage.md).
 
 ## Visão geral
 

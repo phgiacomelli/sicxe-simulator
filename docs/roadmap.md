@@ -87,8 +87,8 @@ Não fazem parte desta etapa:
 - testes unitários e de integração.
 
 A execução de cada critério do pacote está em
-[machine-cycle.md](machine-cycle.md) e em
-[docs/work/04-machine-control.md](work/04-machine-control.md).
+[machine-cycle.md](vm/machine-cycle.md) e em
+[docs/vm/work/04-machine-control.md](vm/work/04-machine-control.md).
 
 ### Entrada de programas e adaptador Qt
 
@@ -97,7 +97,7 @@ A execução de cada critério do pacote está em
 - execução contínua e pausa por QTimer;
 - testes de entradas, sessão, sinais e responsividade.
 
-Os contratos e decisões estão em [program-input.md](program-input.md).
+Os contratos e decisões estão em [program-input.md](vm/program-input.md).
 
 ### Interface gráfica e aceitação
 
@@ -108,14 +108,14 @@ Os contratos e decisões estão em [program-input.md](program-input.md).
 - destaque de mudanças do último passo e diagnóstico tipado persistente;
 - testes de widgets e 18 programas de aceitação com bytes codificados.
 
-Os cenários e o fluxo de demonstração estão em [demo.md](demo.md). A
+Os cenários e o fluxo de demonstração estão em [demo.md](vm/demo.md). A
 implementação da primeira etapa (VM) está concluída. Não há montador integrado
 nem instrução `HALT` sintética.
 
 ## Estado dos pacotes da VM
 
 O projeto foi dividido em seis pacotes. O estado de cada um e sua descrição
-completa estão no [índice dos pacotes de trabalho](work/README.md).
+completa estão no [índice dos pacotes de trabalho](vm/work/README.md).
 
 Os pacotes 1 a 6 estão implementados e cobertos por testes locais. O workflow
 da CI está configurado para build, formatação e testes com Qt, e também
@@ -172,3 +172,17 @@ codifica instruções e 7 fecha a saída.
 Os sete integrantes podem trabalhar em paralelo nas respectivas branches,
 mas os merges funcionais respeitam dependências e CI verde. Nenhuma etapa
 introduz assembly na VM, linker ou loader de objeto.
+
+## Terceira etapa — processador de macros planejado
+
+O próximo objetivo é processar macros **em uma passagem, antes da montagem**,
+sob um módulo principal integrador do macro-montador. A fonte expandida será
+publicada como `MASMAPRG.ASM` e entregue ao montador de duas passagens
+existente. São exigidas definições dentro de macros e chamadas de macros
+dentro de macros. A VM permanece consumindo apenas os bytes finais.
+
+O [índice da etapa](macros/README.md) e os [contratos](macros/contracts.md)
+descrevem o método, as convenções de sintaxe e a divisão em sete pacotes.
+Ordem de merge: pacote 1; depois 2 e 3 em paralelo; 4; 5; 6; 7. Todos os
+pacotes estão **planejados, não implementados**. O PDF de macros é
+distribuído à equipe fora do Git, como os PDFs anteriores.

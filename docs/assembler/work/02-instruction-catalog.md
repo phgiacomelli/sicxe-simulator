@@ -13,7 +13,7 @@ que a passagem 1 saiba tamanhos e a passagem 2 não duplique regras.
 ## Dependências e ownership
 
 Consumir linhas/diagnósticos do pacote 1 e consultar, somente para
-compatibilidade, `src/core/Instruction.hpp` e `docs/decoder.md`. Arquivos
+compatibilidade, `src/core/Instruction.hpp` e `docs/vm/decoder.md`. Arquivos
 sugeridos: `src/assembler/InstructionCatalog.*`,
 `src/assembler/InstructionOperand.*`, `src/assembler/Format2Encoder.*`,
 `tests/assembler/InstructionCatalogTest.cpp`,

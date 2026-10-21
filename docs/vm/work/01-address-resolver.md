@@ -10,7 +10,7 @@ endereçamento.
 ## Dependências
 
 - `Memory`, `RegisterFile` e `Decoder` existentes.
-- Decisões registradas em `docs/decoder.md`.
+- Decisões registradas em `docs/vm/decoder.md`.
 
 Este pacote deve ser integrado antes da implementação final dos pacotes 2 e 3.
 
@@ -32,7 +32,7 @@ src/core/Architecture.hpp
 src/core/Operand.hpp
 tests/RegisterFileTest.cpp
 tests/AddressResolverTest.cpp
-docs/addressing.md
+docs/vm/addressing.md
 ```
 
 Alterações em `Instruction.hpp` devem ser mínimas e justificadas, pois o decoder
@@ -125,7 +125,7 @@ resultado fora da memória é falha; não deve ocorrer wrap silencioso.
 - [x] Limites e falhas de endereço possuem testes negativos.
 - [x] `RegisterFile` e CC possuem testes próprios.
 - [x] Nenhum método do resolver modifica estado arquitetural.
-- [x] `docs/addressing.md` descreve o cálculo sem copiar a implementação.
+- [x] `docs/vm/addressing.md` descreve o cálculo sem copiar a implementação.
 - [x] Contratos de execução e PC pós-fetch possuem testes de invariantes.
 - [x] CI verde e pendências registradas no PR.
 

@@ -35,7 +35,7 @@ src/ui/ExecutionPanel.*
 src/ui/FaultPanel.*
 tests/ui/
 tests/acceptance/
-docs/demo.md
+docs/vm/demo.md
 ```
 
 Também é responsável pela revisão final do README e dos documentos existentes,
@@ -107,10 +107,10 @@ a implementação para calculá-lo.
 Atualizar:
 
 - README com build, execução e fluxo de uso;
-- `docs/architecture.md` com o estado final;
+- `docs/vm/architecture.md` com o estado final;
 - `docs/testing.md` com testes da UI e aceitação;
 - `docs/roadmap.md` marcando a primeira etapa como concluída;
-- `docs/demo.md` com roteiro da apresentação.
+- `docs/vm/demo.md` com roteiro da apresentação.
 
 ## Fora do escopo
 
@@ -135,7 +135,7 @@ Atualizar:
 
 `src/ui` contém a bancada final, `tests/ui` os testes dos widgets e do fluxo
 visual, e `tests/acceptance` os 18 programas codificados com expectativas
-independentes. `docs/demo.md` oferece o roteiro manual. A carga espera a
+independentes. `docs/vm/demo.md` oferece o roteiro manual. A carga espera a
 validação assíncrona da `Machine` antes de fechar o diálogo; uma rejeição não
 substitui a sessão anterior. O snapshot recebeu somente a observação opcional
 da instrução no PC atual, sem alterar a semântica do ciclo.
