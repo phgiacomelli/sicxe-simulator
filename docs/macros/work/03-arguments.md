@@ -1,7 +1,8 @@
 # Pacote 3 — parâmetros formais e argumentos reais
 
-Responsável: um integrante. Estado: **implementado com validação local;
-revisão cruzada e CI pendentes**. Depende do pacote 1;
+Responsável: um integrante. Estado: **implementado, revisado tecnicamente e
+validado**, com CI verde no [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33).
+Depende do pacote 1;
 pode evoluir em paralelo ao 2. Ler [contratos](../contracts.md).
 
 ## Entrega e ownership
@@ -50,7 +51,7 @@ sintaxe acordada em [contratos](../contracts.md) antes do merge.
 - `src/macros/MacroArguments.hpp/.cpp`: parsing de protótipo (`MacroPrototype`),
   parsing de chamada (`MacroCall`) e vinculação posicional (`BoundMacroArguments`)
   com diagnósticos tipados (`MacroDiagnostic`) e propriedade integral dos dados.
-- `tests/macros/MacroArgumentsTest.cpp`: 12 testes registrados no `MacroTests`;
+- `tests/macros/MacroArgumentsTest.cpp`: 13 testes registrados no `MacroTests`;
   fontes registrados em `sicxe_macros`.
 - Reutilização privada de `SymbolTable::isValidIdentifier`, `isReservedName` e
   `normalizeName` em `MacroArguments.cpp`, sem expor headers do montador em
@@ -63,7 +64,7 @@ substituição no corpo, numeração `.SER`, motor ou I/O.
 
 ### Testes e validação local
 
-Os 12 testes novos cobrem protótipos com e sem rótulo formal, vinculação
+Os 12 testes iniciais cobrem protótipos com e sem rótulo formal, vinculação
 posicional completa, posições vazias por vírgulas, omissões finais, chamada
 rotulada com e sem formal de rótulo, insensibilidade a caixa, formais
 repetidos, rejeição de `NOME=valor` em protótipo e chamada, argumentos em
@@ -87,12 +88,24 @@ Comandos reproduzíveis em [testes](../../testing.md#macros-pacote-3).
   chamadas ativas com `MacroArguments::bind`, acrescentando a cadeia `calls`
   aos diagnósticos quando ocorrerem dentro de expansões.
 
-As interfaces são aditivas; nenhum contrato dos pacotes 1 e 2 foi alterado. O
-PR deve pedir alinhamento dos pacotes 4 e 6 antes do merge.
+As interfaces são aditivas; nenhum contrato dos pacotes 1 e 2 foi alterado.
+A revisão técnica do PR #33 conferiu padrões, requisitos e os dados para os
+consumidores 4 e 6. Corrigiu a consulta redundante a nomes reservados em
+`parseCall()`: só a definição deve consultar o catálogo. O teste adicional
+`DoesNotClassifyAssemblerOperationsWhenParsingCalls` falhou antes do ajuste e
+passou depois, mantendo nomes reservados rejeitados em protótipos e nomes
+divergentes rejeitados na vinculação. Não houve ampliação da sintaxe.
+
+A validação final em builds Release novos passou em **459 testes sem Qt e
+462 com Qt**, além de formatação, avisos como erros e CI remota. A revisão
+registrou duas observações não bloqueantes de manutenção: duplicação interna
+na separação/validação de campos e coleções derivadas que os consumidores
+devem tratar como somente leitura. Não foi feita refatoração estrutural.
 
 - [x] Parsing de protótipo, parsing de chamada e vinculação posicional implementados.
 - [x] Testes pelas interfaces cobrindo casos obrigatórios, códigos e posições físicas.
 - [x] Contratos, índice, roadmap e guia de testes atualizados.
 - [x] Formatação, build e CTest locais com e sem Qt aprovados.
-- [ ] Revisão/alinhamento com integrantes dos pacotes 4 e 6.
-- [ ] CI remota verde e revisão de outro integrante antes do merge.
+- [x] Revisão técnica do handoff aos pacotes 4 e 6 registrada no PR #33.
+- [x] CI remota verde e parecer técnico de padrões/requisitos registrado.
+- [ ] Confirmação nominal das interfaces pelos responsáveis dos pacotes 4 e 6.

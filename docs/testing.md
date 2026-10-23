@@ -492,7 +492,7 @@ Handoff e diagnósticos estão no
 
 ## Macros: pacote 3
 
-O alvo `MacroTests` acrescenta **12 testes** em
+O alvo `MacroTests` acrescenta **13 testes** (12 iniciais e um na revisão) em
 `tests/macros/MacroArgumentsTest.cpp`, pelas interfaces de `MacroArguments`:
 
 - Parsing de protótipos com e sem rótulo formal e sem parâmetros posicionais,
@@ -537,6 +537,19 @@ Novos fontes e header isolado passaram com
 `-std=c++20 -Wall -Wextra -Wpedantic -Werror`. A formatação de todos os C++
 e `git diff --check` passaram. Resultados locais não representam revisão
 de outro integrante ou aprovação de CI remota.
+
+Na revisão do [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33),
+o teste `DoesNotClassifyAssemblerOperationsWhenParsingCalls` demonstrou a
+consulta indevida ao catálogo no parser de chamadas: `lda` era rejeitado
+antes de qualquer seleção pela tabela ativa. Após remover essa consulta,
+`lda`, `START` e um nome desconhecido passam como texto; a validação de nomes
+reservados em protótipos e de correspondência na vinculação permanece.
+O teste falhou antes e passou depois da correção.
+
+Builds Release novos confirmaram **459 testes sem Qt e 462 com Qt**, todos
+aprovados. Formatação dos C++, compilação de `MacroArguments.cpp` com
+`-Wall -Wextra -Wpedantic -Werror`, `git diff --check` e o job remoto
+`Format, build and test` também passaram.
 
 Para executar apenas os casos deste pacote depois do build:
 

@@ -1,12 +1,13 @@
 # Contratos do processador de macros
 
-Estado: **pacotes 1 e 2 implementados e validados; pacote 3 implementado com
-validação local; pacotes 4–7 planejados**.
+Estado: **pacotes 1–3 implementados e validados; pacotes 4–7 planejados**.
 Scanner, captura, tabela e vinculação de argumentos disponíveis;
 `expand()` está somente declarada, sem
 motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
-no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). Este é o ponto
+no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). O pacote 3
+tem revisão técnica e CI verde no [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33).
+Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma
@@ -177,8 +178,8 @@ chamadas: a leitura lexical não antecipa a visibilidade das macros do motor.
 
 O scanner aceita campos temporariamente inválidos, inclusive rótulos com
 `.SER`, operações desconhecidas, parâmetros e operandos incompletos. Não
-divide argumentos nem interpreta `NOME=valor`: a validação do pacote 3 ainda
-deverá rejeitar essa sintaxe em protótipos/chamadas. Não existe `succeeded()`
+divide argumentos nem interpreta `NOME=valor`: o pacote 3 rejeita essa sintaxe
+em protótipos/chamadas. Não existe `succeeded()`
 no resultado lexical, pois o scanner não certifica validade de macro/assembly.
 
 ### Origem, diagnósticos e resultado futuro
@@ -317,8 +318,9 @@ continua independente do montador.
 ## Interfaces internas entregues no pacote 3
 
 As novas interfaces em `MacroArguments.hpp` não alteram os tipos dos pacotes 1
-e 2 nem o seam `expand()`. O alinhamento com os responsáveis pelos pacotes 4 e
-6 deve ser conferido na revisão antes do merge.
+e 2 nem o seam `expand()`. A revisão técnica do PR #33 conferiu os dados
+necessários aos pacotes 4 e 6. Ela não representa aprovação nominal desses
+responsáveis; essa confirmação permanece no [handoff](work/03-arguments.md#handoff-e-revisão).
 
 ### Protótipo, chamada e vinculação posicional
 
@@ -354,6 +356,18 @@ e 2 nem o seam `expand()`. O alinhamento com os responsáveis pelos pacotes 4 e
   `bind(const SourceLine&, const SourceLine&)` e
   `bind(const MacroDefinition&, const SourceLine&)`, retornando
   `MacroArgumentBindResult` (`std::variant<BoundMacroArguments, MacroDiagnostic>`).
+
+O motor seleciona chamadas pela tabela de macros **já ativas**, antes de
+invocar `parseCall()`/`bind()`. O parser de chamadas não consulta nomes
+reservados nem classifica operações SIC/XE; a verificação de nome reservado
+permanece na definição, em `parsePrototype()`. Linhas comuns não passam pelo
+parser de chamadas para decidir se são instruções válidas.
+
+`bind()` recebe protótipos e chamadas produzidos pelos parsers acima. Esses
+resultados e os vínculos são snapshots próprios: os consumidores devem
+tratá-los como somente leitura, sem editar separadamente as coleções
+derivadas (`formals`/`positionalFormals`, `values`/`arguments`/`positionalValues`)
+ou suas chaves normalizadas. A coerência e a ordem são mantidas pelos produtores.
 
 Para o **pacote 4**, `MacroPrototype::formals` e `BoundMacroArguments::values`
 compartilham a mesma indexação ordenada, evitando reprocessar o protótipo ou a
