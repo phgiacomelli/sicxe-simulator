@@ -1,7 +1,8 @@
 # Contratos do processador de macros
 
-Estado: **pacotes 1 e 2 implementados e validados; pacotes 3–7 planejados**.
-Scanner, captura e tabela disponíveis;
+Estado: **pacotes 1 e 2 implementados e validados; pacote 3 implementado com
+validação local; pacotes 4–7 planejados**.
+Scanner, captura, tabela e vinculação de argumentos disponíveis;
 `expand()` está somente declarada, sem
 motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
@@ -312,6 +313,59 @@ válidos inclusive depois da destruição da tabela. Não há estado global.
 de nomes de `SymbolTable`. Seus headers não expõem tipos do montador; não se
 chamam parser, montagem, VM, Qt ou I/O. A implementação do scanner do pacote 1
 continua independente do montador.
+
+## Interfaces internas entregues no pacote 3
+
+As novas interfaces em `MacroArguments.hpp` não alteram os tipos dos pacotes 1
+e 2 nem o seam `expand()`. O alinhamento com os responsáveis pelos pacotes 4 e
+6 deve ser conferido na revisão antes do merge.
+
+### Protótipo, chamada e vinculação posicional
+
+- `MacroFormal { kind, name, key }`: classifica o parâmetro formal como
+  `MacroFormalKind::Label` ou `MacroFormalKind::Positional`, preserva o
+  `SourceField` original (`name`) e guarda a chave normalizada em maiúsculas
+  ASCII (`key`).
+- `MacroPrototype { macroName, macroKey, labelFormal, positionalFormals, formals }`:
+  representa o protótipo validado. `formals` mantém a ordem canônica do
+  protótipo (`labelFormal` primeiro, quando declarado, seguido de
+  `positionalFormals`). `findFormal(std::string_view)` retorna o índice
+  baseado em zero em `formals` sem distinção de caixa, ou `std::nullopt`.
+- `MacroCall { macroName, macroKey, label, arguments }`: representa uma linha de
+  chamada validada sintaticamente, com rótulo opcional e argumentos posicionais
+  divididos por vírgulas fora de aspas simples e sem espaços horizontais nas
+  extremidades.
+- `BoundMacroArgument { formal, value, position }`: associa cada `MacroFormal`
+  ao texto vinculado (`value`) e à posição física na chamada (`position`, ou
+  `std::nullopt` quando o rótulo ou argumento final foi omitido).
+- `BoundMacroArguments { macroName, labelValue, positionalValues, values, arguments }`:
+  lista ordenada de valores e vínculos na mesma ordem de `MacroPrototype::formals`,
+  além de acesso direto a `labelValue`, `positionalValues` e consulta sem
+  distinção de caixa por `find(std::string_view)`.
+
+`MacroArguments` oferece:
+
+- `parsePrototype(const SourceLine&)` e `parsePrototype(const MacroDefinition&)`,
+  retornando `MacroPrototypeResult` (`std::variant<MacroPrototype, MacroDiagnostic>`);
+- `parseCall(const SourceLine&)`, retornando `MacroCallResult`
+  (`std::variant<MacroCall, MacroDiagnostic>`);
+- `bind(const MacroPrototype&, const MacroCall&)`,
+  `bind(const MacroPrototype&, const SourceLine&)`,
+  `bind(const SourceLine&, const SourceLine&)` e
+  `bind(const MacroDefinition&, const SourceLine&)`, retornando
+  `MacroArgumentBindResult` (`std::variant<BoundMacroArguments, MacroDiagnostic>`).
+
+Para o **pacote 4**, `MacroPrototype::formals` e `BoundMacroArguments::values`
+compartilham a mesma indexação ordenada, evitando reprocessar o protótipo ou a
+chamada durante a substituição. Para o **pacote 6**, a cadeia `calls` do
+`MacroDiagnostic` permanece vazia para ser preenchida pelo motor quando a falha
+ocorrer dentro de uma expansão.
+
+| Código em argumentos | Posição apontada |
+| --- | --- |
+| `InvalidPrototype` | Operação ausente/inválida ou diretiva; início do rótulo formal inválido; início do parâmetro formal vazio, malformado, `NOME=valor` ou repetido; aspa simples de abertura não fechada no protótipo |
+| `ReservedName` | Operação do protótipo com nome reservado pelo montador |
+| `InvalidArgument` | Linha de chamada inválida ou nome divergente do protótipo; rótulo na chamada quando o protótipo não declara rótulo formal; início de rótulo ou argumento com `NOME=valor`; primeiro argumento posicional em excesso; aspa simples de abertura não fechada na chamada |
 
 ## Política de comentários na expansão
 

@@ -191,6 +191,8 @@ CI verde estão registradas no [PR #31](https://github.com/phgiacomelli/sicxe-si
 o pacote 2 está implementado com captura por nível, esqueleto aninhado e
 tabela com versões imutáveis, com validação local, revisão técnica e CI verde
 no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32);
-os pacotes 3–7 continuam planejados. Ainda não há motor
+o pacote 3 está implementado com parsing de protótipo/chamada e vinculação
+posicional, com validação local e revisão/CI pendentes;
+os pacotes 4–7 continuam planejados. Ainda não há motor
 de expansão, CLI de macros ou geração de `MASMAPRG.ASM`. O PDF de macros é
 distribuído à equipe fora do Git, como os PDFs anteriores.
