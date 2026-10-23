@@ -25,8 +25,9 @@ A terceira etapa, **em desenvolvimento**, acrescentará o
 [processador de macros](docs/macros/README.md) antes do montador, em uma
 passagem, com sete pacotes de trabalho. O pacote 1 entrega scanner permissivo
 e contratos compartilhados em `sicxe_macros`, sem Qt/VM/I/O. O pacote 2
-acrescenta captura e tabela com versões imutáveis, validadas localmente e
-com revisão pendente. Os pacotes 3–7 continuam planejados:
+acrescenta captura e tabela com versões imutáveis, com revisão técnica e CI
+verde no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32).
+Os pacotes 3–7 continuam planejados:
 `expand()` está somente declarada, sem motor ou CLI
 de macros. Veja as [interfaces entregues](docs/macros/contracts.md#interfaces-c-entregues-no-pacote-1).
 
