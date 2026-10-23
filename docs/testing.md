@@ -489,3 +489,74 @@ ctest --test-dir build/macros-package2-noqt --output-on-failure \
 
 Handoff e diagnósticos estão no
 [contrato do pacote 2](macros/contracts.md#interfaces-internas-entregues-no-pacote-2).
+
+## Macros: pacote 3
+
+O alvo `MacroTests` acrescenta **13 testes** (12 iniciais e um na revisão) em
+`tests/macros/MacroArgumentsTest.cpp`, pelas interfaces de `MacroArguments`:
+
+- Parsing de protótipos com e sem rótulo formal e sem parâmetros posicionais,
+  preservando grafia original, posições físicas e chaves normalizadas em
+  `MacroPrototype`.
+- Vinculação posicional completa, posições vazias por vírgulas (início, meio e
+  fim), menos argumentos que formais e ausência total de operando na chamada,
+  vinculando texto vazio (`""`) e distinguindo posições presentes de omissões
+  (`std::nullopt`).
+- Rótulo formal preenchido, omitido na chamada e rejeição explícita de chamada
+  rotulada quando o protótipo não declara rótulo formal.
+- Comparação sem distinção de caixa para nomes de macro e formais, rejeição de
+  formais repetidos (entre posicionais e contra o rótulo formal) e rejeição de
+  `NOME=valor` tanto no protótipo quanto na chamada.
+- Rejeição de argumentos em excesso na posição física do primeiro argumento
+  excedente, separadores `,`/`;`/`=` protegidos por aspas simples, diagnóstico
+  de aspas abertas na posição da aspa de abertura, passagem textual de
+  `#7`/`@PTR`/`LOOP.SER`, divisão de `BUFFER,X` em dois argumentos posicionais
+  e propriedade das strings (incluindo bytes NUL).
+
+Comandos usados em diretórios novos, com Unix Makefiles:
+
+```bash
+cmake -S . -B build/macros-package3-noqt -G 'Unix Makefiles' \
+  -DCMAKE_BUILD_TYPE=Debug -DSICXE_BUILD_QT=OFF \
+  -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST="$PWD/build/_deps/googletest-src"
+cmake --build build/macros-package3-noqt --target format
+cmake --build build/macros-package3-noqt --parallel 4
+ctest --test-dir build/macros-package3-noqt --output-on-failure --parallel 4
+
+cmake -S . -B build/macros-package3-qt -G 'Unix Makefiles' \
+  -DCMAKE_BUILD_TYPE=Release -DSICXE_BUILD_QT=ON \
+  -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST="$PWD/build/_deps/googletest-src"
+cmake --build build/macros-package3-qt --parallel 4
+ctest --test-dir build/macros-package3-qt --output-on-failure --parallel 4
+```
+
+GoogleTest existente em `build/_deps` foi reutilizado sem download/instalação.
+Resultado: **458 testes sem Qt (Debug) e 461 com Qt (Release)**, todos
+aprovados, nenhum ignorado. Os 12 novos casos passaram nas duas configurações.
+Novos fontes e header isolado passaram com
+`-std=c++20 -Wall -Wextra -Wpedantic -Werror`. A formatação de todos os C++
+e `git diff --check` passaram. Resultados locais não representam revisão
+de outro integrante ou aprovação de CI remota.
+
+Na revisão do [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33),
+o teste `DoesNotClassifyAssemblerOperationsWhenParsingCalls` demonstrou a
+consulta indevida ao catálogo no parser de chamadas: `lda` era rejeitado
+antes de qualquer seleção pela tabela ativa. Após remover essa consulta,
+`lda`, `START` e um nome desconhecido passam como texto; a validação de nomes
+reservados em protótipos e de correspondência na vinculação permanece.
+O teste falhou antes e passou depois da correção.
+
+Builds Release novos confirmaram **459 testes sem Qt e 462 com Qt**, todos
+aprovados. Formatação dos C++, compilação de `MacroArguments.cpp` com
+`-Wall -Wextra -Wpedantic -Werror`, `git diff --check` e o job remoto
+`Format, build and test` também passaram.
+
+Para executar apenas os casos deste pacote depois do build:
+
+```bash
+ctest --test-dir build/macros-package3-noqt --output-on-failure \
+  -R 'MacroArgumentsTest'
+```
+
+Handoff e diagnósticos estão no
+[contrato do pacote 3](macros/contracts.md#interfaces-internas-entregues-no-pacote-3).

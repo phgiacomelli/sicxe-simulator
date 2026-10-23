@@ -1,11 +1,13 @@
 # Contratos do processador de macros
 
-Estado: **pacotes 1 e 2 implementados e validados; pacotes 3–7 planejados**.
-Scanner, captura e tabela disponíveis;
+Estado: **pacotes 1–3 implementados e validados; pacotes 4–7 planejados**.
+Scanner, captura, tabela e vinculação de argumentos disponíveis;
 `expand()` está somente declarada, sem
 motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
-no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). Este é o ponto
+no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). O pacote 3
+tem revisão técnica e CI verde no [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33).
+Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma
@@ -176,8 +178,8 @@ chamadas: a leitura lexical não antecipa a visibilidade das macros do motor.
 
 O scanner aceita campos temporariamente inválidos, inclusive rótulos com
 `.SER`, operações desconhecidas, parâmetros e operandos incompletos. Não
-divide argumentos nem interpreta `NOME=valor`: a validação do pacote 3 ainda
-deverá rejeitar essa sintaxe em protótipos/chamadas. Não existe `succeeded()`
+divide argumentos nem interpreta `NOME=valor`: o pacote 3 rejeita essa sintaxe
+em protótipos/chamadas. Não existe `succeeded()`
 no resultado lexical, pois o scanner não certifica validade de macro/assembly.
 
 ### Origem, diagnósticos e resultado futuro
@@ -312,6 +314,72 @@ válidos inclusive depois da destruição da tabela. Não há estado global.
 de nomes de `SymbolTable`. Seus headers não expõem tipos do montador; não se
 chamam parser, montagem, VM, Qt ou I/O. A implementação do scanner do pacote 1
 continua independente do montador.
+
+## Interfaces internas entregues no pacote 3
+
+As novas interfaces em `MacroArguments.hpp` não alteram os tipos dos pacotes 1
+e 2 nem o seam `expand()`. A revisão técnica do PR #33 conferiu os dados
+necessários aos pacotes 4 e 6. Ela não representa aprovação nominal desses
+responsáveis; essa confirmação permanece no [handoff](work/03-arguments.md#handoff-e-revisão).
+
+### Protótipo, chamada e vinculação posicional
+
+- `MacroFormal { kind, name, key }`: classifica o parâmetro formal como
+  `MacroFormalKind::Label` ou `MacroFormalKind::Positional`, preserva o
+  `SourceField` original (`name`) e guarda a chave normalizada em maiúsculas
+  ASCII (`key`).
+- `MacroPrototype { macroName, macroKey, labelFormal, positionalFormals, formals }`:
+  representa o protótipo validado. `formals` mantém a ordem canônica do
+  protótipo (`labelFormal` primeiro, quando declarado, seguido de
+  `positionalFormals`). `findFormal(std::string_view)` retorna o índice
+  baseado em zero em `formals` sem distinção de caixa, ou `std::nullopt`.
+- `MacroCall { macroName, macroKey, label, arguments }`: representa uma linha de
+  chamada validada sintaticamente, com rótulo opcional e argumentos posicionais
+  divididos por vírgulas fora de aspas simples e sem espaços horizontais nas
+  extremidades.
+- `BoundMacroArgument { formal, value, position }`: associa cada `MacroFormal`
+  ao texto vinculado (`value`) e à posição física na chamada (`position`, ou
+  `std::nullopt` quando o rótulo ou argumento final foi omitido).
+- `BoundMacroArguments { macroName, labelValue, positionalValues, values, arguments }`:
+  lista ordenada de valores e vínculos na mesma ordem de `MacroPrototype::formals`,
+  além de acesso direto a `labelValue`, `positionalValues` e consulta sem
+  distinção de caixa por `find(std::string_view)`.
+
+`MacroArguments` oferece:
+
+- `parsePrototype(const SourceLine&)` e `parsePrototype(const MacroDefinition&)`,
+  retornando `MacroPrototypeResult` (`std::variant<MacroPrototype, MacroDiagnostic>`);
+- `parseCall(const SourceLine&)`, retornando `MacroCallResult`
+  (`std::variant<MacroCall, MacroDiagnostic>`);
+- `bind(const MacroPrototype&, const MacroCall&)`,
+  `bind(const MacroPrototype&, const SourceLine&)`,
+  `bind(const SourceLine&, const SourceLine&)` e
+  `bind(const MacroDefinition&, const SourceLine&)`, retornando
+  `MacroArgumentBindResult` (`std::variant<BoundMacroArguments, MacroDiagnostic>`).
+
+O motor seleciona chamadas pela tabela de macros **já ativas**, antes de
+invocar `parseCall()`/`bind()`. O parser de chamadas não consulta nomes
+reservados nem classifica operações SIC/XE; a verificação de nome reservado
+permanece na definição, em `parsePrototype()`. Linhas comuns não passam pelo
+parser de chamadas para decidir se são instruções válidas.
+
+`bind()` recebe protótipos e chamadas produzidos pelos parsers acima. Esses
+resultados e os vínculos são snapshots próprios: os consumidores devem
+tratá-los como somente leitura, sem editar separadamente as coleções
+derivadas (`formals`/`positionalFormals`, `values`/`arguments`/`positionalValues`)
+ou suas chaves normalizadas. A coerência e a ordem são mantidas pelos produtores.
+
+Para o **pacote 4**, `MacroPrototype::formals` e `BoundMacroArguments::values`
+compartilham a mesma indexação ordenada, evitando reprocessar o protótipo ou a
+chamada durante a substituição. Para o **pacote 6**, a cadeia `calls` do
+`MacroDiagnostic` permanece vazia para ser preenchida pelo motor quando a falha
+ocorrer dentro de uma expansão.
+
+| Código em argumentos | Posição apontada |
+| --- | --- |
+| `InvalidPrototype` | Operação ausente/inválida ou diretiva; início do rótulo formal inválido; início do parâmetro formal vazio, malformado, `NOME=valor` ou repetido; aspa simples de abertura não fechada no protótipo |
+| `ReservedName` | Operação do protótipo com nome reservado pelo montador |
+| `InvalidArgument` | Linha de chamada inválida ou nome divergente do protótipo; rótulo na chamada quando o protótipo não declara rótulo formal; início de rótulo ou argumento com `NOME=valor`; primeiro argumento posicional em excesso; aspa simples de abertura não fechada na chamada |
 
 ## Política de comentários na expansão
 
