@@ -233,6 +233,7 @@ if(BUILD_TESTING)
         tests/macros/MacroContractTest.cpp
         tests/macros/DefinitionCaptureTest.cpp
         tests/macros/MacroTableTest.cpp
+        tests/macros/MacroArgumentsTest.cpp
     )
     set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
