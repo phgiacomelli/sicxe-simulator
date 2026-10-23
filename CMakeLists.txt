@@ -139,6 +139,8 @@ add_library(sicxe_macros STATIC
     src/macros/DefinitionCapture.cpp
     src/macros/MacroTable.hpp
     src/macros/MacroTable.cpp
+    src/macros/MacroArguments.hpp
+    src/macros/MacroArguments.cpp
 )
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
