@@ -139,6 +139,8 @@ add_library(sicxe_macros STATIC
     src/macros/DefinitionCapture.cpp
     src/macros/MacroTable.hpp
     src/macros/MacroTable.cpp
+    src/macros/MacroArguments.hpp
+    src/macros/MacroArguments.cpp
 )
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
@@ -231,6 +233,7 @@ if(BUILD_TESTING)
         tests/macros/MacroContractTest.cpp
         tests/macros/DefinitionCaptureTest.cpp
         tests/macros/MacroTableTest.cpp
+        tests/macros/MacroArgumentsTest.cpp
     )
     set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
