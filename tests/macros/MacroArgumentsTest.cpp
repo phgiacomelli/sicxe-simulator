@@ -329,7 +329,6 @@ TEST(MacroArgumentsTest, RejectsInvalidCallLinesMismatchedNamesAndUnclosedQuotes
     expectCallFailure(" MCDEFN", MacroDiagnosticCode::InvalidArgument, {1, 2});
     expectCallFailure(" MCEND", MacroDiagnosticCode::InvalidArgument, {1, 2});
     expectCallFailure(" +Sample A", MacroDiagnosticCode::InvalidArgument, {1, 2});
-    expectCallFailure(" LDA A", MacroDiagnosticCode::InvalidArgument, {1, 2});
     expectCallFailure(" Sample C'open", MacroDiagnosticCode::InvalidArgument, {1, 10});
     expectCallFailure(" Sample A, C'open, B", MacroDiagnosticCode::InvalidArgument, {1, 13});
 
@@ -356,6 +355,23 @@ TEST(MacroArgumentsTest, OwnsAllStringsAndPreservesEmbeddedNullBytesAcrossInvoca
     EXPECT_EQ(bound.positionalValues[1], "#7");
     ASSERT_NE(bound.find("a"), nullptr);
     EXPECT_EQ(bound.find("a")->value, (std::string{"C'A\0B'", 6}));
+}
+
+TEST(MacroArgumentsTest, DoesNotClassifyAssemblerOperationsWhenParsingCalls) {
+    // The engine selects active macros before parsing a call. Reserved-name
+    // validation belongs to prototype definition, not to this lexical step.
+    for (const auto name : {"lda", "START", "UnknownMacro"}) {
+        const auto result =
+            MacroArguments::parseCall(scanSingleLine(" " + std::string{name} + " #7"));
+        const auto* call = std::get_if<MacroCall>(&result);
+        ASSERT_NE(call, nullptr) << name;
+        EXPECT_EQ(call->macroName.text, name);
+        ASSERT_EQ(call->arguments.size(), 1U);
+        EXPECT_EQ(call->arguments[0], (SourceField{"#7", {1, std::string{name}.size() + 3}}));
+    }
+    expectPrototypeFailure(" LDA A", MacroDiagnosticCode::ReservedName, {1, 2});
+    expectPrototypeFailure(" START A", MacroDiagnosticCode::ReservedName, {1, 2});
+    expectBindFailure(" Sample A", " LDA #7", MacroDiagnosticCode::InvalidArgument, {1, 2});
 }
 
 } // namespace

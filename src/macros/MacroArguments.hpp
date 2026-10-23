@@ -79,6 +79,8 @@ public:
     static MacroPrototypeResult parsePrototype(const SourceLine& line);
     static MacroPrototypeResult parsePrototype(const MacroDefinition& definition);
 
+    // The engine selects an active macro first; this does not classify SIC/XE
+    // operations or check the assembler's reserved names.
     static MacroCallResult parseCall(const SourceLine& line);
 
     static MacroArgumentBindResult bind(const MacroPrototype& prototype, const MacroCall& call);
