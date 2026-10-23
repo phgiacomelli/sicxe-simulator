@@ -1,9 +1,11 @@
 # Contratos do processador de macros
 
-Estado: **pacote 1 implementado e validado; pacotes 2–7 planejados**. Scanner
-e tipos compartilhados disponíveis; `expand()` está somente declarada, sem
-motor ou CLI de macros. Revisão técnica e CI verde registradas no
-[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este é o ponto
+Estado: **pacotes 1 e 2 implementados e validados; pacotes 3–7 planejados**.
+Scanner, captura e tabela disponíveis;
+`expand()` está somente declarada, sem
+motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
+no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma
@@ -224,6 +226,92 @@ fonte ainda com macros como se tivesse sido expandida.
 Na integração, alinhar os campos de linha com os pacotes 2/3, os tipos de
 origem com o pacote 5 e o resultado público com o pacote 6. Pilha interna,
 tabela de definições e estratégias de substituição não fazem parte desse seam.
+
+## Interfaces internas entregues no pacote 2
+
+As novas interfaces não alteram os tipos do pacote 1 nem o seam `expand()`.
+A revisão técnica do PR #32 conferiu o handoff aos pacotes 3, 4 e 6 descrito
+abaixo; ela não representa aprovação nominal desses responsáveis. A confirmação
+deles continua registrada como acompanhamento no [pacote 2](work/02-definitions.md#handoff-e-revisão).
+
+### Captura e representação
+
+`DefinitionCapture::capture(std::span<const SourceLine> lines, std::size_t beginIndex)`
+recebe linhas já escaneadas e um índice **iniciado em zero** para `MCDEFN`.
+Retorna `DefinitionCaptureResult`, variante entre:
+
+- `CapturedDefinition { definition, nextLine }`: definição própria e índice da
+  primeira linha após o `MCEND` correspondente, no mesmo span. Só o trecho
+  solicitado é consumido; linhas posteriores não são validadas.
+- `MacroDiagnostic`: primeira falha, sem definição parcial. A cadeia `calls`
+  fica vazia; o motor acrescentará o contexto quando capturar linhas geradas.
+
+`MacroDefinition` é construída pela captura e expõe somente consultas const:
+`begin()`, `prototype()`, `body()`, `end()` e `name()`. Os quatro primeiros
+retornam, respectivamente, a linha de abertura, a linha do protótipo,
+o vetor de linhas entre protótipo e fechamento, e a linha de fechamento.
+`name()` retorna o `SourceField` da operação do protótipo, com grafia e posição.
+Todos os textos, campos, números físicos, espaços finais e `terminated` são
+preservados e pertencem à definição, independentemente da fonte e do scanner.
+
+A busca do protótipo ignora somente linhas vazias/comentários. Essas linhas
+entre a abertura e o protótipo não integram o corpo. A captura verifica a
+presença da operação e o identificador do **nome de macro**; reutiliza
+`SymbolTable::isValidIdentifier` e `isReservedName`. `MCDEFN` e `MCEND` também
+não podem nomear macros: se forem a próxima operação ativa, indicam protótipo
+ausente. Não se duplicam mnemônicos/diretivas do montador.
+
+Para o **pacote 3**, `prototype()` mantém rótulo formal, operando completo,
+comentário, `openQuote` e posições sem interpretar formais, vírgulas,
+repetições ou `NOME=valor`. Captura bem-sucedida não certifica validade dos
+formais. Para o **pacote 4**, `body()` conserva as definições internas inteiras,
+inclusive delimitadores, protótipos e comentários, sem substituir parâmetros.
+O contador reconhece somente diretivas no campo de operação, valida campos
+dos delimitadores em todos os níveis e termina apenas ao voltar a zero.
+Os protótipos internos ficam brutos; serão identificados pelos consumidores
+de escopo e validados quando suas definições forem capturadas individualmente.
+
+Comentários estruturais externos continuam disponíveis como metadados nas
+linhas `begin()`, `prototype()` e `end()`, mas não entram no corpo. Comentários
+estruturais internos permanecem no esqueleto para preservar suas posições;
+o motor deve aplicar a política de não emissão quando os consumir como
+estrutura. Comentários e linhas vazias comuns do corpo permanecem em ordem.
+Esta interface não renderiza nem emite texto.
+
+| Código da captura | Posição apontada |
+| --- | --- |
+| `MissingPrototype` | Operação do `MCDEFN` quando não há próxima linha ativa ou ela é um delimitador; para índice fora da entrada, linha física após a última (1:1 em entrada vazia) |
+| `InvalidPrototype` | Início da operação com nome inválido; rótulo se falta operação; primeiro campo indevido (rótulo antes de operando) em `MCDEFN`/`MCEND` de qualquer nível |
+| `ReservedName` | Operação do protótipo com nome reservado pelo montador |
+| `UnexpectedEnd` | Operação do `MCEND` recebido como início de captura, sem abertura |
+| `UnterminatedDefinition` | Operação do `MCDEFN` externo cujo nível não foi fechado |
+
+Um início de captura que não seja delimitador recebe `InvalidPrototype` na
+operação, ou no rótulo/coluna 1 se não houver operação. Não se acrescentaram
+códigos ao enum compartilhado. Testes conferem código e posição, sem usar
+mensagens como identificadores.
+
+### Tabela e versões
+
+`MacroTable::define(MacroDefinition)` instala explicitamente uma definição
+capturada, copiando/movendo os dados para uma versão imutável própria.
+`find(std::string_view)` retorna `MacroTable::Definition`, um
+`std::shared_ptr<const MacroDefinition>`, ou `nullptr` se ausente. A chave é
+normalizada por ASCII com `SymbolTable::normalizeName`; grafia e posições da
+definição permanecem originais. A construção restrita de `MacroDefinition`
+impede instalar nomes não validados pela captura.
+
+Para o **pacote 6**, captura e instalação são ações distintas. Capturar ou
+instalar a externa nunca instala suas internas. O motor decide quando fazer
+cada operação e retém o handle retornado por `find()` durante uma expansão.
+Redefinir o mesmo nome, mesmo com corpo maior, menor ou vazio, troca apenas o
+handle ativo da tabela. Handles anteriores mantêm seu conteúdo e permanecem
+válidos inclusive depois da destruição da tabela. Não há estado global.
+
+`sicxe_macros` passa a ligar **privadamente** `sicxe_assembler` para as funções
+de nomes de `SymbolTable`. Seus headers não expõem tipos do montador; não se
+chamam parser, montagem, VM, Qt ou I/O. A implementação do scanner do pacote 1
+continua independente do montador.
 
 ## Política de comentários na expansão
 

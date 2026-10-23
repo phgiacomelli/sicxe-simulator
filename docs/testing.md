@@ -364,8 +364,8 @@ sem sobrescrita, a exigência de hard links e os valores esperados na interface.
 
 ## Macros: pacote 1
 
-O alvo `MacroTests` contém **14 testes novos**, sem depender de Qt, VM ou
-montador e sem mocks:
+O pacote 1 acrescentou ao alvo `MacroTests` **14 testes**, originalmente sem
+dependência de Qt, VM ou montador e sem mocks:
 
 - 12 em `tests/macros/SourceScannerTest.cpp`, pela interface
   `macro::SourceScanner::scan`: campos textuais, posições físicas de byte,
@@ -380,8 +380,8 @@ montador e sem mocks:
   asserção de compilação, em expressão não avaliada, confere a declaração de
   `expand()` sem exigir uma implementação antecipada ou stub.
 
-Os testes não validam captura, argumentos, substituição, serial, motor ou
-arquivos de macro: os pacotes 2–7 ainda são responsáveis por essas entregas.
+Esses testes não validam captura, argumentos, substituição, serial, motor ou
+arquivos de macro: essas responsabilidades são dos pacotes 2–7.
 `normalizedText()` é cópia lexical; seu teste confirma que diretivas e
 comentários estruturais continuam presentes, não que houve expansão.
 
@@ -428,3 +428,64 @@ ctest --test-dir build/macros-package1-core --output-on-failure \
 
 As interfaces e limites atuais estão em
 [contratos de macros](macros/contracts.md#interfaces-c-entregues-no-pacote-1).
+
+## Macros: pacote 2
+
+O alvo `MacroTests` acrescenta **21 testes**, 17 em `DefinitionCaptureTest.cpp`
+e quatro em `MacroTableTest.cpp`, pelas interfaces de captura e tabela:
+
+- Definição simples, vazia e com três níveis; fechamento correto e retorno
+  do próximo índice, sem consumir linhas posteriores.
+- Protótipo na próxima linha ativa, comentários estruturais guardados como
+  metadados, comentários/linhas vazias comuns e preservação do esqueleto
+  interno completo, texto, campos e posições físicas.
+- Falhas por código e posição: delimitador isolado, falta de protótipo,
+  nome inválido/reservado, campos indevidos nos delimitadores e falta de
+  fechamento. Formais e assembly temporariamente inválidos são preservados.
+- Consulta sem distinção de caixa, redefinições maiores/menores/vazias,
+  versões anteriores imutáveis e válidas após destruição da tabela, tabelas
+  independentes e ausência de instalação antecipada das definições internas.
+
+O módulo liga privadamente `sicxe_assembler` para reutilizar apenas as funções
+de nomes de `SymbolTable`. Os testes continuam sem Qt ou VM, inclusive no
+build com Qt. Não chamam `expand()` nem simulam expansão, montagem ou I/O.
+
+Comandos usados em diretórios novos, com Unix Makefiles (Ninja indisponível):
+
+```bash
+cmake -S . -B build/macros-package2-noqt -G 'Unix Makefiles' \
+  -DCMAKE_BUILD_TYPE=Debug -DSICXE_BUILD_QT=OFF \
+  -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST="$PWD/build/_deps/googletest-src"
+cmake --build build/macros-package2-noqt --target format
+cmake --build build/macros-package2-noqt --parallel 4
+ctest --test-dir build/macros-package2-noqt --output-on-failure --parallel 4
+
+cmake -S . -B build/macros-package2-qt -G 'Unix Makefiles' \
+  -DCMAKE_BUILD_TYPE=Release -DSICXE_BUILD_QT=ON \
+  -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST="$PWD/build/_deps/googletest-src"
+cmake --build build/macros-package2-qt --parallel 4
+ctest --test-dir build/macros-package2-qt --output-on-failure --parallel 4
+```
+
+GoogleTest existente em `build/_deps` foi reutilizado sem download/instalação.
+Resultado: **446 testes sem Qt (Debug) e 449 com Qt (Release)**, todos
+aprovados, nenhum ignorado. Os 21 novos casos passaram nas duas configurações.
+Novos fontes e headers isolados passaram com
+`-std=c++20 -Wall -Wextra -Wpedantic -Werror`. A formatação de todos os C++
+e `git diff --check` passaram. Esses resultados locais são distintos da
+validação da revisão: no
+[PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32), builds novos
+em Release repetiram **446 testes sem Qt e 449 com Qt**, todos aprovados.
+Formatação, novos fontes com avisos como erros e o job remoto
+`Format, build and test` também passaram. A revisão técnica não encontrou
+bloqueadores de padrões ou de requisitos.
+
+Para executar apenas os casos deste pacote depois do build:
+
+```bash
+ctest --test-dir build/macros-package2-noqt --output-on-failure \
+  -R 'DefinitionCaptureTest|MacroTableTest'
+```
+
+Handoff e diagnósticos estão no
+[contrato do pacote 2](macros/contracts.md#interfaces-internas-entregues-no-pacote-2).

@@ -133,8 +133,15 @@ add_library(sicxe_macros STATIC
     src/macros/MacroDiagnostic.hpp
     src/macros/MacroResult.hpp
     src/macros/MacroProcessor.hpp
+    src/macros/MacroDefinition.hpp
+    src/macros/MacroDefinition.cpp
+    src/macros/DefinitionCapture.hpp
+    src/macros/DefinitionCapture.cpp
+    src/macros/MacroTable.hpp
+    src/macros/MacroTable.cpp
 )
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
 
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
@@ -222,6 +229,8 @@ if(BUILD_TESTING)
     add_executable(MacroTests
         tests/macros/SourceScannerTest.cpp
         tests/macros/MacroContractTest.cpp
+        tests/macros/DefinitionCaptureTest.cpp
+        tests/macros/MacroTableTest.cpp
     )
     set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
