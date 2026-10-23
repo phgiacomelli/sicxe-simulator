@@ -24,8 +24,10 @@ fixa e a listagem, e `SICXEAssembler` grava `.bin` e `.lst`. Veja o
 A terceira etapa, **em desenvolvimento**, acrescentará o
 [processador de macros](docs/macros/README.md) antes do montador, em uma
 passagem, com sete pacotes de trabalho. O pacote 1 entrega scanner permissivo
-e contratos compartilhados em `sicxe_macros`, sem Qt/VM/I/O. Os pacotes 2–7
-continuam planejados: `expand()` está somente declarada, sem motor ou CLI
+e contratos compartilhados em `sicxe_macros`, sem Qt/VM/I/O. O pacote 2
+acrescenta captura e tabela com versões imutáveis, validadas localmente e
+com revisão pendente. Os pacotes 3–7 continuam planejados:
+`expand()` está somente declarada, sem motor ou CLI
 de macros. Veja as [interfaces entregues](docs/macros/contracts.md#interfaces-c-entregues-no-pacote-1).
 
 ## Tecnologias

@@ -6,6 +6,7 @@ Cada etapa tem seu próprio índice e seus pacotes de trabalho:
 - [Montador](assembler/README.md): montagem SIC/XE em duas passagens.
 - [Processador de macros](macros/README.md): expansão em uma passagem antes
   da montagem; scanner/contratos do pacote 1 implementados e validados,
+  captura/tabela do pacote 2 implementadas com validação local,
   expansão e integrador ainda planejados.
 
 O [roadmap](roadmap.md) acompanha o estado das etapas. O [guia de

@@ -188,6 +188,8 @@ Ordem de merge: pacote 1; depois 2 e 3 em paralelo; 4; 5; 6; 7. O pacote 1
 está **implementado e validado**, com scanner permissivo, posições, tipos de
 diagnóstico/origem/resultado e declaração de `expand()`. A revisão técnica e a
 CI verde estão registradas no [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31);
-os pacotes 2–7 continuam planejados. Ainda não há motor
+o pacote 2 está implementado com captura por nível, esqueleto aninhado e
+tabela com versões imutáveis, com validação local e revisão/CI pendentes;
+os pacotes 3–7 continuam planejados. Ainda não há motor
 de expansão, CLI de macros ou geração de `MASMAPRG.ASM`. O PDF de macros é
 distribuído à equipe fora do Git, como os PDFs anteriores.

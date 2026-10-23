@@ -1,7 +1,8 @@
 # Terceira etapa — processador de macros SIC/XE
 
-Estado: **pacote 1 implementado e validado; pacotes 2–7 planejados**.
-Scanner e contratos disponíveis em `sicxe_macros`; motor e CLI ainda não
+Estado: **pacote 1 implementado e validado; pacote 2 implementado com validação
+local; pacotes 3–7 planejados**.
+Scanner, captura e tabela disponíveis em `sicxe_macros`; motor e CLI ainda não
 implementados. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este plano
 usa `ProcessadorDeMacros.pdf` (distribuído à equipe fora do Git) e a orientação
@@ -64,7 +65,7 @@ testes e implementação em paralelo nas suas branches.
 | Pacote | Responsabilidade principal | Depende de | Estado |
 | --- | --- | --- | --- |
 | [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge | Implementado; revisado e validado |
-| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Planejado |
+| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Implementado; validação local; revisão pendente |
 | [3 — Argumentos](work/03-arguments.md) | Parâmetros formais e reais posicionais, omissão e diagnósticos | 1 | Planejado |
 | [4 — Substituição](work/04-substitution.md) | Referências formais com escopo aninhado e renderização do esqueleto | 1, 2, 3 | Planejado |
 | [5 — Contexto de expansão](work/05-local-labels.md) | `.SER`, serial determinístico, colisões e rastreabilidade das linhas geradas | 1, 4 | Planejado |
@@ -77,7 +78,10 @@ integra o fluxo final com os módulos anteriores estáveis. O pacote 6 não deve
 absorver I/O, e o 7 não deve reimplementar expansão ou montagem.
 
 As [interfaces C++ do pacote 1](contracts.md#interfaces-c-entregues-no-pacote-1)
-descrevem scanner, posições, diagnósticos e origem. `expand()` está apenas
+descrevem scanner, posições, diagnósticos e origem. As
+[interfaces internas do pacote 2](contracts.md#interfaces-internas-entregues-no-pacote-2)
+oferecem captura e tabela com versões imutáveis; o alinhamento com os pacotes
+3, 4 e 6 aguarda revisão no PR. `expand()` está apenas
 declarada para o pacote 6 implementar; `normalizedText()` é cópia lexical,
 não expansão. Ainda não é possível gerar `MASMAPRG.ASM` pelo projeto.
 
