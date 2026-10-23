@@ -472,8 +472,13 @@ Resultado: **446 testes sem Qt (Debug) e 449 com Qt (Release)**, todos
 aprovados, nenhum ignorado. Os 21 novos casos passaram nas duas configurações.
 Novos fontes e headers isolados passaram com
 `-std=c++20 -Wall -Wextra -Wpedantic -Werror`. A formatação de todos os C++
-e `git diff --check` passaram. Resultados locais não representam revisão
-de outro integrante ou aprovação de CI remota.
+e `git diff --check` passaram. Esses resultados locais são distintos da
+validação da revisão: no
+[PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32), builds novos
+em Release repetiram **446 testes sem Qt e 449 com Qt**, todos aprovados.
+Formatação, novos fontes com avisos como erros e o job remoto
+`Format, build and test` também passaram. A revisão técnica não encontrou
+bloqueadores de padrões ou de requisitos.
 
 Para executar apenas os casos deste pacote depois do build:
 

@@ -1,10 +1,10 @@
 # Terceira etapa — processador de macros SIC/XE
 
-Estado: **pacote 1 implementado e validado; pacote 2 implementado com validação
-local; pacotes 3–7 planejados**.
+Estado: **pacotes 1 e 2 implementados e validados; pacotes 3–7 planejados**.
 Scanner, captura e tabela disponíveis em `sicxe_macros`; motor e CLI ainda não
 implementados. Revisão técnica e CI verde do pacote 1 registradas no
-[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este plano
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
+no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). Este plano
 usa `ProcessadorDeMacros.pdf` (distribuído à equipe fora do Git) e a orientação
 complementar do professor. O [contrato comum](contracts.md) distingue
 exigências do professor de convenções adotadas para esta entrega. A separação
@@ -65,7 +65,7 @@ testes e implementação em paralelo nas suas branches.
 | Pacote | Responsabilidade principal | Depende de | Estado |
 | --- | --- | --- | --- |
 | [1 — Fonte e diagnósticos](work/01-source-diagnostics.md) | Leitura lexical das linhas de macro, posições, tipos e contrato público mínimo | Nenhum; primeiro merge | Implementado; revisado e validado |
-| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Implementado; validação local; revisão pendente |
+| [2 — Definições](work/02-definitions.md) | Captura por nível, tabela, definições internas e redefinição | 1 | Implementado; revisado e validado |
 | [3 — Argumentos](work/03-arguments.md) | Parâmetros formais e reais posicionais, omissão e diagnósticos | 1 | Planejado |
 | [4 — Substituição](work/04-substitution.md) | Referências formais com escopo aninhado e renderização do esqueleto | 1, 2, 3 | Planejado |
 | [5 — Contexto de expansão](work/05-local-labels.md) | `.SER`, serial determinístico, colisões e rastreabilidade das linhas geradas | 1, 4 | Planejado |
@@ -80,8 +80,9 @@ absorver I/O, e o 7 não deve reimplementar expansão ou montagem.
 As [interfaces C++ do pacote 1](contracts.md#interfaces-c-entregues-no-pacote-1)
 descrevem scanner, posições, diagnósticos e origem. As
 [interfaces internas do pacote 2](contracts.md#interfaces-internas-entregues-no-pacote-2)
-oferecem captura e tabela com versões imutáveis; o alinhamento com os pacotes
-3, 4 e 6 aguarda revisão no PR. `expand()` está apenas
+oferecem captura e tabela com versões imutáveis. O PR #32 registra a revisão
+técnica do handoff aos pacotes 3, 4 e 6, sem atribuir aprovação a esses
+responsáveis. `expand()` está apenas
 declarada para o pacote 6 implementar; `normalizedText()` é cópia lexical,
 não expansão. Ainda não é possível gerar `MASMAPRG.ASM` pelo projeto.
 

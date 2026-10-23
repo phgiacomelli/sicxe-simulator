@@ -1,7 +1,8 @@
 # Pacote 2 — captura de definições e tabela de macros
 
-Responsável: um integrante. Estado: **implementado com validação local;
-revisão cruzada e CI pendentes**. Depende do pacote 1;
+Responsável: um integrante. Estado: **implementado, revisado tecnicamente e
+validado**, com CI verde no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32).
+Depende do pacote 1;
 pode evoluir em paralelo ao 3. Ler [contratos](../contracts.md).
 
 ## Entrega e ownership
@@ -94,13 +95,19 @@ sem instalação de dependências. Comandos reproduzíveis em
   instalar explicitamente com `define()` e reter o handle de `find()`.
   Aplicar a política de comentários estruturais e adicionar contexto aos erros.
 
-As interfaces são aditivas; nenhum campo do pacote 1 foi alterado. O PR deve
-pedir alinhamento dos pacotes 3, 4 e 6 antes do merge. Não há evidência de
-aprovação desses responsáveis, revisão externa ou execução da CI desta entrega.
+As interfaces são aditivas; nenhum campo do pacote 1 foi alterado. A revisão
+técnica do PR #32 verificou padrões, requisitos e os dados necessários aos
+consumidores, sem bloqueadores de código ou desvios de escopo. Builds novos
+em Release repetiram **446 testes sem Qt e 449 com Qt**, todos aprovados;
+formatação, avisos como erros e o job remoto `Format, build and test` passaram.
+Não foi registrada aprovação nominal dos responsáveis pelos pacotes 3, 4 e 6;
+essa confirmação permanece como acompanhamento do handoff, sem ser atribuída
+ao parecer técnico.
 
 - [x] Captura, tabela e preservação de versões implementadas.
 - [x] Testes pelas interfaces, sem depender do motor ou de estrutura privada.
 - [x] Contratos, índice e roadmap atualizados.
 - [x] Formatação, build e CTest locais com e sem Qt aprovados.
-- [ ] Revisão/alinhamento com integrantes dos pacotes 3, 4 e 6.
-- [ ] CI remota verde e revisão de outro integrante antes do merge.
+- [x] Revisão técnica do handoff aos pacotes 3, 4 e 6 registrada no PR #32.
+- [x] CI remota verde e parecer técnico de padrões/requisitos registrado.
+- [ ] Confirmação nominal das interfaces pelos responsáveis dos pacotes 3, 4 e 6.

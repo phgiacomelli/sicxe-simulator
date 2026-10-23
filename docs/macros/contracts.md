@@ -1,10 +1,11 @@
 # Contratos do processador de macros
 
-Estado: **pacote 1 implementado e validado; pacote 2 implementado com validação
-local; pacotes 3–7 planejados**. Scanner, captura e tabela disponíveis;
+Estado: **pacotes 1 e 2 implementados e validados; pacotes 3–7 planejados**.
+Scanner, captura e tabela disponíveis;
 `expand()` está somente declarada, sem
 motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
-[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31). Este é o ponto
+[PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
+no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
 aceita definições dentro de macros e chamadas dentro de macros, usa **uma
@@ -229,8 +230,9 @@ tabela de definições e estratégias de substituição não fazem parte desse s
 ## Interfaces internas entregues no pacote 2
 
 As novas interfaces não alteram os tipos do pacote 1 nem o seam `expand()`.
-O alinhamento com os responsáveis pelos pacotes 3, 4 e 6 deve ser conferido
-na revisão antes do merge; esta entrega não registra aprovação desses integrantes.
+A revisão técnica do PR #32 conferiu o handoff aos pacotes 3, 4 e 6 descrito
+abaixo; ela não representa aprovação nominal desses responsáveis. A confirmação
+deles continua registrada como acompanhamento no [pacote 2](work/02-definitions.md#handoff-e-revisão).
 
 ### Captura e representação
 
