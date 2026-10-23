@@ -78,8 +78,7 @@ MacroCallResult parseCallWithPrototype(const SourceLine& line, const MacroProtot
                               line.operation->position,
                               "Chamada nao corresponde ao prototipo da macro.");
         }
-    } else if (!assembler::SymbolTable::isValidIdentifier(line.operation->text) ||
-               assembler::SymbolTable::isReservedName(line.operation->text)) {
+    } else if (!assembler::SymbolTable::isValidIdentifier(line.operation->text)) {
         return diagnostic(MacroDiagnosticCode::InvalidArgument,
                           line.operation->position,
                           "Chamada exige um nome de macro valido no campo de operacao.");
