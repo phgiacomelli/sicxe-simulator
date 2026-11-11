@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "MacroArguments.hpp"
@@ -41,8 +40,7 @@ struct TemplateLine {
 
 struct TemplateScope;
 
-using TemplateElement =
-    std::variant<TemplateLine, std::shared_ptr<TemplateScope>>;
+using TemplateElement = std::variant<TemplateLine, std::shared_ptr<const TemplateScope>>;
 
 struct TemplateScope {
     MacroPrototype prototype;
@@ -62,15 +60,18 @@ struct MacroTemplateResult;
 
 class MacroTemplate {
 public:
-    static MacroTemplateResult fromDefinition(
-        const MacroDefinition& definition);
+    static MacroTemplateResult fromDefinition(const MacroDefinition& definition);
 
     const TemplateScope& root() const noexcept;
 
 private:
-    explicit MacroTemplate(TemplateScope root);
+    friend class ParameterSubstitution;
+    explicit MacroTemplate(TemplateScope root,
+                           std::vector<BoundMacroArguments> enclosingArguments = {});
 
     TemplateScope root_;
+    // Captured ancestor values are never re-tokenized as local formals.
+    std::vector<BoundMacroArguments> enclosingArguments_;
 };
 
 // Resultado da construção: uma MacroTemplate ou um diagnóstico.
