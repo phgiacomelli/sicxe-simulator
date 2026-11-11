@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 3.21)
 
 project(SICXESimulator
@@ -120,6 +121,7 @@ add_library(sicxe_assembler_cli STATIC
     src/assembler/OutputFiles.hpp
 )
 target_link_libraries(sicxe_assembler_cli PUBLIC sicxe_assembler)
+
 add_executable(SICXEAssembler src/assembler/main.cpp)
 target_link_libraries(SICXEAssembler PRIVATE sicxe_assembler_cli)
 
@@ -141,6 +143,12 @@ add_library(sicxe_macros STATIC
     src/macros/MacroTable.cpp
     src/macros/MacroArguments.hpp
     src/macros/MacroArguments.cpp
+
+    src/macros/MacroTemplate.hpp
+    src/macros/MacroTemplate.cpp
+
+    src/macros/ParameterSubstitution.hpp
+    src/macros/ParameterSubstitution.cpp
 )
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
@@ -148,6 +156,7 @@ target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
+
     add_library(sicxe_application
         src/application/MachineController.cpp
         src/application/MachineController.hpp
@@ -177,6 +186,7 @@ if(SICXE_BUILD_QT)
 endif()
 
 include(CTest)
+
 if(BUILD_TESTING)
     find_package(GTest CONFIG QUIET)
 
@@ -208,6 +218,7 @@ if(BUILD_TESTING)
         tests/application/RawBinaryReaderTest.cpp
     )
     target_link_libraries(SICXESimulatorTests PRIVATE SICXECore sicxe_input GTest::gtest_main)
+
     include(GoogleTest)
     gtest_discover_tests(SICXESimulatorTests)
 
@@ -234,6 +245,7 @@ if(BUILD_TESTING)
         tests/macros/DefinitionCaptureTest.cpp
         tests/macros/MacroTableTest.cpp
         tests/macros/MacroArgumentsTest.cpp
+        tests/macros/ParameterSubstitutionTest.cpp
     )
     set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
@@ -243,8 +255,10 @@ if(BUILD_TESTING)
     set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerCliTests PRIVATE sicxe_assembler_cli GTest::gtest_main)
     gtest_discover_tests(AssemblerCliTests NO_PRETTY_VALUES)
+
     add_test(NAME AssemblerCliHelp COMMAND SICXEAssembler --help)
     set_tests_properties(AssemblerCliHelp PROPERTIES PASS_REGULAR_EXPRESSION "Uso: SICXEAssembler")
+
     add_test(NAME AssemblerCliSmoke COMMAND ${CMAKE_COMMAND}
         -DASSEMBLER=$<TARGET_FILE:SICXEAssembler>
         -DFIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/tests/assembler/fixtures/sum-and-table.asm
@@ -265,6 +279,7 @@ if(BUILD_TESTING)
 
     if(SICXE_BUILD_QT)
         find_package(Qt6 REQUIRED COMPONENTS Test)
+
         add_executable(MachineControllerTests tests/application/MachineControllerTest.cpp)
         target_link_libraries(MachineControllerTests PRIVATE sicxe_application Qt6::Test)
         add_test(NAME MachineControllerTests COMMAND MachineControllerTests)
