@@ -59,8 +59,7 @@ SourceLine applyReplacements(const SourceLine& line, std::vector<Replacement>& r
 
 } // namespace
 
-LocalLabelSerial::LocalLabelSerial(std::size_t maxSerial)
-    : maxSerial_{maxSerial} {
+LocalLabelSerial::LocalLabelSerial(std::size_t maxSerial) : maxSerial_{maxSerial} {
 }
 
 bool LocalLabelSerial::isLocalLabelMarker(std::string_view token) {
@@ -68,8 +67,7 @@ bool LocalLabelSerial::isLocalLabelMarker(std::string_view token) {
         return false;
     }
     const std::size_t offset = token.size() - 4;
-    return token[offset] == '.' &&
-           (token[offset + 1] == 'S' || token[offset + 1] == 's') &&
+    return token[offset] == '.' && (token[offset + 1] == 'S' || token[offset + 1] == 's') &&
            (token[offset + 2] == 'E' || token[offset + 2] == 'e') &&
            (token[offset + 3] == 'R' || token[offset + 3] == 'r');
 }
@@ -85,11 +83,11 @@ std::string LocalLabelSerial::formatGeneratedName(std::string_view prefix, std::
     return std::string{prefix} + "_M" + std::to_string(serial);
 }
 
-std::variant<std::string, MacroDiagnostic> LocalLabelSerial::resolveGeneratedName(
-    std::string_view prefix,
-    std::size_t serial,
-    SourcePosition tokenPosition,
-    std::span<const ExpansionFrame> calls) {
+std::variant<std::string, MacroDiagnostic>
+LocalLabelSerial::resolveGeneratedName(std::string_view prefix,
+                                       std::size_t serial,
+                                       SourcePosition tokenPosition,
+                                       std::span<const ExpansionFrame> calls) {
     if (prefix.empty()) {
         std::vector<ExpansionFrame> callChain(calls.begin(), calls.end());
         return MacroDiagnostic{
@@ -106,7 +104,8 @@ std::variant<std::string, MacroDiagnostic> LocalLabelSerial::resolveGeneratedNam
             MacroDiagnosticCode::InvalidLabel,
             tokenPosition,
             "Prefixo '" + std::string{prefix} +
-                "' de rotulo local invalido; deve iniciar por letra e conter apenas letras, digitos ou '_'.",
+                "' de rotulo local invalido; deve iniciar por letra e conter apenas letras, "
+                "digitos ou '_'.",
             std::move(callChain),
         };
     }
@@ -144,9 +143,9 @@ std::variant<std::string, MacroDiagnostic> LocalLabelSerial::resolveGeneratedNam
     return generated;
 }
 
-std::variant<std::size_t, MacroDiagnostic> LocalLabelSerial::allocateSerial(
-    SourcePosition invocationPosition,
-    std::span<const ExpansionFrame> calls) {
+std::variant<std::size_t, MacroDiagnostic>
+LocalLabelSerial::allocateSerial(SourcePosition invocationPosition,
+                                 std::span<const ExpansionFrame> calls) {
     if (serialCounter_ > maxSerial_) {
         std::vector<ExpansionFrame> callChain(calls.begin(), calls.end());
         return MacroDiagnostic{
@@ -170,8 +169,10 @@ LineProcessResult LocalLabelSerial::processCommonLine(const SourceLine& line) {
             return MacroDiagnostic{
                 MacroDiagnosticCode::DuplicateLabel,
                 labelPosition,
-                "Rotulo '" + line.label->text + "' colide com simbolo ja existente definido na linha " +
-                    std::to_string(prev.position.line) + ", coluna " + std::to_string(prev.position.column) + ".",
+                "Rotulo '" + line.label->text +
+                    "' colide com simbolo ja existente definido na linha " +
+                    std::to_string(prev.position.line) + ", coluna " +
+                    std::to_string(prev.position.column) + ".",
                 {},
             };
         }
@@ -187,10 +188,9 @@ LineProcessResult LocalLabelSerial::processCommonLine(const SourceLine& line) {
     return line;
 }
 
-LineProcessResult LocalLabelSerial::processExpandedLine(
-    const SourceLine& line,
-    std::size_t serial,
-    std::span<const ExpansionFrame> calls) {
+LineProcessResult LocalLabelSerial::processExpandedLine(const SourceLine& line,
+                                                        std::size_t serial,
+                                                        std::span<const ExpansionFrame> calls) {
     if (serial > maxSerial_) {
         std::vector<ExpansionFrame> callChain(calls.begin(), calls.end());
         return MacroDiagnostic{
@@ -295,8 +295,10 @@ LineProcessResult LocalLabelSerial::processExpandedLine(
             return MacroDiagnostic{
                 MacroDiagnosticCode::DuplicateLabel,
                 definedLabelPosition,
-                "Rotulo '" + *newLabelName + "' colide com simbolo ja existente definido na linha " +
-                    std::to_string(prev.position.line) + ", coluna " + std::to_string(prev.position.column) + ".",
+                "Rotulo '" + *newLabelName +
+                    "' colide com simbolo ja existente definido na linha " +
+                    std::to_string(prev.position.line) + ", coluna " +
+                    std::to_string(prev.position.column) + ".",
                 std::move(callChain),
             };
         }
@@ -314,10 +316,9 @@ LineProcessResult LocalLabelSerial::processExpandedLine(
     return rendered;
 }
 
-ExpandedLinesResult LocalLabelSerial::processExpandedLines(
-    std::span<const SourceLine> lines,
-    std::size_t serial,
-    std::span<const ExpansionFrame> calls) {
+ExpandedLinesResult LocalLabelSerial::processExpandedLines(std::span<const SourceLine> lines,
+                                                           std::size_t serial,
+                                                           std::span<const ExpansionFrame> calls) {
     std::vector<SourceLine> output;
     output.reserve(lines.size());
     for (const auto& line : lines) {
@@ -330,10 +331,9 @@ ExpandedLinesResult LocalLabelSerial::processExpandedLines(
     return output;
 }
 
-ExpandedLinesResult LocalLabelSerial::expandCall(
-    std::span<const SourceLine> lines,
-    SourcePosition invocationPosition,
-    std::span<const ExpansionFrame> calls) {
+ExpandedLinesResult LocalLabelSerial::expandCall(std::span<const SourceLine> lines,
+                                                 SourcePosition invocationPosition,
+                                                 std::span<const ExpansionFrame> calls) {
     auto serial = allocateSerial(invocationPosition, calls);
     if (const auto* diag = std::get_if<MacroDiagnostic>(&serial)) {
         return *diag;
@@ -341,10 +341,10 @@ ExpandedLinesResult LocalLabelSerial::expandCall(
     return processExpandedLines(lines, std::get<std::size_t>(serial), calls);
 }
 
-ExpandedLinesResult LocalLabelSerial::processSubstitutionResult(
-    const SubstitutionResult& substitution,
-    std::size_t serial,
-    std::span<const ExpansionFrame> calls) {
+ExpandedLinesResult
+LocalLabelSerial::processSubstitutionResult(const SubstitutionResult& substitution,
+                                            std::size_t serial,
+                                            std::span<const ExpansionFrame> calls) {
     std::vector<SourceLine> output;
     std::size_t lineIndex = 0;
     while (lineIndex < substitution.lines.size()) {

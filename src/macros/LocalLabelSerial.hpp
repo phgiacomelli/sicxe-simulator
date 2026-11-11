@@ -27,9 +27,9 @@ public:
 
     // Aloca o próximo número serial determinístico (1, 2, ...) para uma chamada expandida.
     // Retorna ExpansionLimitExceeded caso o limite representável seja ultrapassado.
-    std::variant<std::size_t, MacroDiagnostic> allocateSerial(
-        SourcePosition invocationPosition = {1, 1},
-        std::span<const ExpansionFrame> calls = {});
+    std::variant<std::size_t, MacroDiagnostic>
+    allocateSerial(SourcePosition invocationPosition = {1, 1},
+                   std::span<const ExpansionFrame> calls = {});
 
     // Processa uma linha comum da fonte (fora de expansão de macro).
     // - Verifica se o rótulo colide com símbolos já definidos (comuns ou gerados).
@@ -38,35 +38,36 @@ public:
     LineProcessResult processCommonLine(const SourceLine& line);
 
     // Processa uma linha emitida por uma chamada expandida de macro.
-    // - Substitui ocorrências de NOME.SER (sem distinção de caixa em .SER) pelo identificador NOME_M<serial>.
-    // - Garante que todas as ocorrências de um mesmo prefixo na chamada recebam o mesmo nome gerado.
+    // - Substitui ocorrências de NOME.SER (sem distinção de caixa em .SER) pelo identificador
+    // NOME_M<serial>.
+    // - Garante que todas as ocorrências de um mesmo prefixo na chamada recebam o mesmo nome
+    // gerado.
     // - Valida gramática do identificador gerado e rejeição de nomes reservados.
     // - Detecta colisões do rótulo definido com símbolos já existentes.
-    // - Atualiza colunas de byte para o texto renderizado, mantendo número de linha física original.
-    // - Registra a origem (SourceOrigin) com expandedLine consecutivo e a cadeia de chamadas informada.
-    LineProcessResult processExpandedLine(
-        const SourceLine& line,
-        std::size_t serial,
-        std::span<const ExpansionFrame> calls = {});
+    // - Atualiza colunas de byte para o texto renderizado, mantendo número de linha física
+    // original.
+    // - Registra a origem (SourceOrigin) com expandedLine consecutivo e a cadeia de chamadas
+    // informada.
+    LineProcessResult processExpandedLine(const SourceLine& line,
+                                          std::size_t serial,
+                                          std::span<const ExpansionFrame> calls = {});
 
-    // Processa sequencialmente um conjunto de linhas de uma chamada expandida com o serial informado.
-    ExpandedLinesResult processExpandedLines(
-        std::span<const SourceLine> lines,
-        std::size_t serial,
-        std::span<const ExpansionFrame> calls = {});
+    // Processa sequencialmente um conjunto de linhas de uma chamada expandida com o serial
+    // informado.
+    ExpandedLinesResult processExpandedLines(std::span<const SourceLine> lines,
+                                             std::size_t serial,
+                                             std::span<const ExpansionFrame> calls = {});
 
     // Aloca o próximo serial e processa todas as linhas informadas da chamada.
-    ExpandedLinesResult expandCall(
-        std::span<const SourceLine> lines,
-        SourcePosition invocationPosition,
-        std::span<const ExpansionFrame> calls = {});
+    ExpandedLinesResult expandCall(std::span<const SourceLine> lines,
+                                   SourcePosition invocationPosition,
+                                   std::span<const ExpansionFrame> calls = {});
 
     // Processa o resultado de ParameterSubstitution::instantiate, ignorando intervalos
     // de definições de macros internas diretas (estrutura que só é emitida quando chamada).
-    ExpandedLinesResult processSubstitutionResult(
-        const SubstitutionResult& substitution,
-        std::size_t serial,
-        std::span<const ExpansionFrame> calls = {});
+    ExpandedLinesResult processSubstitutionResult(const SubstitutionResult& substitution,
+                                                  std::size_t serial,
+                                                  std::span<const ExpansionFrame> calls = {});
 
     // Origens coletadas para todas as linhas físicas emitidas até o momento.
     const std::vector<SourceOrigin>& origins() const noexcept;
@@ -105,11 +106,11 @@ private:
     // Origem por linha física de saída
     std::vector<SourceOrigin> origins_;
 
-    std::variant<std::string, MacroDiagnostic> resolveGeneratedName(
-        std::string_view prefix,
-        std::size_t serial,
-        SourcePosition tokenPosition,
-        std::span<const ExpansionFrame> calls);
+    std::variant<std::string, MacroDiagnostic>
+    resolveGeneratedName(std::string_view prefix,
+                         std::size_t serial,
+                         SourcePosition tokenPosition,
+                         std::span<const ExpansionFrame> calls);
 };
 
 } // namespace macro

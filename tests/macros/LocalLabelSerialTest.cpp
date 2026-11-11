@@ -326,15 +326,15 @@ TEST(LocalLabelSerialTest, TracksOriginsForCommonLinesDirectMacroLinesAndNestedC
     const ExpansionFrame frameOuter{"OUTER", {10, 2}, {2, 1}};
     const std::vector<ExpansionFrame> directCalls = {frameOuter};
     const auto directLine = scanSingleLine("LOOP.SER LDA #1\n", 12);
-    ASSERT_TRUE(
-        std::holds_alternative<SourceLine>(context.processExpandedLine(directLine, 1, directCalls)));
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processExpandedLine(directLine, 1, directCalls)));
 
     // 3. Linha de chamada aninhada
     const ExpansionFrame frameInner{"INNER", {30, 2}, {13, 10}};
     const std::vector<ExpansionFrame> nestedCalls = {frameOuter, frameInner};
     const auto nestedLine = scanSingleLine("STEP.SER LDA #2\n", 32);
-    ASSERT_TRUE(
-        std::holds_alternative<SourceLine>(context.processExpandedLine(nestedLine, 2, nestedCalls)));
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processExpandedLine(nestedLine, 2, nestedCalls)));
 
     const auto& origins = context.origins();
     ASSERT_EQ(origins.size(), 3u);
@@ -361,7 +361,8 @@ TEST(LocalLabelSerialTest, OriginAndDataRemainValidAfterDestroyingSourceText) {
         std::string tempSource = "TEMP.SER LDA #9\n";
         const auto line = scanSingleLine(tempSource, 50);
         const std::vector<ExpansionFrame> calls = {{"DYNAMIC", {1, 1}, {2, 2}}};
-        EXPECT_TRUE(std::holds_alternative<SourceLine>(context.processExpandedLine(line, 1, calls)));
+        EXPECT_TRUE(
+            std::holds_alternative<SourceLine>(context.processExpandedLine(line, 1, calls)));
         tempSource.clear();
         tempSource = "COMPLETELY OVERWRITTEN WITH JUNK DATA";
     }
@@ -374,7 +375,8 @@ TEST(LocalLabelSerialTest, OriginAndDataRemainValidAfterDestroyingSourceText) {
     EXPECT_EQ(origins[0].calls[0].macroName, "DYNAMIC");
 }
 
-TEST(LocalLabelSerialTest, FieldColumnsAreUpdatedToMatchRenderedTextWhilePhysicalLineNumberIsPreserved) {
+TEST(LocalLabelSerialTest,
+     FieldColumnsAreUpdatedToMatchRenderedTextWhilePhysicalLineNumberIsPreserved) {
     LocalLabelSerial context;
     const auto line = scanSingleLine("LOOP.SER LDA #LOOP.SER\n", 77);
     const auto result = context.processExpandedLine(line, 1);
