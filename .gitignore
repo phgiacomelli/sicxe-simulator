@@ -1,7 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++
 
-### Docs ###
+### Reference material ###
 *.pdf
 
 ### C++ ###
@@ -46,5 +46,8 @@ build/
 *.lst
 # End of https://www.toptal.com/developers/gitignore/api/c++
 
-# Local documentation
-/docs/
+# Local Markdown notes; public project guidance remains versioned.
+*.md
+!/README.md
+!/CONTRIBUTING.md
+!/.github/pull_request_template.md
