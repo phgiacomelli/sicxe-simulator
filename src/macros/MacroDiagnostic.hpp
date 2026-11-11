@@ -19,6 +19,8 @@ enum class MacroDiagnosticCode {
     InvalidArgument,
     RecursiveExpansion,
     ExpansionLimitExceeded,
+    InvalidLabel,
+    DuplicateLabel,
 };
 
 struct MacroDiagnostic {
