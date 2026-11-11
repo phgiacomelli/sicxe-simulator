@@ -1,7 +1,7 @@
 # Contratos do processador de macros
 
-Estado: **pacotes 1–3 implementados e validados; pacotes 4–7 planejados**.
-Scanner, captura, tabela e vinculação de argumentos disponíveis;
+Estado: **pacotes 1–4 implementados e validados; pacotes 5–7 planejados**.
+Scanner, captura, tabela, vinculação e substituição com escopo disponíveis;
 `expand()` está somente declarada, sem
 motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
@@ -380,6 +380,104 @@ ocorrer dentro de uma expansão.
 | `InvalidPrototype` | Operação ausente/inválida ou diretiva; início do rótulo formal inválido; início do parâmetro formal vazio, malformado, `NOME=valor` ou repetido; aspa simples de abertura não fechada no protótipo |
 | `ReservedName` | Operação do protótipo com nome reservado pelo montador |
 | `InvalidArgument` | Linha de chamada inválida ou nome divergente do protótipo; rótulo na chamada quando o protótipo não declara rótulo formal; início de rótulo ou argumento com `NOME=valor`; primeiro argumento posicional em excesso; aspa simples de abertura não fechada na chamada |
+
+## Interfaces internas entregues no pacote 4
+
+`MacroTemplate.hpp` e `ParameterSubstitution.hpp` acrescentam a representação
+de escopos e a substituição. Não alteram os tipos dos pacotes 1–3, a sintaxe
+acordada ou `expand()`. O módulo não instala definições, escolhe chamadas,
+gera serial, controla recursão, monta instruções ou faz I/O.
+
+### Compilação e dados imutáveis
+
+`MacroTemplate::fromDefinition(const MacroDefinition&)` devolve
+`MacroTemplateResult::value`, variante entre `MacroTemplate` e
+`MacroDiagnostic`. Valida os protótipos pelo pacote 3, inclusive os internos
+necessários à análise de escopo. Falhas propagam código/posição, sem template
+parcial; `calls` fica vazio para o motor contextualizar. Capturar/compilar
+uma definição interna não a torna visível na tabela.
+
+`root()` expõe `const TemplateScope&`. O escopo contém `prototype`, linhas
+estruturais `beginLine`/`prototypeLine`/`endLine` e `elements` em ordem.
+Cada `TemplateElement` é uma `TemplateLine` ou um
+`shared_ptr<const TemplateScope>` interno; cópias compartilham apenas escopos
+imutáveis. Fonte, protótipos e valores capturados possuem seus dados.
+
+Uma `TemplateLine` guarda `source` e referências `ParameterReference`:
+`field` (`Label`/`Operand`), `scopeDepth` (0 atual, 1 pai, ...), `formalIndex`
+na ordem do pacote 3 e offsets de byte `begin`/`length` no campo original.
+A busca usa `findFormal()` do pacote 3, do escopo mais próximo ao mais externo.
+Um formal interno sombreia o externo de mesmo nome; não se redescobrem
+referências depois de inserir os argumentos reais.
+
+Somente tokens inteiros em rótulo/operando são referências. Operação,
+comentários e constantes entre aspas, inclusive os prefixos `C`/`X`, ficam
+intactos. Tokens numéricos, identificadores malformados e nomes `NOME.SER`
+são opacos: não substituir um sufixo dentro de `0xAB`, `_VALUE` ou `.SER`.
+Isso não valida assembly nem implementa serial.
+Não se classifica `,X` como indexação: sem formal `X`, o texto literal fica
+intacto; com formal `X`, sua ocorrência é substituída como qualquer outro
+formal, inclusive em argumentos de chamadas internas. A vírgula permanece.
+
+### Instanciação e pré-condições
+
+`ParameterSubstitution::instantiate(template, arguments)` recebe um template
+válido e `BoundMacroArguments` produzido por `bind()` para seu `root().prototype`.
+Não montar/modificar coleções derivadas manualmente nem usar argumentos de
+outro protótipo. Os valores são os campos de uma linha física escaneada, sem
+terminadores de linha embutidos. A operação não modifica as entradas.
+
+O retorno `SubstitutionResult` possui:
+
+- `lines`: corpo renderizado como `vector<SourceLine>`, sem abertura,
+  protótipo ou fechamento da macro chamada. Preserva comentários, espaços,
+  ordem e definições internas estruturais; não expande chamadas.
+- `definitions`: somente as definições internas **diretas**, em ordem, com
+  `PreparedMacroDefinition { beginLine, nextLine, macroTemplate }`.
+  O intervalo `[beginLine, nextLine)` é iniciado em zero e aponta para as
+  linhas renderizadas daquela definição em `lines`. Seus descendentes serão
+  preparados quando ela própria for chamada, não instalados antecipadamente.
+
+Cada template preparado mantém referências originais e cópias dos vínculos
+externos, do pai ao ancestral mais distante. Seus próprios formais continuam
+sem vínculo. Ex.: externa `P` recebe texto `Q`; uma interna declara formal
+`Q` e contém `ADD P`/`LDA Q`. Ao chamar a interna com `7`, o resultado é
+`ADD Q`/`LDA 7`, não `ADD 7`/`LDA 7`. Texto inserido não vira um novo formal.
+Templates preparados podem ser usados depois de destruir a fonte/resultado
+externo e por chamadas independentes, sem estado global.
+
+As substituições são aplicadas da direita para a esquerda nos offsets
+originais. A linha renderizada passa novamente pelo scanner lexical do
+pacote 1 para manter `kind`, opcionais vazios, aspas e colunas coerentes com
+`text`. Isso não é nova passagem do processador de macros nem validação de
+assembly. `number` e a linha física das posições continuam os da definição
+original; colunas são de byte no texto renderizado. `terminated` é preservado.
+O pacote 5 continua responsável pelo mapa de origem, não por restaurar campos
+incoerentes. Rótulo/operando removido fica ausente, não presente com texto vazio.
+
+`ParameterSubstitution::substitute(template, arguments)` é conveniência que
+retorna somente `instantiate(...).lines`. Serve para renderização textual;
+**não é a interface para o motor instalar definições internas**, pois descarta
+os templates preparados.
+
+### Handoff para os pacotes 5 e 6
+
+O motor consome `lines` em ordem. Quando chegar ao `beginLine` de uma definição
+preparada, pode capturar suas linhas com o pacote 2 e instalar a versão naquele
+instante. Deve associar `macroTemplate` à **versão específica** instalada,
+preservando templates antigos durante redefinições, não apenas indexá-los pelo
+nome global. Nas chamadas seguintes, vincular os argumentos ao protótipo
+daquela versão e usar o template preparado; **não recompilar o corpo das
+linhas já substituídas**, pois isso reinterpretaria valores como formais.
+O pacote 4 não faz instalação nem controla essa ordem temporal.
+
+O contexto do pacote 5 atua nas linhas renderizadas que o motor efetivamente
+emite/expande na chamada corrente, preservando os templates imutáveis e suas
+capturas. Os intervalos de definição interna são estrutura, não emissão final:
+seu tratamento deve respeitar a chamada em que aquela interna for expandida.
+O pacote 4 deixa `.SER` intacto e conserva números físicos para esse contexto;
+não escolhe serial ou cadeia de chamadas. A revisão técnica conferiu esse
+handoff; não representa aprovação nominal dos responsáveis 5/6.
 
 ## Política de comentários na expansão
 

@@ -26,6 +26,20 @@ reconhecidas e mapa de origem por linha. Falha devolve só diagnósticos.
 
 ## Casos obrigatórios
 
+### Handoff recebido do pacote 4
+
+Consumir `ParameterSubstitution::instantiate()` e seus templates preparados,
+conforme o [contrato](../contracts.md#interfaces-internas-entregues-no-pacote-4).
+Quando a leitura atingir `PreparedMacroDefinition::beginLine`, instalar aquela
+versão, com o template correspondente, e avançar até `nextLine`. Não instalar
+todas as internas antecipadamente nem usar só `substitute()` como entrada.
+Uma versão redefinida não invalida o template/capturas da expansão já iniciada.
+Não recompilar linhas renderizadas para redescobrir formais: texto inserido
+por uma macro externa não pode virar formal de uma interna por coincidência
+de nome. O pacote 4 prepara esse contexto; o motor controla sua visibilidade.
+
+### Verificação
+
 - Chamada comum; chamadas dentro de chamadas; ordem de expansão profunda.
 - Definição aninhada produzida por expansão externa e chamada posterior da
   interna, incluindo parâmetro externo em corpo interno.

@@ -560,3 +560,55 @@ ctest --test-dir build/macros-package3-noqt --output-on-failure \
 
 Handoff e diagnósticos estão no
 [contrato do pacote 3](macros/contracts.md#interfaces-internas-entregues-no-pacote-3).
+
+## Macros: pacote 4
+
+`ParameterSubstitutionTest.cpp`, registrado em `MacroTests`, contém **20 testes**:
+sete originais e 13 acrescentados durante a revisão. Testes usam captura,
+vinculação, compilação e instanciação pelas interfaces públicas, sem mocks.
+
+Cobrem substituição em rótulo/operando, marcadores SIC/XE preservados, tokens
+inteiros, aspas/prefixos de constantes, comentários e whitespace; campos
+esvaziados ausentes, posições físicas/colunas coerentes, `.SER` opaco e formal
+`X` em chamada interna. Os testes de handoff realizam duas/três instanciações
+separadas, verificando sombreamento, vínculos externos congelados, intervalos
+de definições diretas e versões independentes após destruir a fonte. Também
+verificam corpos vazios e diagnóstico de protótipo interno sem template parcial.
+
+Antes da correção, quatro regressões falharam: rótulo vazio causava chamada
+falsamente rotulada; operando vazio causava argumento excedente; `0xAB`,
+`1VALUE` e `_VALUE` eram alterados parcialmente; `LOOP.SER` era substituído
+por coincidir com formais. Após os ajustes, todos passaram. O handoff agora
+impede reinterpretação de valor externo `Q` como formal interno `Q`.
+
+Validação local no Fedora, em diretórios novos e sem instalar dependências:
+
+```bash
+cmake -S . -B build/review-package04-core -DCMAKE_BUILD_TYPE=Release \
+  -DSICXE_BUILD_QT=OFF
+cmake --build build/review-package04-core --parallel 4
+ctest --test-dir build/review-package04-core --output-on-failure --parallel 4
+
+cmake -S . -B build/review-package04-qt -DCMAKE_BUILD_TYPE=Release \
+  -DSICXE_BUILD_QT=ON
+cmake --build build/review-package04-qt --parallel 4
+ctest --test-dir build/review-package04-qt --output-on-failure --parallel 4
+```
+
+GoogleTest local foi reutilizado por `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`
+com caminho absoluto para `build/_deps/googletest-src`. Os comandos acima
+omitem esse ajuste opcional de cache. Resultado: **479 testes sem Qt e 482
+com Qt**, todos aprovados. `clang-format --dry-run --Werror` em todo `src/`
+e `tests/`, `git diff --check` e os dois novos `.cpp` com
+`-Wall -Wextra -Wpedantic -Werror` também passaram.
+
+Para executar só o pacote:
+
+```bash
+ctest --test-dir build/review-package04-core --output-on-failure \
+  -R ParameterSubstitutionTest
+```
+
+Esses testes não implementam nem certificam o motor, serial, CLI ou integração
+dos pacotes 5–7. A CI remota e seu resultado de integração ficam registrados
+no PR, separadamente da evidência local.

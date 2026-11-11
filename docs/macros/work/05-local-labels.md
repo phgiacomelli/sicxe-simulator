@@ -51,6 +51,17 @@ ou notação nova aceita pelo montador puro.
 
 ## Aceite do PR
 
+### Handoff recebido do pacote 4
+
+Usar as [interfaces de substituição](../contracts.md#interfaces-internas-entregues-no-pacote-4).
+`instantiate()` entrega linhas e intervalos de definições internas preparadas.
+Aplicar serial/origem nas linhas da chamada que o motor efetivamente processa,
+sem modificar os templates imutáveis nem antecipar emissão de uma definição
+interna. Colunas dos campos descrevem o texto renderizado; números físicos
+continuam os da definição original. O mapa de origem permanece com este pacote.
+
+### Verificação
+
 Testes por saída observável e diagnósticos tipados; CMake/CTest e formatação
 passam. Documentar claramente a política de serial e colisões em
 [contratos](../contracts.md) para o pacote 6 integrar sem inferências.

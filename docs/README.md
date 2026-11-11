@@ -8,6 +8,7 @@ Cada etapa tem seu próprio índice e seus pacotes de trabalho:
   da montagem; scanner/contratos do pacote 1 implementados e validados,
   captura/tabela do pacote 2 implementadas, revisadas e validadas,
   argumentos do pacote 3 implementados, revisados e validados,
+  substituição com escopo do pacote 4 implementada e validada localmente,
   expansão e integrador ainda planejados.
 
 O [roadmap](roadmap.md) acompanha o estado das etapas. O [guia de

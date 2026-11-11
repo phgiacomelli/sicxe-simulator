@@ -194,6 +194,9 @@ no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32);
 o pacote 3 está implementado com parsing de protótipo/chamada e vinculação
 posicional, com validação local, revisão técnica e CI verde no
 [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33);
-os pacotes 4–7 continuam planejados. Ainda não há motor
+o pacote 4 está implementado e validado localmente, com substituição por
+referências de escopo, templates imutáveis e definições internas preparadas;
+veja [o handoff de substituição](macros/contracts.md#interfaces-internas-entregues-no-pacote-4).
+Os pacotes 5–7 continuam planejados. Ainda não há motor
 de expansão, CLI de macros ou geração de `MASMAPRG.ASM`. O PDF de macros é
 distribuído à equipe fora do Git, como os PDFs anteriores.
