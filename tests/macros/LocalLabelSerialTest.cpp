@@ -532,4 +532,232 @@ TEST(LocalLabelSerialTest, SkipsInternalMacroDefinitionIntervalsInSubstitutionRe
               }));
 }
 
+TEST(LocalLabelSerialTest, RejectsSerialZeroWithoutProducingNamesOrOrigins) {
+    LocalLabelSerial context;
+    const auto result = context.processExpandedLine(scanSingleLine("LOOP.SER LDA #1", 12), 0);
+    const auto* failure = std::get_if<MacroDiagnostic>(&result);
+    ASSERT_NE(failure, nullptr);
+    EXPECT_EQ(failure->code, MacroDiagnosticCode::ExpansionLimitExceeded);
+    EXPECT_EQ(failure->position, (SourcePosition{12, 1}));
+    EXPECT_TRUE(context.origins().empty());
+    EXPECT_FALSE(context.isLabelDefined("LOOP_M0"));
+}
+
+TEST(LocalLabelSerialTest, AllocatorReportsLastAssignedSerialAndNeverAdvancesAfterExhaustion) {
+    LocalLabelSerial context{2};
+    EXPECT_EQ(context.currentSerial(), 0U);
+    EXPECT_EQ(std::get<std::size_t>(context.allocateSerial()), 1U);
+    EXPECT_EQ(std::get<std::size_t>(context.allocateSerial()), 2U);
+    for (int attempt = 0; attempt < 3; ++attempt) {
+        const auto result = context.allocateSerial({9, 2});
+        ASSERT_TRUE(std::holds_alternative<MacroDiagnostic>(result));
+        EXPECT_EQ(std::get<MacroDiagnostic>(result).code,
+                  MacroDiagnosticCode::ExpansionLimitExceeded);
+        EXPECT_EQ(context.currentSerial(), 2U);
+    }
+    context.setMaxSerial(3);
+    EXPECT_EQ(std::get<std::size_t>(context.allocateSerial()), 3U);
+}
+
+TEST(LocalLabelSerialTest, GeneratedReferenceCannotAliasAnEarlierCommonDefinition) {
+    LocalLabelSerial context;
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processCommonLine(scanSingleLine("loop_m1 WORD 0", 4))));
+    const auto result = context.processExpandedLine(scanSingleLine(" J LOOP.SER", 15), 1);
+    const auto* failure = std::get_if<MacroDiagnostic>(&result);
+    ASSERT_NE(failure, nullptr);
+    EXPECT_EQ(failure->code, MacroDiagnosticCode::DuplicateLabel);
+    EXPECT_EQ(failure->position, (SourcePosition{15, 4}));
+}
+
+TEST(LocalLabelSerialTest, GeneratedReferenceReservesItsNameAgainstALaterCommonDefinition) {
+    LocalLabelSerial context;
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processExpandedLine(scanSingleLine(" J LOOP.SER", 3), 1)));
+    const auto result = context.processCommonLine(scanSingleLine("loop_m1 WORD 0", 20));
+    const auto* failure = std::get_if<MacroDiagnostic>(&result);
+    ASSERT_NE(failure, nullptr);
+    EXPECT_EQ(failure->code, MacroDiagnosticCode::DuplicateLabel);
+    EXPECT_EQ(failure->position, (SourcePosition{20, 1}));
+}
+
+TEST(LocalLabelSerialTest, OrdinaryDuplicateLabelsRemainAnAssemblerResponsibility) {
+    LocalLabelSerial context;
+    const auto first = scanSingleLine("VALUE WORD 1", 1);
+    const auto second = scanSingleLine("value WORD 2", 2);
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(context.processCommonLine(first)));
+    const auto result = context.processCommonLine(second);
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(result));
+    EXPECT_EQ(std::get<SourceLine>(result), second);
+    EXPECT_EQ(context.origins().size(), 2U);
+}
+
+TEST(LocalLabelSerialTest, PreparesNestedCallWithoutEmittingItAndPreservesOutputOrder) {
+    LocalLabelSerial context;
+    const auto outerSerial = std::get<std::size_t>(context.allocateSerial());
+    const std::vector<ExpansionFrame> outerCalls{{"OUTER", {1, 2}, {20, 2}}};
+    const auto prepared =
+        context.prepareExpandedLine(scanSingleLine(" Inner LOOP.SER", 7), outerSerial, outerCalls);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(prepared));
+    const auto& invocation = std::get<PreparedSerialLine>(prepared);
+    EXPECT_EQ(invocation.line.text, " Inner LOOP_M1");
+    EXPECT_TRUE(context.origins().empty());
+    EXPECT_EQ(context.nextExpandedLine(), 1U);
+    EXPECT_FALSE(context.isLabelDefined("LOOP_M1"));
+
+    const auto bound = MacroArguments::bind(scanSingleLine(" Inner TARGET"), invocation.line);
+    ASSERT_TRUE(std::holds_alternative<BoundMacroArguments>(bound));
+    EXPECT_EQ(std::get<BoundMacroArguments>(bound).values, (std::vector<std::string>{"LOOP_M1"}));
+    const auto innerSerial = std::get<std::size_t>(context.allocateSerial());
+    auto innerCalls = outerCalls;
+    innerCalls.push_back({"INNER", {30, 2}, {7, 2}});
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(context.processExpandedLine(
+        scanSingleLine(" STEP.SER LDA LOOP_M1", 31), innerSerial, innerCalls)));
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(context.processExpandedLine(
+        scanSingleLine("LOOP.SER STA #1", 8), outerSerial, outerCalls)));
+    const auto& origins = context.origins();
+    ASSERT_EQ(origins.size(), 2U);
+    EXPECT_EQ(origins[0], (SourceOrigin{1, {31, 1}, innerCalls}));
+    EXPECT_EQ(origins[1], (SourceOrigin{2, {8, 1}, outerCalls}));
+}
+
+TEST(LocalLabelSerialTest, ForwardsGeneratedCallLabelIdentityThroughTheLabelFormal) {
+    LocalLabelSerial context;
+    const auto callerSerial = std::get<std::size_t>(context.allocateSerial());
+    const auto invocationResult =
+        context.prepareExpandedLine(scanSingleLine("TARGET.SER Inner VALUE", 10), callerSerial);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(invocationResult));
+    const auto& invocation = std::get<PreparedSerialLine>(invocationResult);
+    ASSERT_EQ(invocation.labelSerial, callerSerial);
+    EXPECT_FALSE(context.isLabelDefined("TARGET_M1"));
+    EXPECT_TRUE(context.origins().empty());
+
+    const auto source = SourceScanner::scan(" MCDEFN\nDEST Inner ARG\nDEST LDA ARG\n MCEND");
+    const auto definition =
+        std::get<CapturedDefinition>(DefinitionCapture::capture(source.lines, 0)).definition;
+    const auto compiled = MacroTemplate::fromDefinition(definition);
+    ASSERT_TRUE(std::holds_alternative<MacroTemplate>(compiled.value));
+    const auto& macroTemplate = std::get<MacroTemplate>(compiled.value);
+    const auto bound = MacroArguments::bind(macroTemplate.root().prototype, invocation.line);
+    ASSERT_TRUE(std::holds_alternative<BoundMacroArguments>(bound));
+    const auto substituted =
+        ParameterSubstitution::instantiate(macroTemplate, std::get<BoundMacroArguments>(bound));
+    ASSERT_EQ(substituted.lines.size(), 1U);
+    const auto innerSerial = std::get<std::size_t>(context.allocateSerial());
+    auto prepared = context.prepareExpandedLine(substituted.lines.front(), innerSerial);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(prepared));
+    auto& emitted = std::get<PreparedSerialLine>(prepared);
+    // The engine knows this label is the bound label formal, not a literal
+    // ordinary name. Preserve its identity instead of inferring it by spelling.
+    emitted.labelSerial = invocation.labelSerial;
+    const auto result = context.emitLine(emitted);
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(result));
+    EXPECT_EQ(std::get<SourceLine>(result).text, "TARGET_M1 LDA VALUE");
+    ASSERT_EQ(context.origins().size(), 1U);
+    EXPECT_EQ(context.origins().front().source, (SourcePosition{3, 1}));
+}
+
+TEST(LocalLabelSerialTest, RejectsInvalidSerialEvenForAnEmptyBatch) {
+    LocalLabelSerial context;
+    const auto batch = context.processExpandedLines({}, 0);
+    EXPECT_TRUE(std::holds_alternative<MacroDiagnostic>(batch));
+    const auto substitution = context.processSubstitutionResult({}, 0);
+    EXPECT_TRUE(std::holds_alternative<MacroDiagnostic>(substitution));
+    EXPECT_TRUE(context.origins().empty());
+}
+
+TEST(LocalLabelSerialTest, SupportsLargestRepresentableExplicitSerialWithoutWrappingItsName) {
+    LocalLabelSerial context;
+    const auto serial = std::numeric_limits<std::size_t>::max();
+    const auto result = context.processExpandedLine(scanSingleLine("LOOP.SER LDA #1"), serial);
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(result));
+    EXPECT_EQ(std::get<SourceLine>(result).text, "LOOP_M" + std::to_string(serial) + " LDA #1");
+    EXPECT_EQ(context.currentSerial(), 0U); // Explicit use does not allocate.
+}
+
+TEST(LocalLabelSerialTest, ReservationsRemainDistinctFromDefinitionsAndPermitForwardReferences) {
+    LocalLabelSerial context;
+    const auto prepared = context.prepareExpandedLine(scanSingleLine(" J LOOP.SER", 3), 1);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(prepared));
+    EXPECT_FALSE(context.isLabelDefined("LOOP_M1"));
+    EXPECT_FALSE(context.findLabelDefinition("LOOP_M1"));
+    const auto definition = context.processExpandedLine(scanSingleLine("LOOP.SER LDA #1", 5), 1);
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(definition));
+    EXPECT_EQ(context.findLabelDefinition("loop_m1"), (SourcePosition{5, 1}));
+    EXPECT_TRUE(std::holds_alternative<SourceLine>(
+        context.processExpandedLine(scanSingleLine(" J loop.SER", 6), 1)));
+    EXPECT_EQ(context.origins().size(), 2U);
+}
+
+TEST(LocalLabelSerialTest, TakingOriginsKeepsSubsequentPhysicalOutputNumbersConsecutive) {
+    LocalLabelSerial context;
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processCommonLine(scanSingleLine(" LDA #1", 4))));
+    const auto first = context.takeOrigins();
+    ASSERT_EQ(first.size(), 1U);
+    EXPECT_TRUE(context.origins().empty());
+    ASSERT_TRUE(std::holds_alternative<SourceLine>(
+        context.processCommonLine(scanSingleLine(" STA VALUE", 5))));
+    ASSERT_EQ(context.origins().size(), 1U);
+    EXPECT_EQ(context.origins().front().expandedLine, 2U);
+}
+
+TEST(LocalLabelSerialTest, TracksGeneratedOccurrencesAtTheirRenderedBytePositions) {
+    LocalLabelSerial context;
+    const auto result =
+        context.prepareExpandedLine(scanSingleLine("START.SER Inner END.SER,START.SER", 77), 1);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(result));
+    const auto& prepared = std::get<PreparedSerialLine>(result);
+    EXPECT_EQ(prepared.line.text, "START_M1 Inner END_M1,START_M1");
+    ASSERT_EQ(prepared.generatedNames.size(), 3U);
+    EXPECT_EQ(prepared.generatedNames[0].token, (SourceField{"START_M1", {77, 1}}));
+    EXPECT_EQ(prepared.generatedNames[1].token, (SourceField{"END_M1", {77, 16}}));
+    EXPECT_EQ(prepared.generatedNames[2].token, (SourceField{"START_M1", {77, 23}}));
+    for (const auto& use : prepared.generatedNames)
+        EXPECT_EQ(use.serial, 1U);
+    EXPECT_TRUE(context.origins().empty());
+}
+
+TEST(LocalLabelSerialTest, PositionalGeneratedLabelKeepsIdentityWithoutAuthorizingALiteralAlias) {
+    LocalLabelSerial context;
+    const auto outerSerial = std::get<std::size_t>(context.allocateSerial());
+    const auto invocationResult =
+        context.prepareExpandedLine(scanSingleLine(" Inner LOOP.SER,LOOP_M1", 10), outerSerial);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(invocationResult));
+    const auto& invocation = std::get<PreparedSerialLine>(invocationResult);
+    ASSERT_EQ(invocation.generatedNames.size(), 1U);
+
+    const auto source =
+        SourceScanner::scan(" MCDEFN\n Inner NAME,OTHER\nNAME LDA #1\nOTHER STA VALUE\n MCEND");
+    const auto definition =
+        std::get<CapturedDefinition>(DefinitionCapture::capture(source.lines, 0)).definition;
+    const auto compiled = MacroTemplate::fromDefinition(definition);
+    ASSERT_TRUE(std::holds_alternative<MacroTemplate>(compiled.value));
+    const auto& macroTemplate = std::get<MacroTemplate>(compiled.value);
+    const auto boundResult = MacroArguments::bind(macroTemplate.root().prototype, invocation.line);
+    ASSERT_TRUE(std::holds_alternative<BoundMacroArguments>(boundResult));
+    const auto& bound = std::get<BoundMacroArguments>(boundResult);
+    ASSERT_EQ(bound.arguments.size(), 2U);
+    ASSERT_EQ(bound.arguments[0].value, bound.arguments[1].value);
+    const auto& identity = invocation.generatedNames.front();
+    EXPECT_EQ(bound.arguments[0].position, identity.token.position);
+    EXPECT_NE(bound.arguments[1].position, identity.token.position);
+
+    const auto body = ParameterSubstitution::instantiate(macroTemplate, bound);
+    ASSERT_EQ(body.lines.size(), 2U);
+    const auto innerSerial = std::get<std::size_t>(context.allocateSerial());
+    auto firstResult = context.prepareExpandedLine(body.lines[0], innerSerial);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(firstResult));
+    auto& first = std::get<PreparedSerialLine>(firstResult);
+    // The NAME formal received the generated occurrence. The OTHER formal
+    // received a literal with identical spelling but a different position.
+    first.labelSerial = identity.serial;
+    EXPECT_TRUE(std::holds_alternative<SourceLine>(context.emitLine(first)));
+    const auto secondResult = context.prepareExpandedLine(body.lines[1], innerSerial);
+    ASSERT_TRUE(std::holds_alternative<PreparedSerialLine>(secondResult));
+    const auto conflict = context.emitLine(std::get<PreparedSerialLine>(secondResult));
+    ASSERT_TRUE(std::holds_alternative<MacroDiagnostic>(conflict));
+    EXPECT_EQ(std::get<MacroDiagnostic>(conflict).code, MacroDiagnosticCode::DuplicateLabel);
+}
+
 } // namespace macro
