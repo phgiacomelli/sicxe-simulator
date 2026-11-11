@@ -145,6 +145,8 @@ add_library(sicxe_macros STATIC
     src/macros/MacroTemplate.cpp
     src/macros/ParameterSubstitution.hpp
     src/macros/ParameterSubstitution.cpp
+    src/macros/LocalLabelSerial.hpp
+    src/macros/LocalLabelSerial.cpp
 )
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
@@ -239,6 +241,7 @@ if(BUILD_TESTING)
         tests/macros/MacroTableTest.cpp
         tests/macros/MacroArgumentsTest.cpp
         tests/macros/ParameterSubstitutionTest.cpp
+        tests/macros/LocalLabelSerialTest.cpp
     )
     set_target_properties(MacroTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
