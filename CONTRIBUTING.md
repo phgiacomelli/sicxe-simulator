@@ -1,174 +1,70 @@
 # Como contribuir
 
-Este projeto usa branches curtas e pull requests para manter a `main` sempre
-compilável. Cada mudança deve preservar os contratos entre os módulos e incluir
-sua própria verificação.
+Faça mudanças pequenas, com um objetivo claro. Antes de começar, confira o
+código e os testes da parte que pretende alterar. Combine com o grupo as
+mudanças que afetarem interfaces usadas por outros integrantes.
 
-## Antes de começar
+## Preparar uma branch
 
-1. Atualize sua `main` local.
-2. Leia [a arquitetura da VM](docs/vm/architecture.md) e a documentação do módulo
-   que será alterado. Para a segunda etapa, leia também o
-   [índice](docs/assembler/README.md) e os [contratos](docs/assembler/contracts.md)
-   do montador. Para a terceira etapa, leia o
-   [índice](docs/macros/README.md) e os [contratos](docs/macros/contracts.md)
-   de macros, além dos contratos do montador que consumirá a fonte expandida.
-3. Confirme no [roadmap](docs/roadmap.md) a ordem atual do projeto.
-4. Leia o seu pacote de trabalho: [VM](docs/vm/work/README.md) ou
-   [montador](docs/assembler/README.md) ou
-   [macros](docs/macros/README.md). Identifique ownership, dependências e
-   critérios de conclusão.
-
-Mudanças em interfaces compartilhadas devem ser combinadas com os integrantes
-afetados antes da implementação.
-
-## Fronteira obrigatória da VM e do montador
-
-A VM recebe somente bytes de código de máquina já codificados. Nenhuma mudança
-pode atribuir a ela responsabilidades de montador: interpretar assembly,
-mnemônicos, diretivas, labels ou tabelas de símbolos; gerar ou interpretar
-registros de formato objeto; fazer linking ou aplicar relocação.
-
-Texto hexadecimal pode ser aceito somente como representação dos bytes de
-entrada. Da mesma forma, um arquivo binário bruto é apenas uma sequência de bytes,
-não um arquivo objeto. A definição completa dessa fronteira está na
-[arquitetura da VM](docs/vm/architecture.md#fronteira-entre-vm-e-montador).
-
-O montador da segunda etapa recebe assembly e produz bytes/listagem, mas não
-executa instruções nem entra em `Machine`, `MachineController` ou widgets.
-Não criar linker, loader de objeto nem relocação na VM para testar o montador:
-exportar `.bin` no endereço fixo e usar a entrada já existente. As escolhas
-de dialeto/saída estão em [contratos](docs/assembler/contracts.md).
-
-O processador de macros da terceira etapa é anterior à montagem: transforma
-fonte com macros em `MASMAPRG.ASM`. Não calcula endereços nem gera bytes;
-o montador existente continua fazendo as duas passagens. O integrador
-orquestra ambos, sem colocar sintaxe de macro no montador puro ou na VM.
-
-## Branches
-
-Crie a branch a partir da `main` atualizada:
+Crie sua branch a partir da `main` atualizada:
 
 ```bash
 git switch main
 git pull --ff-only
-git switch -c feat/nome-curto
+git switch -c feat/nome-da-mudanca
 ```
 
-Prefixos recomendados:
+Use um nome que descreva a tarefa. Os prefixos `feat/`, `fix/`, `test/`,
+`refactor/` e `chore/` ajudam a identificar o tipo de mudança. Evite
+trabalhar diretamente na `main`.
 
-| Prefixo | Uso |
-| --- | --- |
-| `feat/` | Nova funcionalidade |
-| `fix/` | Correção de comportamento |
-| `test/` | Testes sem mudança funcional |
-| `docs/` | Documentação |
-| `refactor/` | Reestruturação sem mudança de comportamento |
-| `chore/` | Infraestrutura e manutenção |
+## Alterar o código
 
-Não desenvolva diretamente na `main`.
+- Mantenha o núcleo da máquina, o montador e o processador de macros
+  independentes de Qt.
+- A máquina virtual executa bytes. O montador transforma assembly em bytes.
+  O processador de macros prepara o código-fonte antes da montagem.
+- Siga o estilo dos arquivos existentes e as regras de `.clang-format`.
+- Use `#pragma once` nos headers e inclua o próprio header primeiro nos
+  arquivos `.cpp`.
+- Nos testes, inclua headers a partir de `src`, como `core/Memory.hpp`,
+  sem usar caminhos com `../src`.
+- Acrescente ou ajuste testes quando mudar o comportamento. Considere os
+  casos de erro e os limites da mudança.
 
-## Commits
+## Verificar a mudança
 
-Use mensagens curtas no padrão Conventional Commits adotado pelo histórico:
-
-```text
-feat: implement address resolver
-fix: reject invalid indexed addressing
-test: add register file tests
-docs: document resolved operands
-chore: add continuous integration
-```
-
-Cada commit deve representar uma alteração coerente. Separe implementação,
-testes e documentação quando isso tornar a revisão mais clara.
-
-## Ownership e interfaces
-
-- Altere prioritariamente os arquivos pertencentes ao seu pacote.
-- Registre no pull request qualquer alteração necessária fora desse ownership.
-- Preserve a direção de dependências descrita em `docs/vm/architecture.md`.
-- Mantenha o núcleo independente de Qt.
-- Na segunda etapa, mantenha `src/assembler/` independente de Qt e da
-  implementação da VM; testes podem verificar compatibilidade pelos bytes.
-- Na terceira etapa, mantenha `src/macros/` independente de Qt e da VM;
-  mudanças na sintaxe ou interface compartilhada seguem
-  [contratos de macros](docs/macros/contracts.md).
-- Regras de endereçamento pertencem ao `AddressResolver`; regras das operações
-  pertencem ao `Executor`; somente a `Machine` coordena o ciclo completo.
-- Evite duplicar uma decisão arquitetural em mais de um documento. Atualize a
-  fonte principal e use links nos demais locais.
-
-## Convenções C++
-
-- Headers do projeto usam `#pragma once`.
-- Um arquivo `.cpp` inclui primeiro o próprio header, depois outros headers do
-  projeto e por fim a biblioteca padrão ou dependências externas.
-- Testes incluem headers a partir da raiz configurada em `src`, por exemplo
-  `#include "core/Memory.hpp"`; não use caminhos relativos com `../src`.
-- Constantes arquiteturais compartilhadas devem ter um único nome e uma única
-  definição, como `WordMask` em `Architecture.hpp`.
-- Falhas esperadas atravessam as interfaces tipadas do núcleo; exceções de
-  infraestrutura devem ser convertidas no módulo que conhece seu significado.
-- Operações do executor calculam efeitos e permanecem sem mutação. A ordem de
-  validação e commit pertence exclusivamente à `Machine`, conforme a
-  [arquitetura](docs/vm/architecture.md).
-
-## Verificação local
-
-Configure e compile:
+Compile e execute os testes:
 
 ```bash
 cmake -S . -B build
-cmake --build build
-```
-
-Execute os testes:
-
-```bash
+cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-Com `clang-format` instalado na máquina, o CMake cria o alvo `format`. Nesse
-caso, formate o código:
+Para trabalhar sem Qt, configure com `-DSICXE_BUILD_QT=OFF`, como mostrado
+no [README](README.md#compilar-e-executar).
+
+Se tiver `clang-format` instalado, configure o CMake e use o alvo de
+formatação antes de revisar o resultado:
 
 ```bash
 cmake --build build --target format
 ```
 
-Antes de abrir o pull request, confirme que o formatador não deixou diferenças
-inesperadas e que todos os testes passam.
+Confira o `git diff` e evite incluir alterações sem relação com a tarefa.
+Atualize o README se mudar a forma de compilar ou usar o projeto.
 
-## Documentação
+## Registrar e integrar
 
-Atualize a documentação quando uma mudança alterar:
+Escreva commits curtos que expliquem a mudança, por exemplo:
 
-- responsabilidade ou interface de um módulo;
-- comportamento observável;
-- formato de entrada ou saída;
-- código de falha;
-- estado ou ordem do roadmap;
-- instruções de build, execução ou testes.
+```text
+feat: add parameter substitution
+fix: reject invalid register
+test: cover empty input
+```
 
-Decisões relevantes devem registrar o motivo e as alternativas consideradas,
-não apenas o resultado escolhido.
-
-## Critério de conclusão
-
-Um pull request está pronto para integração quando:
-
-- o escopo descrito foi concluído;
-- casos normais, limites e falhas relevantes possuem testes;
-- build e CTest passam em uma configuração limpa;
-- `clang-format` passa;
-- documentação afetada foi atualizada;
-- nenhuma responsabilidade de montador foi introduzida na VM;
-- nos PRs da segunda etapa, nenhum comportamento de VM foi introduzido no
-  montador e os [contratos](docs/assembler/contracts.md) foram preservados;
-- nos PRs da terceira etapa, a expansão continua anterior às duas passagens,
-  sem mover responsabilidades do montador para `src/macros/` ou para a VM;
-- pendências conhecidas estão declaradas;
-- não existem alterações não relacionadas ao objetivo;
-- pelo menos um integrante fora do pacote revisou a mudança.
-
-O merge só deve ocorrer depois que a integração contínua estiver verde.
+Antes de integrar à `main`, peça a revisão de outro integrante e aguarde
+as verificações automáticas passarem. Explique o que mudou, como foi
+testado e se há alguma limitação conhecida.

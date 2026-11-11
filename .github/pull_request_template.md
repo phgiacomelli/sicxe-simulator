@@ -1,37 +1,18 @@
-## Objetivo
+## O que mudou
 
-<!-- Explique o problema resolvido e o resultado esperado. -->
+<!-- Explique o objetivo da mudança e o resultado. -->
 
-## Alterações
+## Como foi verificado
 
-<!-- Liste as mudanças relevantes, sem repetir o diff arquivo por arquivo. -->
+<!-- Informe os testes e comandos executados. -->
 
-## Interfaces e decisões
+## Pendências
 
-<!-- Registre contratos alterados, decisões tomadas e integrantes afetados. -->
+<!-- Descreva limitações conhecidas, se houver. -->
 
-## Testes
+## Conferência
 
-<!-- Informe os casos adicionados e os comandos executados. -->
-
-## Documentação
-
-<!-- Indique os documentos atualizados ou explique por que não se aplica. -->
-
-## Pendências conhecidas
-
-<!-- Liste limitações restantes. Use "Nenhuma" quando o escopo estiver completo. -->
-
-## Checklist
-
-- [ ] Mantive a mudança dentro do escopo e do ownership combinados.
-- [ ] A VM continua recebendo somente bytes já codificados; não introduzi parsing
-      de assembly, símbolos, formato objeto, linking ou relocação.
-- [ ] Build limpa concluída com sucesso.
-- [ ] Todos os testes passaram.
-- [ ] Casos normais, limites e falhas relevantes foram testados.
-- [ ] O código segue `.clang-format`.
-- [ ] Interfaces e decisões relevantes estão documentadas.
-- [ ] Atualizei o roadmap quando o estado do projeto mudou.
-- [ ] Declarei todas as pendências conhecidas.
-- [ ] Solicitei revisão de alguém fora do pacote de trabalho.
+- [ ] A mudança está limitada ao objetivo descrito.
+- [ ] A compilação e os testes passaram.
+- [ ] O código segue o estilo do projeto.
+- [ ] As instruções de uso foram atualizadas, se necessário.
