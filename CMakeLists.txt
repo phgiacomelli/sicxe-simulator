@@ -132,6 +132,7 @@ add_library(sicxe_macros STATIC
     src/macros/SourceOrigin.hpp
     src/macros/MacroDiagnostic.hpp
     src/macros/MacroResult.hpp
+    src/macros/MacroProcessor.cpp
     src/macros/MacroProcessor.hpp
     src/macros/MacroDefinition.hpp
     src/macros/MacroDefinition.cpp
@@ -237,6 +238,7 @@ if(BUILD_TESTING)
     add_executable(MacroTests
         tests/macros/SourceScannerTest.cpp
         tests/macros/MacroContractTest.cpp
+        tests/macros/MacroProcessorTest.cpp
         tests/macros/DefinitionCaptureTest.cpp
         tests/macros/MacroTableTest.cpp
         tests/macros/MacroArgumentsTest.cpp

@@ -48,11 +48,19 @@ struct MacroCall {
     bool operator==(const MacroCall&) const = default;
 };
 
+struct GeneratedNameUse {
+    SourceField token; // Byte position in the containing line (or relative to a bound value).
+    std::size_t serial;
+    bool operator==(const GeneratedNameUse&) const = default;
+};
+
 struct BoundMacroArgument {
     MacroFormal formal;
     std::string value;
     // Physical position in the call when present; nullopt when omitted.
     std::optional<SourcePosition> position;
+    // Occurrences relative to value, with columns starting at 1.
+    std::vector<GeneratedNameUse> generatedNames{};
 
     bool operator==(const BoundMacroArgument&) const = default;
 };

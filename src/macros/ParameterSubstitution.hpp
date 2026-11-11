@@ -19,6 +19,8 @@ struct SubstitutionResult {
     std::vector<SourceLine> lines;
     // Direct nested definitions only. Their children are prepared when called.
     std::vector<PreparedMacroDefinition> definitions;
+    // Same indexing as lines; identities survive substitution and captured bindings.
+    std::vector<std::vector<GeneratedNameUse>> generatedNames;
 };
 
 class ParameterSubstitution {

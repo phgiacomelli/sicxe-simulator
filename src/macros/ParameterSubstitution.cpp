@@ -17,9 +17,12 @@ struct Replacement {
     std::size_t begin;
     std::size_t length;
     std::string value;
+    std::vector<GeneratedNameUse> generatedNames;
 };
 
-SourceLine substituteLine(const TemplateLine& line, const ActiveBindings& bindings) {
+SourceLine substituteLine(const TemplateLine& line,
+                          const ActiveBindings& bindings,
+                          std::vector<GeneratedNameUse>* generated = nullptr) {
     std::vector<Replacement> replacements;
     for (const auto& reference : line.references) {
         // A null binding preserves a nested definition's own parameters.
@@ -36,7 +39,10 @@ SourceLine substituteLine(const TemplateLine& line, const ActiveBindings& bindin
         const auto begin = field->position.column - 1 + reference.begin;
         if (begin > line.source.text.size() || reference.length > line.source.text.size() - begin)
             continue;
-        replacements.push_back({begin, reference.length, arguments.values[reference.formalIndex]});
+        replacements.push_back({begin,
+                                reference.length,
+                                arguments.values[reference.formalIndex],
+                                arguments.arguments[reference.formalIndex].generatedNames});
     }
     if (replacements.empty())
         return line.source;
@@ -47,6 +53,21 @@ SourceLine substituteLine(const TemplateLine& line, const ActiveBindings& bindin
     auto text = line.source.text;
     for (const auto& replacement : replacements)
         text.replace(replacement.begin, replacement.length, replacement.value);
+
+    if (generated) {
+        std::size_t originalCursor = 0;
+        std::size_t renderedCursor = 0;
+        for (auto edit = replacements.rbegin(); edit != replacements.rend(); ++edit) {
+            renderedCursor += edit->begin - originalCursor;
+            for (auto use : edit->generatedNames) {
+                use.token.position = {line.source.number,
+                                      renderedCursor + use.token.position.column};
+                generated->push_back(std::move(use));
+            }
+            renderedCursor += edit->value.size();
+            originalCursor = edit->begin + edit->length;
+        }
+    }
 
     // Reuse the lexical scanner so empty fields, quotes and byte columns agree
     // with the generated text. This does not parse or validate assembly.
@@ -102,7 +123,8 @@ SubstitutionResult ParameterSubstitution::instantiate(const MacroTemplate& macro
     SubstitutionResult result;
     for (const auto& element : macroTemplate.root().elements) {
         if (const auto* line = std::get_if<TemplateLine>(&element)) {
-            result.lines.push_back(substituteLine(*line, bindings));
+            result.generatedNames.emplace_back();
+            result.lines.push_back(substituteLine(*line, bindings, &result.generatedNames.back()));
             continue;
         }
         const auto& nested = std::get<std::shared_ptr<const TemplateScope>>(element);
@@ -110,6 +132,7 @@ SubstitutionResult ParameterSubstitution::instantiate(const MacroTemplate& macro
         auto nestedBindings = bindings;
         nestedBindings.insert(nestedBindings.begin(), nullptr);
         appendNestedScope(*nested, nestedBindings, result.lines);
+        result.generatedNames.resize(result.lines.size());
 
         std::vector<BoundMacroArguments> captured;
         captured.reserve(bindings.size());

@@ -21,11 +21,6 @@ namespace macro {
 using LineProcessResult = std::variant<SourceLine, MacroDiagnostic>;
 using ExpandedLinesResult = std::variant<std::vector<SourceLine>, MacroDiagnostic>;
 
-struct GeneratedNameUse {
-    SourceField token; // Generated spelling and byte position in the prepared line.
-    std::size_t serial;
-};
-
 struct PreparedSerialLine {
     SourceLine line;
     SourcePosition source;
@@ -63,7 +58,8 @@ public:
     // or origin. Inputs are scanner/substitution results with coherent fields.
     PreparedSerialLineResult prepareExpandedLine(const SourceLine& line,
                                                  std::size_t serial,
-                                                 std::span<const ExpansionFrame> calls = {});
+                                                 std::span<const ExpansionFrame> calls = {},
+                                                 std::span<const GeneratedNameUse> inherited = {});
 
     // Commits only an actually emitted line. The engine must not emit call
     // lines replaced by nested expansions or structural definition lines.
