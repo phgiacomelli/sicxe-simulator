@@ -45,3 +45,6 @@ build/
 *.bin
 *.lst
 # End of https://www.toptal.com/developers/gitignore/api/c++
+
+# Local documentation
+/docs/
