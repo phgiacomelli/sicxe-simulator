@@ -94,3 +94,6 @@ novos; formatação, `git diff --check` e novos fontes com
 A revisão técnica conferiu padrões e requisitos do handoff. Não atribui
 aprovação nominal aos responsáveis dos pacotes 5/6. A CI verde no PR continua
 obrigatória antes do merge; seu resultado deve ser consultado no próprio PR.
+
+Registro de revisão e integração:
+[PR #34](https://github.com/phgiacomelli/sicxe-simulator/pull/34).

@@ -7,6 +7,8 @@ motor ou CLI de macros. Revisão técnica e CI verde do pacote 1 registradas no
 [PR #31](https://github.com/phgiacomelli/sicxe-simulator/pull/31), e as do pacote 2
 no [PR #32](https://github.com/phgiacomelli/sicxe-simulator/pull/32). O pacote 3
 tem revisão técnica e CI verde no [PR #33](https://github.com/phgiacomelli/sicxe-simulator/pull/33).
+O pacote 4 tem revisão, testes locais e integração registrados no
+[PR #34](https://github.com/phgiacomelli/sicxe-simulator/pull/34).
 Este é o ponto
 único para decisões compartilhadas. A prioridade é o texto do professor: a expansão
 acontece **antes** da montagem, é ativada pelo módulo principal integrador,
