@@ -2,7 +2,7 @@
 
 Simulador da arquitetura SIC/XE desenvolvido em C++20 para a disciplina de
 Programação de Sistemas. O projeto reúne uma máquina virtual com interface
-gráfica, um montador e um processador de macros em desenvolvimento.
+gráfica, um montador e um processador de macros.
 
 ## Etapas do projeto
 
@@ -28,12 +28,15 @@ endereços fixos e pode ser carregado na máquina virtual.
 
 ### 3. Processador de macros
 
-Em desenvolvimento. Já foram implementadas a leitura do código-fonte, a
-captura e o armazenamento das definições, a associação dos argumentos aos
-parâmetros e a substituição de parâmetros, respeitando definições aninhadas.
+Integrado ao montador pelo executável `SICXEMacroAssembler`. Processa macros
+em uma passagem antes da montagem, com parâmetros posicionais, rótulo formal,
+redefinições, definições/chamadas aninhadas e rótulos locais `.SER`.
+Gera `MASMAPRG.ASM` e entrega exatamente esse texto ao montador existente,
+que produz `.bin` e `.lst`. A VM continua recebendo somente bytes.
 
-Ainda faltam os rótulos locais, o motor de expansão e a integração com o
-montador. Por enquanto, não há um executável para processar macros.
+Não há argumentos por palavra-chave/defaults, expressões de tempo de macro,
+linker, loader de objeto ou relocação. `SICXEAssembler` continua disponível
+para montagem direta, sem expansão.
 
 ## Compilar e executar
 
@@ -82,6 +85,46 @@ cmake -S . -B build-core -DSICXE_BUILD_QT=OFF
 cmake --build build-core --parallel
 ```
 
+## Montar um programa com macros
+
+```bash
+./build/SICXEMacroAssembler tests/macros/fixtures/nested-sum.asm \
+  -o build/nested-sum.bin -l build/nested-sum.lst
+```
+
+Esse exemplo define uma macro dentro de outra, faz uma chamada aninhada e
+usa `.SER` no laço. Soma 1 a 5, dobra e acrescenta 7. O binário tem 4160
+bytes; carregue em `100`, com PC inicial `100` (hexadecimal). Após 28 passos,
+A e a palavra em `12C` valem `000025` hexadecimal, ou 37 decimal. Pause no
+laço final. A expansão esperada está em
+[`nested-sum-expanded.asm`](tests/macros/fixtures/nested-sum-expanded.asm).
+
+Uso: `SICXEMacroAssembler SOURCE [-o OUTPUT.bin] [-l OUTPUT.lst]`. Aceita
+também `--output`, `--listing`, `--` e `--help`/`-h`. Sem opções de saída,
+substitui a extensão da **fonte original** por `.bin` e `.lst` no diretório
+dela. Retorna `0` em sucesso/ajuda, `1` em erro de processamento/I/O e `2`
+em argumentos inválidos.
+
+**Atenção à fonte expandida:** `MASMAPRG.ASM` é publicado no diretório de
+trabalho atual, não necessariamente junto da entrada. O nome é fixo e o
+conteúdo anterior é substituído após gravação completa em arquivo temporário
+e troca atômica. Não use esse caminho como fonte ou saída binária/listagem,
+inclusive por aliases. Links simbólicos e destinos não regulares nesse
+caminho são recusados. Outros arquivos `.asm` não são ignorados pelo Git.
+
+Falhas de leitura, expansão ou publicação preservam a versão anterior de
+`MASMAPRG.ASM`. Após publicação bem-sucedida, a nova versão permanece mesmo
+se a montagem ou geração de `.bin`/`.lst` falhar. Binário/listagem nunca são
+sobrescritos e seguem a política de diretórios/hard links da montagem direta.
+Não há transação única dos três arquivos nem garantia contra desligamento
+abrupto ou interferência externa durante as operações de publicação.
+
+Erros de assembly identificam linha/coluna em `MASMAPRG.ASM`, seguidos pela
+origem na fonte original e cadeia de chamadas, quando disponíveis. A origem
+é por linha: a coluna pode mudar após substituições. Erros de macro apontam
+diretamente à fonte original. Nenhum erro de montagem publica binário/listagem
+parciais de sucesso.
+
 ## Testes
 
 Depois de compilar, execute:
@@ -91,8 +134,8 @@ ctest --test-dir build --output-on-failure
 ```
 
 Se usou a configuração sem Qt, substitua `build` por `build-core`. Os testes
-cobrem a máquina virtual, o montador e as partes já implementadas do
-processador de macros. Na configuração com Qt, também há testes do
+cobrem a máquina virtual, o montador, o motor de macros e a integração final,
+incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
 controlador e da interface, que rodam sem abrir uma janela.
 
 ## Contribuir
