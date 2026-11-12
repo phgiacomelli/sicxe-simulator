@@ -44,6 +44,7 @@ build/
 
 *.bin
 *.lst
+/MASMAPRG.ASM
 # End of https://www.toptal.com/developers/gitignore/api/c++
 
 # Local Markdown notes; public project guidance remains versioned.
