@@ -10,6 +10,7 @@
 #include <optional>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace macro {
 namespace {
@@ -30,6 +31,7 @@ private:
     MacroTable table_;
     // Templates belong to immutable definition versions, including captured bindings.
     std::unordered_map<MacroTable::Definition, std::shared_ptr<const MacroTemplate>> templates_;
+    std::vector<MacroTable::Definition> activeDefinitions_;
     LocalLabelSerial serials_;
     std::size_t generatedLines_{};
     std::string output_;
@@ -82,7 +84,12 @@ private:
                     index = definition.nextLine;
                 }
                 const auto name = definition.definition.name().text;
+                const auto previous = table_.find(name);
                 table_.define(std::move(definition.definition));
+                // Running calls retain their own version/template. Historical
+                // versions no longer in the table need no permanent cache entry.
+                if (previous)
+                    templates_.erase(previous);
                 templates_.emplace(table_.find(name), std::move(macroTemplate));
                 continue;
             }
@@ -113,10 +120,11 @@ private:
             chain.push_back({prototype.macroName.text,
                              prototype.macroName.position,
                              prepared.line.operation->position});
-            const bool recursive = std::any_of(calls.begin(), calls.end(), [&](const auto& frame) {
-                // Lookup uses the same case-insensitive table semantics as normal calls.
-                return table_.find(frame.macroName) == definition;
-            });
+            // Compare the versions actually running, not a fresh name lookup:
+            // a redefinition may legitimately be called by its older version.
+            const bool recursive =
+                std::find(activeDefinitions_.begin(), activeDefinitions_.end(), definition) !=
+                activeDefinitions_.end();
             if (recursive || calls.size() >= maxDepth)
                 return MacroDiagnostic{recursive ? MacroDiagnosticCode::RecursiveExpansion
                                                  : MacroDiagnosticCode::ExpansionLimitExceeded,
@@ -160,11 +168,14 @@ private:
                                        "Limite de 100000 linhas geradas excedido.",
                                        chain};
             generatedLines_ += substitution.lines.size();
-            if (auto error = process(substitution.lines,
-                                     substitution.definitions,
-                                     std::get<std::size_t>(allocated),
-                                     chain,
-                                     substitution.generatedNames))
+            activeDefinitions_.push_back(definition);
+            auto error = process(substitution.lines,
+                                 substitution.definitions,
+                                 std::get<std::size_t>(allocated),
+                                 chain,
+                                 substitution.generatedNames);
+            activeDefinitions_.pop_back();
+            if (error)
                 return error;
         }
         return std::nullopt;
