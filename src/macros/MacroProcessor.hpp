@@ -6,7 +6,7 @@
 
 namespace macro {
 
-// Contract only in package 1; definition belongs to the engine in package 6.
+// Limits per source: 128 active calls and 100000 instantiated body lines.
 // No I/O, Qt, VM, assembly or shared state between invocations.
 MacroResult expand(std::string_view sourceText);
 

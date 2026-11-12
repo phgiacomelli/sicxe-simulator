@@ -154,8 +154,11 @@ LocalLabelSerial::allocateSerial(SourcePosition invocationPosition,
     return ++serialCounter_;
 }
 
-PreparedSerialLineResult LocalLabelSerial::prepareExpandedLine(
-    const SourceLine& line, std::size_t serial, std::span<const ExpansionFrame> calls) {
+PreparedSerialLineResult
+LocalLabelSerial::prepareExpandedLine(const SourceLine& line,
+                                      std::size_t serial,
+                                      std::span<const ExpansionFrame> calls,
+                                      std::span<const GeneratedNameUse> inherited) {
     if (const auto invalid = validateSerial(serial, maxSerial_, {line.number, 1}, calls))
         return *invalid;
     PreparedSerialLine prepared{
@@ -217,6 +220,18 @@ PreparedSerialLineResult LocalLabelSerial::prepareExpandedLine(
             {{replacement->value, {line.number, renderedCursor + 1}}, serial});
         renderedCursor += replacement->value.size();
         originalCursor = replacement->begin + replacement->length;
+    }
+    for (auto use : inherited) {
+        auto column = use.token.position.column;
+        for (const auto& replacement : replacements) {
+            if (replacement.begin + replacement.length <= use.token.position.column - 1)
+                column = column - replacement.length + replacement.value.size();
+        }
+        use.token.position = {line.number, column};
+        if (prepared.line.label && prepared.line.label->position == use.token.position &&
+            prepared.line.label->text == use.token.text)
+            prepared.labelSerial = use.serial;
+        prepared.generatedNames.push_back(std::move(use));
     }
     return prepared;
 }
