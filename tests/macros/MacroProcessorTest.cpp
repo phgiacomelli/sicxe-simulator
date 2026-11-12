@@ -251,4 +251,33 @@ TEST(MacroProcessorTest, AcceptsExactlyTheGeneratedLineLimitAndCopiesFurtherOrig
     EXPECT_TRUE(result.expandedText.ends_with("  WORD 1\n  WORD 2"));
 }
 
+TEST(MacroProcessorTest, CanCallANewVersionOfTheCurrentlyExpandingMacro) {
+    const auto result =
+        success(" MCDEFN\n Same A\n MCDEFN\n Same B\n WORD B\n MCEND\n Same A\n MCEND\n"
+                " Same 7\n Same 8\n");
+    EXPECT_EQ(result.expandedText, " WORD 7\n WORD 8\n");
+    ASSERT_EQ(result.origins.size(), 2U);
+    ASSERT_EQ(result.origins[0].calls.size(), 2U);
+    EXPECT_EQ(result.origins[0].calls[0].definition, (macro::SourcePosition{2, 2}));
+    EXPECT_EQ(result.origins[0].calls[1].definition, (macro::SourcePosition{4, 2}));
+    EXPECT_EQ(result.origins[1].calls.size(), 1U);
+}
+
+TEST(MacroProcessorTest, RedefinitionDuringAnIndirectCallIsNotAFalseRecursionCycle) {
+    EXPECT_EQ(success(" MCDEFN\n Relay\n Target\n MCEND\n MCDEFN\n Target\n MCDEFN\n Target\n"
+                      " WORD 9\n MCEND\n Relay\n MCEND\n Target\n")
+                  .expandedText,
+              " WORD 9\n");
+}
+
+TEST(MacroProcessorTest, StillRejectsRecursionOfTheNewVersionAfterRedefinition) {
+    const auto error =
+        failure(" MCDEFN\n Same A\n MCDEFN\n Same B\n Same B\n MCEND\n Same A\n MCEND\n Same 7\n",
+                macro::MacroDiagnosticCode::RecursiveExpansion);
+    ASSERT_EQ(error.calls.size(), 3U);
+    EXPECT_EQ(error.calls[0].definition, (macro::SourcePosition{2, 2}));
+    EXPECT_EQ(error.calls[1].definition, (macro::SourcePosition{4, 2}));
+    EXPECT_EQ(error.calls[2].definition, (macro::SourcePosition{4, 2}));
+}
+
 } // namespace
