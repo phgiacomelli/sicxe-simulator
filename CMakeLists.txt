@@ -260,6 +260,28 @@ if(BUILD_TESTING)
     target_link_libraries(MacroTests PRIVATE sicxe_macros GTest::gtest_main)
     gtest_discover_tests(MacroTests NO_PRETTY_VALUES)
 
+    add_executable(MacroAssemblerCliTests tests/macros/MacroAssemblerCliTest.cpp)
+    set_target_properties(MacroAssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(MacroAssemblerCliTests PRIVATE sicxe_macro_assembler_cli GTest::gtest_main)
+    gtest_discover_tests(MacroAssemblerCliTests NO_PRETTY_VALUES)
+
+    add_executable(MacroAssemblerAcceptanceTests tests/macros/MacroAssemblerAcceptanceTest.cpp)
+    set_target_properties(MacroAssemblerAcceptanceTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(MacroAssemblerAcceptanceTests PRIVATE
+        sicxe_macro_assembler_cli sicxe_assembler SICXECore GTest::gtest_main)
+    target_compile_definitions(MacroAssemblerAcceptanceTests PRIVATE
+        MACRO_ASSEMBLER_FIXTURE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/tests/macros/fixtures")
+    gtest_discover_tests(MacroAssemblerAcceptanceTests NO_PRETTY_VALUES)
+    add_test(NAME MacroAssemblerCliHelp COMMAND SICXEMacroAssembler --help)
+    set_tests_properties(MacroAssemblerCliHelp PROPERTIES PASS_REGULAR_EXPRESSION "MASMAPRG.ASM")
+    add_test(NAME MacroAssemblerCliSmoke COMMAND ${CMAKE_COMMAND}
+        -DMACRO_ASSEMBLER=$<TARGET_FILE:SICXEMacroAssembler>
+        -DASSEMBLER=$<TARGET_FILE:SICXEAssembler>
+        -DFIXTURE=${CMAKE_CURRENT_SOURCE_DIR}/tests/macros/fixtures/nested-sum.asm
+        -DEXPECTED_SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/tests/macros/fixtures/nested-sum-expanded.asm
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/macro-cli-smoke
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/macros/MacroAssemblerCliSmoke.cmake)
+
     add_executable(AssemblerCliTests tests/assembler/AssemblerCliTest.cpp)
     set_target_properties(AssemblerCliTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerCliTests PRIVATE sicxe_assembler_cli GTest::gtest_main)
