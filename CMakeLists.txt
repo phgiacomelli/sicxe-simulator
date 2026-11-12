@@ -152,6 +152,17 @@ add_library(sicxe_macros STATIC
 target_include_directories(sicxe_macros PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(sicxe_macros PRIVATE sicxe_assembler)
 
+add_library(sicxe_macro_assembler_cli STATIC
+    src/macros/MacroAssemblerCli.hpp
+    src/macros/MacroAssemblerCli.cpp
+    src/macros/ExpandedSourceFile.hpp
+    src/macros/ExpandedSourceFile.cpp
+)
+target_include_directories(sicxe_macro_assembler_cli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(sicxe_macro_assembler_cli PRIVATE sicxe_macros sicxe_assembler_cli)
+add_executable(SICXEMacroAssembler src/macros/main.cpp)
+target_link_libraries(SICXEMacroAssembler PRIVATE sicxe_macro_assembler_cli)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
