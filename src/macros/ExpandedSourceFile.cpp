@@ -28,21 +28,36 @@ struct StagingDirectory {
 
 std::optional<ExpandedSourceError> protect(const fs::path& destination, const fs::path& other) {
     std::error_code error;
-    const auto absolute = fs::absolute(other, error);
+    auto absolute = fs::absolute(other, error);
     if (error)
         return failure(other, "Caminho protegido invalido", error);
-    const auto canonical = fs::weakly_canonical(absolute, error);
-    if (error)
-        return failure(other, "Nao foi possivel verificar o caminho protegido", error);
-    if (canonical == destination)
-        return failure(other, "Fonte e saidas nao podem apontar para MASMAPRG.ASM");
-    const bool same = fs::equivalent(destination, other, error);
-    if (!error && same)
-        return failure(other, "Fonte e saidas nao podem ser aliases de MASMAPRG.ASM");
-    if (error && error != std::errc::no_such_file_or_directory &&
-        error != std::errc::not_a_directory)
-        return failure(other, "Nao foi possivel verificar aliases de MASMAPRG.ASM", error);
-    return std::nullopt;
+    for (int links = 0; links < 40; ++links) {
+        const auto canonical = fs::weakly_canonical(absolute, error);
+        if (error)
+            return failure(other, "Nao foi possivel verificar o caminho protegido", error);
+        if (canonical == destination)
+            return failure(other, "Fonte e saidas nao podem apontar para MASMAPRG.ASM");
+        const bool same = fs::equivalent(destination, canonical, error);
+        if (!error && same)
+            return failure(other, "Fonte e saidas nao podem ser aliases de MASMAPRG.ASM");
+        if (error && error != std::errc::no_such_file_or_directory &&
+            error != std::errc::not_a_directory)
+            return failure(other, "Nao foi possivel verificar aliases de MASMAPRG.ASM", error);
+
+        // weakly_canonical leaves dangling leaf symlinks unresolved. Follow their
+        // targets explicitly so aliases are rejected even before publication.
+        const auto status = fs::symlink_status(canonical, error);
+        if (error && error != std::errc::no_such_file_or_directory &&
+            error != std::errc::not_a_directory)
+            return failure(other, "Nao foi possivel consultar o caminho protegido", error);
+        if (!fs::is_symlink(status))
+            return std::nullopt;
+        const auto target = fs::read_symlink(canonical, error);
+        if (error)
+            return failure(other, "Nao foi possivel resolver o link protegido", error);
+        absolute = target.is_absolute() ? target : canonical.parent_path() / target;
+    }
+    return failure(other, "Limite de links ao verificar aliases de MASMAPRG.ASM");
 }
 
 } // namespace

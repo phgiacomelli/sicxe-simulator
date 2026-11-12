@@ -65,6 +65,44 @@ TEST_F(MacroAssemblerCliTest, ProtectsTheFixedSourceFromOutputAliasesBeforeFirst
     expectNoStagingFiles();
 }
 
+TEST_F(MacroAssemblerCliTest, DanglingOutputAliasesPreventTheFirstPublication) {
+    write("demo.asm", " LDA #1\n END\n");
+    std::error_code error;
+    fs::create_symlink("MASMAPRG.ASM", "alias.out", error);
+    if (error)
+        GTEST_SKIP() << error.message();
+    for (const auto* option : {"-o", "-l"}) {
+        EXPECT_EQ(invoke({"demo.asm", option, "alias.out"}), 1);
+        EXPECT_FALSE(fs::exists("MASMAPRG.ASM"));
+        EXPECT_FALSE(fs::exists("demo.bin"));
+        EXPECT_FALSE(fs::exists("demo.lst"));
+        EXPECT_EQ(fs::read_symlink("alias.out"), fs::path{"MASMAPRG.ASM"});
+    }
+    EXPECT_EQ(read("demo.asm"), " LDA #1\n END\n");
+    expectNoStagingFiles();
+}
+
+TEST_F(MacroAssemblerCliTest, ChainedDanglingOutputAliasesResolveRelativeTargetsAndParentAliases) {
+    write("demo.asm", " LDA #1\n END\n");
+    fs::create_directory("links");
+    std::error_code error;
+    fs::create_directory_symlink("..", "links/root", error);
+    if (error)
+        GTEST_SKIP() << error.message();
+    fs::create_symlink("root/MASMAPRG.ASM", "links/target");
+    fs::create_symlink("links/target", "alias.out");
+    for (const auto* option : {"-o", "-l"}) {
+        EXPECT_EQ(invoke({"demo.asm", option, "alias.out"}), 1);
+        EXPECT_FALSE(fs::exists("MASMAPRG.ASM"));
+        EXPECT_FALSE(fs::exists("demo.bin"));
+        EXPECT_FALSE(fs::exists("demo.lst"));
+        EXPECT_EQ(fs::read_symlink("alias.out"), fs::path{"links/target"});
+        EXPECT_EQ(fs::read_symlink("links/target"), fs::path{"root/MASMAPRG.ASM"});
+    }
+    EXPECT_EQ(read("demo.asm"), " LDA #1\n END\n");
+    expectNoStagingFiles();
+}
+
 TEST_F(MacroAssemblerCliTest, AssemblyErrorsKeepTheNewSourceAndReportNestedOriginalOrigins) {
     write("nested.asm",
           " MCDEFN\n OUTER\n MCDEFN\n INNER\n LDA MISSING\n MCEND\n INNER\n MCEND\n"
