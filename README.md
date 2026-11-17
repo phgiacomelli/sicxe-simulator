@@ -1,5 +1,8 @@
 # SIC/XE Simulator
 
+## Integrantes: Caetano Blanke, Carlos Felipe Bellomo, Gustavo Serratte Skieresz, Henrique Weege Voigt, Ian Xavier Freitas, Paulo Henrique Anesi Giacomelli, Tiago Wolowski
+
+
 Simulador da arquitetura SIC/XE desenvolvido em C++20 para a disciplina de
 Programação de Sistemas. O projeto reúne uma máquina virtual com interface
 gráfica, um montador e um processador de macros.
