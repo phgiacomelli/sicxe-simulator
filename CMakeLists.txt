@@ -250,6 +250,7 @@ if(BUILD_TESTING)
         tests/assembler/InstructionCatalogTest.cpp
         tests/assembler/InstructionOperandTest.cpp
         tests/assembler/Format2EncoderTest.cpp
+        tests/assembler/ObjectPassOneTest.cpp
         tests/assembler/PassOneTest.cpp
         tests/assembler/DataDirectiveTest.cpp
         tests/assembler/InstructionEncoderTest.cpp
