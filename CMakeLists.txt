@@ -163,6 +163,14 @@ target_link_libraries(sicxe_macro_assembler_cli PRIVATE sicxe_macros sicxe_assem
 add_executable(SICXEMacroAssembler src/macros/main.cpp)
 target_link_libraries(SICXEMacroAssembler PRIVATE sicxe_macro_assembler_cli)
 
+add_library(sicxe_linker STATIC
+    src/linker/ObjectDiagnostic.hpp
+    src/linker/ObjectModule.hpp
+    src/linker/ObjectRecords.hpp
+    src/linker/ObjectRecords.cpp
+)
+target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
