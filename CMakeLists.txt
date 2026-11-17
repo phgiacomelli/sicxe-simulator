@@ -163,6 +163,14 @@ target_link_libraries(sicxe_macro_assembler_cli PRIVATE sicxe_macros sicxe_assem
 add_executable(SICXEMacroAssembler src/macros/main.cpp)
 target_link_libraries(SICXEMacroAssembler PRIVATE sicxe_macro_assembler_cli)
 
+add_library(sicxe_linker STATIC
+    src/linker/ObjectDiagnostic.hpp
+    src/linker/ObjectModule.hpp
+    src/linker/ObjectRecords.hpp
+    src/linker/ObjectRecords.cpp
+)
+target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
@@ -245,6 +253,11 @@ if(BUILD_TESTING)
     set_target_properties(AssemblerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
+
+    add_executable(LinkerTests tests/linker/ObjectRecordsTest.cpp)
+    set_target_properties(LinkerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
+    gtest_discover_tests(LinkerTests NO_PRETTY_VALUES)
 
     add_executable(MacroTests
         tests/macros/SourceScannerTest.cpp
