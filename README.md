@@ -38,6 +38,24 @@ Não há argumentos por palavra-chave/defaults, expressões de tempo de macro,
 linker, loader de objeto ou relocação. `SICXEAssembler` continua disponível
 para montagem direta, sem expansão.
 
+### 4. Ligador
+
+Em desenvolvimento. O primeiro pacote fornece a biblioteca C++20
+`sicxe_linker`, com modelo de módulo objeto, parser e writer de registros
+textuais SIC/XE `H/D/R/T/M/E`. Os offsets são relativos a uma única seção
+com origem zero; os registros de texto preservam os buracos das reservas.
+
+`linker::parseObject(text, fileName)` retorna um módulo próprio ou diagnósticos
+com arquivo, registro e coluna. `linker::renderObject(module)` valida os dados
+e retorna texto de largura fixa, com hexadecimais maiúsculos e finais LF, ou
+somente diagnósticos. Nomes têm até seis caracteres, `T` contém de 1 a 30
+bytes e `M` usa campos de 5/6 meios bytes. A forma de `M` sem nome é aceita
+como relocação positiva pela seção e emitida na forma nomeada.
+
+A biblioteca não abre arquivos, monta fonte, resolve símbolos globais ou
+aplica relocação. Ainda não há executável de ligação nem modo objeto nas
+ferramentas de montagem; as interfaces e saídas atuais permanecem inalteradas.
+
 ## Compilar e executar
 
 É necessário ter um compilador com suporte a C++20, CMake 3.21 ou superior
@@ -137,6 +155,13 @@ Se usou a configuração sem Qt, substitua `build` por `build-core`. Os testes
 cobrem a máquina virtual, o montador, o motor de macros e a integração final,
 incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
 controlador e da interface, que rodam sem abrir uma janela.
+
+O alvo `LinkerTests` verifica parse/render de objetos e diagnósticos, sem
+depender do montador ou da VM. Para executar apenas esses casos após o build:
+
+```bash
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest' --output-on-failure
+```
 
 ## Contribuir
 
