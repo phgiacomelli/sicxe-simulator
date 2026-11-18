@@ -107,6 +107,22 @@ TEST(ObjectAssemblerTest, RepeatedLocalCoefficientsProduceRepeatedModifications)
     EXPECT_EQ(module.modifications[3].sign, linker::ModificationSign::Subtract);
 }
 
+TEST(ObjectAssemblerTest, EmitsTheLow24BitsOfAddendsWithPendingRelocation) {
+    const auto module =
+        object("Main START 0\n EXTREF Ext\n WORD 0xFFFFFF+1-Ext\n WORD -0x800000-1+Main\n END\n");
+    EXPECT_EQ(textBytes(module), (Bytes{0, 0, 0, 0x7F, 0xFF, 0xFF}));
+    ASSERT_EQ(module.modifications.size(), 2u);
+    EXPECT_EQ(module.modifications[0].offset, 0u);
+    EXPECT_EQ(module.modifications[0].halfBytes, 6u);
+    EXPECT_EQ(module.modifications[0].sign, linker::ModificationSign::Subtract);
+    EXPECT_EQ(module.modifications[0].symbol, "EXT");
+    EXPECT_EQ(module.modifications[1].offset, 3u);
+    EXPECT_EQ(module.modifications[1].halfBytes, 6u);
+    EXPECT_EQ(module.modifications[1].sign, linker::ModificationSign::Add);
+    EXPECT_EQ(module.modifications[1].symbol, "MAIN");
+    EXPECT_TRUE(std::holds_alternative<std::string>(linker::renderObject(module)));
+}
+
 TEST(ObjectAssemblerTest, SplitsTextAtThirtyBytesAndPreservesReservationHoles) {
     const auto module = object("Main START 0\n BYTE C'abcdefghijklmnopqrstuvwxyz0123456789'\n RESB "
                                "8\n BYTE X'ABCD'\n RESW 2\n END\n");

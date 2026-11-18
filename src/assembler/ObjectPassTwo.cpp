@@ -143,15 +143,7 @@ ObjectAssemblyResult ObjectPassTwo::run(const ObjectPassOneResult& passOne) {
             bytes = *line.byteData;
         } else if (line.directive == ObjectDirectiveKind::Word && line.wordExpression) {
             const auto& expression = *line.wordExpression;
-            const auto addend = expression.evaluateInitialAddend();
-            if (addend < Word24BitRange.min || addend > Word24BitRange.max)
-                return failure(AssemblyDiagnosticCode::ValueOutOfRange,
-                               position,
-                               "Addend inicial de WORD fora do intervalo de 24 bits.");
-            const auto word = static_cast<std::uint32_t>(addend) & 0xFFFFFFU;
-            bytes = {static_cast<std::uint8_t>(word >> 16),
-                     static_cast<std::uint8_t>(word >> 8),
-                     static_cast<std::uint8_t>(word)};
+            const auto firstModification = module.modifications.size();
             // Local differences cancel; external terms preserve their declared order and signs.
             const auto balance = expression.localRelocationBalance();
             for (std::int64_t count = 0; count < (balance < 0 ? -balance : balance); ++count)
@@ -163,6 +155,18 @@ ObjectAssemblyResult ObjectPassTwo::run(const ObjectPassOneResult& passOne) {
                            term.sign == ObjectTermSign::Subtract,
                            external->name,
                            term.position);
+            const auto addend = expression.evaluateInitialAddend();
+            const bool hasPendingRelocation = module.modifications.size() != firstModification;
+            if (!hasPendingRelocation &&
+                (addend < Word24BitRange.min || addend > Word24BitRange.max))
+                return failure(AssemblyDiagnosticCode::ValueOutOfRange,
+                               position,
+                               "Valor de WORD fora do intervalo de 24 bits.");
+            // The linker adds each pending term modulo the 24-bit field width.
+            const auto word = static_cast<std::uint32_t>(addend) & 0xFFFFFFU;
+            bytes = {static_cast<std::uint8_t>(word >> 16),
+                     static_cast<std::uint8_t>(word >> 8),
+                     static_cast<std::uint8_t>(word)};
         } else if (line.directive == ObjectDirectiveKind::Base && line.baseOperand) {
             if (const auto* local = std::get_if<LocalSymbolReference>(&*line.baseOperand))
                 base = local->address;
