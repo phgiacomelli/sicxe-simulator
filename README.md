@@ -55,8 +55,8 @@ somente diagnósticos. Nomes têm até seis caracteres, `T` contém de 1 a 30
 bytes e `M` usa campos de 5/6 meios bytes. A forma de `M` sem nome é aceita
 como relocação positiva pela seção e emitida na forma nomeada.
 
-A biblioteca não abre arquivos, monta fonte, resolve símbolos globais ou
-aplica relocação. No segundo pacote, `sicxe_assembler` acrescenta um modo
+A biblioteca não abre arquivos, monta fonte ou aplica relocação final. No
+segundo pacote, `sicxe_assembler` acrescenta um modo
 separado de passagem 1 para montagem objeto (`assembler::ObjectPassOne::run` e
 `assembler::parseObjectWordExpression`), com seção obrigatória em `START`,
 `EXTDEF`/`EXTREF`, limite de seis caracteres para seção e símbolos globais,
@@ -65,7 +65,15 @@ absoluto, símbolo local (com offset relativo à seção) ou símbolo externo.
 O terceiro pacote oferece `assembler::assembleObject(sourceText)` em
 `assembler/ObjectAssembler.hpp`. A API devolve um `linker::ObjectModule` com
 os registros de texto e modificação ou um `assembler::AssemblyFailure` com
-diagnósticos. A publicação de `.obj` pela linha de comando fica para a integração.
+diagnósticos. O quarto pacote acrescenta a primeira passagem do ligador em
+`linker/LinkPassOne.hpp` (`linker::LinkPassOne::run` e
+`linker::GlobalSymbolTable`), que posiciona as seções consecutivamente na ordem
+recebida, constrói a tabela de símbolos globais (seções e definições `D` sem
+distinção de caixa), calcula o comprimento combinado dentro de `0x100000` bytes
+e o ponto de entrada relativo a partir de no máximo um registro `E` explícito,
+reunindo os diagnósticos estruturais sem exigir ainda a definição dos símbolos
+externos referenciados em `R`/`M`. A publicação de `.obj` pela linha de comando
+fica para a integração.
 `assembler::assemble` e os executáveis de montagem atuais permanecem inalterados.
 
 ## Compilar e executar
@@ -168,14 +176,15 @@ cobrem a máquina virtual, o montador, o motor de macros e a integração final,
 incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
 controlador e da interface, que rodam sem abrir uma janela.
 
-O alvo `LinkerTests` verifica parse/render de objetos e diagnósticos, sem
-depender do montador ou da VM, e `ObjectPassOneTest` (em `AssemblerTests`)
-verifica a primeira passagem em modo objeto e as declarações externas. As
-suítes `ObjectAssemblerTest` e `ObjectAssemblerDecoderTest` cobrem a emissão
-e a compatibilidade das instruções com a VM. Para executar esses casos:
+O alvo `LinkerTests` verifica parse/render de objetos, a primeira passagem do
+ligador (`LinkPassOneTest`) e diagnósticos, sem depender do montador ou da VM,
+e `ObjectPassOneTest` (em `AssemblerTests`) verifica a primeira passagem em modo
+objeto e as declarações externas. As suítes `ObjectAssemblerTest` e
+`ObjectAssemblerDecoderTest` cobrem a emissão e a compatibilidade das instruções
+com a VM. Para executar esses casos:
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPassOneTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
 ```
 
 ## Contribuir
