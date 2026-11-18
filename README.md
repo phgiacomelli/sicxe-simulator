@@ -43,42 +43,14 @@ para montagem direta, sem expansão.
 
 ### 4. Ligador
 
-Em desenvolvimento. O primeiro pacote fornece a biblioteca C++20
-`sicxe_linker`, com modelo de módulo objeto, parser e writer de registros
-textuais SIC/XE `H/D/R/T/M/E`. Os offsets são relativos a uma única seção
-com origem zero; os registros de texto preservam os buracos das reservas.
+Em desenvolvimento. O ligador reúne módulos objeto SIC/XE em duas passagens.
+A primeira posiciona as seções na ordem recebida, calcula o ponto de entrada
+e constrói a tabela de símbolos globais. A segunda combina o código e os
+dados, preserva as áreas reservadas e resolve as referências externas.
 
-`linker::parseObject(text, fileName)` retorna um módulo próprio ou diagnósticos
-com arquivo, registro e coluna. `linker::renderObject(module)` valida os dados
-e retorna texto de largura fixa, com hexadecimais maiúsculos e finais LF, ou
-somente diagnósticos. Nomes têm até seis caracteres, `T` contém de 1 a 30
-bytes e `M` usa campos de 5/6 meios bytes. A forma de `M` sem nome é aceita
-como relocação positiva pela seção e emitida na forma nomeada.
-
-A biblioteca não abre arquivos, monta fonte ou aplica relocação final. No
-segundo pacote, `sicxe_assembler` acrescenta um modo
-separado de passagem 1 para montagem objeto (`assembler::ObjectPassOne::run` e
-`assembler::parseObjectWordExpression`), com seção obrigatória em `START`,
-`EXTDEF`/`EXTREF`, limite de seis caracteres para seção e símbolos globais,
-expressões lineares `+`/`-` em `WORD` e referências classificadas como inteiro
-absoluto, símbolo local (com offset relativo à seção) ou símbolo externo.
-O terceiro pacote oferece `assembler::assembleObject(sourceText)` em
-`assembler/ObjectAssembler.hpp`. A API devolve um `linker::ObjectModule` com
-os registros de texto e modificação ou um `assembler::AssemblyFailure` com
-diagnósticos. O quarto pacote acrescenta a primeira passagem do ligador em
-`linker/LinkPassOne.hpp` (`linker::LinkPassOne::run` e
-`linker::GlobalSymbolTable`), que posiciona as seções consecutivamente na ordem
-recebida, constrói a tabela de símbolos globais (seções e definições `D` sem
-distinção de caixa), calcula o comprimento combinado dentro de `0x100000` bytes
-e o ponto de entrada relativo a partir de no máximo um registro `E` explícito,
-reunindo os diagnósticos estruturais sem exigir ainda a definição dos símbolos
-externos referenciados em `R`/`M`. O quinto pacote acrescenta
-`linker::LinkPassTwo::run` em `linker/LinkPassTwo.hpp`. A API usa a tabela
-global da primeira passagem, combina o texto preservando as reservas e aplica
-os offsets conhecidos dos símbolos. O resultado conserva os termos que
-dependem do endereço de carga para a etapa de relocação final. A publicação
-de `.obj` pela linha de comando fica para a integração.
-`assembler::assemble` e os executáveis de montagem atuais permanecem inalterados.
+O resultado mantém os ajustes que dependem do endereço de carga. As duas
+passagens estão disponíveis como biblioteca. A relocação final e a interface
+de linha de comando são as próximas etapas.
 
 ## Compilar e executar
 
