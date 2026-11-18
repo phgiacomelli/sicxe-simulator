@@ -3,6 +3,8 @@
 #include "ObjectValidation.hpp"
 
 #include <map>
+#include <unordered_set>
+#include <utility>
 
 namespace linker {
 namespace {
@@ -51,8 +53,10 @@ LinkPassTwoResult LinkPassTwo::run(std::span<const ObjectModule> modules,
         result.diagnostics = passOne.diagnostics;
         return result;
     }
-    const auto expectedPassOne = LinkPassOne::run(modules);
-    if (!expectedPassOne.succeeded() || expectedPassOne != passOne) {
+    if (modules.empty() || passOne.sections.size() != modules.size() ||
+        passOne.totalLength > ObjectAddressSpaceBytes ||
+        (passOne.totalLength == 0 ? passOne.entryOffset != 0
+                                  : passOne.entryOffset >= passOne.totalLength)) {
         result.diagnostics.push_back(makeDiagnostic(
             ObjectDiagnosticCode::ValueOutOfRange,
             ObjectPosition{"", 1, 1},
@@ -64,81 +68,62 @@ LinkPassTwoResult LinkPassTwo::run(std::span<const ObjectModule> modules,
     intermediate.totalLength = passOne.totalLength;
     intermediate.entryOffset = passOne.entryOffset;
 
-    for (std::size_t moduleIndex = 0; moduleIndex < modules.size(); ++moduleIndex) {
-        const auto& section = passOne.sections[moduleIndex];
-        if (section.moduleIndex != moduleIndex ||
-            section.length != modules[moduleIndex].header.length ||
-            section.key != GlobalSymbolTable::normalizeName(modules[moduleIndex].header.name) ||
-            section.baseOffset > passOne.totalLength ||
-            section.length > passOne.totalLength - section.baseOffset) {
-            result.diagnostics.push_back(makeDiagnostic(
-                ObjectDiagnosticCode::ValueOutOfRange,
-                modules[moduleIndex].header.position,
-                "Layout da primeira passagem nao corresponde aos modulos recebidos."));
-            return result;
-        }
-        for (const auto& text : modules[moduleIndex].text) {
-            if (text.offset > section.length || text.bytes.size() > section.length - text.offset) {
-                result.diagnostics.push_back(makeDiagnostic(
-                    ObjectDiagnosticCode::ValueOutOfRange, text.position, "Texto fora da secao."));
-                continue;
-            }
-            for (std::size_t index = 0; index < text.bytes.size(); ++index) {
-                intermediate.text[section.baseOffset + text.offset + index] = text.bytes[index];
-            }
-        }
-    }
-    if (!result.diagnostics.empty())
-        return result;
-
+    std::uint32_t nextBase = 0;
     for (std::size_t moduleIndex = 0; moduleIndex < modules.size(); ++moduleIndex) {
         const auto& module = modules[moduleIndex];
         const auto& section = passOne.sections[moduleIndex];
-        std::map<FieldKey, std::vector<const ModificationRecord*>> fields;
-        for (const auto& modification : module.modifications) {
-            if (modification.halfBytes != 5U && modification.halfBytes != 6U) {
-                result.diagnostics.push_back(
-                    makeDiagnostic(ObjectDiagnosticCode::InvalidModification,
-                                   modification.position,
-                                   "Comprimento de M deve ser 05 ou 06 meios bytes."));
+        if (section.moduleIndex != moduleIndex || section.baseOffset != nextBase ||
+            section.key != detail::normalize(module.header.name) ||
+            section.length != module.header.length ||
+            section.length > passOne.totalLength - nextBase) {
+            result.diagnostics.push_back(makeDiagnostic(
+                ObjectDiagnosticCode::ValueOutOfRange,
+                module.header.position,
+                "Layout da primeira passagem nao corresponde aos modulos recebidos."));
+            return result;
+        }
+        nextBase += section.length;
+        const auto diagnosticsBeforeModule = result.diagnostics.size();
+        std::vector<bool> present(section.length, false);
+        for (const auto& text : module.text) {
+            if (auto error = detail::validateTextRecord(text, present)) {
+                result.diagnostics.push_back(std::move(*error));
                 continue;
             }
-            if (modification.offset > section.length || 3U > section.length - modification.offset ||
-                section.baseOffset > intermediate.totalLength ||
-                modification.offset > intermediate.totalLength - section.baseOffset ||
-                3U > intermediate.totalLength - section.baseOffset - modification.offset) {
-                result.diagnostics.push_back(
-                    makeDiagnostic(ObjectDiagnosticCode::ValueOutOfRange,
-                                   modification.position,
-                                   "Modificacao fora do texto combinado."));
+            for (std::size_t index = 0; index < text.bytes.size(); ++index)
+                intermediate.text[section.baseOffset + text.offset + index] = text.bytes[index];
+        }
+        std::unordered_set<std::string> references;
+        for (const auto& reference : module.references)
+            references.insert(detail::normalize(reference.name));
+
+        std::map<FieldKey, std::vector<const ModificationRecord*>> fields;
+        for (const auto& modification : module.modifications) {
+            if (auto error = detail::validateModificationRecord(
+                    modification, present, section.key, references)) {
+                result.diagnostics.push_back(std::move(*error));
                 continue;
             }
             fields[{section.baseOffset + modification.offset, modification.halfBytes}].push_back(
                 &modification);
         }
+        if (result.diagnostics.size() != diagnosticsBeforeModule)
+            continue;
 
-        // Different widths at one address describe incompatible field layouts.
-        std::map<std::uint32_t, std::uint8_t> widthAtOffset;
+        // Repeated terms in one field combine. Distinct fields must be disjoint
+        // so their remaining load-address terms can be applied independently.
+        std::uint32_t previousEnd = section.baseOffset;
         for (const auto& [key, records] : fields) {
-            const auto [offset, width] = key;
-            const auto [it, inserted] = widthAtOffset.emplace(offset, width);
-            if (!inserted && it->second != width) {
+            const auto offset = key.first;
+            if (offset < previousEnd) {
                 result.diagnostics.push_back(
                     makeDiagnostic(ObjectDiagnosticCode::InvalidModification,
                                    records.front()->position,
-                                   "Modificacoes no mesmo campo devem ter o mesmo comprimento."));
+                                   "Campos de modificacao distintos compartilham bytes."));
             }
-            for (std::uint32_t byte = 0; byte < 3U; ++byte) {
-                if (!intermediate.text[offset + byte].has_value()) {
-                    result.diagnostics.push_back(
-                        makeDiagnostic(ObjectDiagnosticCode::MissingText,
-                                       records.front()->position,
-                                       "Modificacao aponta para buraco no texto."));
-                    break;
-                }
-            }
+            previousEnd = offset + 3U;
         }
-        if (!result.diagnostics.empty())
+        if (result.diagnostics.size() != diagnosticsBeforeModule)
             continue;
 
         for (const auto& [key, records] : fields) {
@@ -164,17 +149,30 @@ LinkPassTwoResult LinkPassTwo::run(std::span<const ObjectModule> modules,
                 continue;
 
             const std::uint32_t mask = width == 5U ? 0xFFFFFU : 0xFFFFFFU;
-            const std::uint32_t addend = readField(intermediate.text, offset, width);
-            const auto patched = static_cast<std::uint32_t>(
-                (static_cast<std::int64_t>(addend) + knownContribution) & mask);
+            const auto addend =
+                static_cast<std::int64_t>(readField(intermediate.text, offset, width));
+            const auto valueBeforeLoad = addend + knownContribution;
+            const auto patched = static_cast<std::uint32_t>(valueBeforeLoad) & mask;
             writeField(intermediate.text, offset, width, patched);
-            if (coefficient != 0) {
-                intermediate.residuals.push_back(LinkModificationResidual{
-                    offset, width, coefficient, records.front()->position});
+            const bool needsAddressCheck =
+                width == 5U && (valueBeforeLoad < 0 || valueBeforeLoad > mask);
+            if (coefficient != 0 || needsAddressCheck) {
+                intermediate.residuals.push_back(
+                    LinkModificationResidual{offset,
+                                             width,
+                                             coefficient,
+                                             records.front()->position,
+                                             width == 5U ? valueBeforeLoad : patched});
             }
         }
     }
 
+    if (nextBase != passOne.totalLength) {
+        result.diagnostics.push_back(
+            makeDiagnostic(ObjectDiagnosticCode::ValueOutOfRange,
+                           modules.back().header.position,
+                           "Comprimento combinado diverge da primeira passagem."));
+    }
     if (!result.diagnostics.empty())
         return result;
     result.intermediate = std::move(intermediate);

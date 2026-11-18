@@ -72,8 +72,12 @@ recebida, constrói a tabela de símbolos globais (seções e definições `D` s
 distinção de caixa), calcula o comprimento combinado dentro de `0x100000` bytes
 e o ponto de entrada relativo a partir de no máximo um registro `E` explícito,
 reunindo os diagnósticos estruturais sem exigir ainda a definição dos símbolos
-externos referenciados em `R`/`M`. A publicação de `.obj` pela linha de comando
-fica para a integração.
+externos referenciados em `R`/`M`. O quinto pacote acrescenta
+`linker::LinkPassTwo::run` em `linker/LinkPassTwo.hpp`. A API usa a tabela
+global da primeira passagem, combina o texto preservando as reservas e aplica
+os offsets conhecidos dos símbolos. O resultado conserva os termos que
+dependem do endereço de carga para a etapa de relocação final. A publicação
+de `.obj` pela linha de comando fica para a integração.
 `assembler::assemble` e os executáveis de montagem atuais permanecem inalterados.
 
 ## Compilar e executar
@@ -176,15 +180,15 @@ cobrem a máquina virtual, o montador, o motor de macros e a integração final,
 incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
 controlador e da interface, que rodam sem abrir uma janela.
 
-O alvo `LinkerTests` verifica parse/render de objetos, a primeira passagem do
-ligador (`LinkPassOneTest`) e diagnósticos, sem depender do montador ou da VM,
+O alvo `LinkerTests` verifica parse/render de objetos, as duas passagens do
+ligador (`LinkPassOneTest` e `LinkPassTwoTest`) e diagnósticos, sem depender do montador ou da VM,
 e `ObjectPassOneTest` (em `AssemblerTests`) verifica a primeira passagem em modo
 objeto e as declarações externas. As suítes `ObjectAssemblerTest` e
 `ObjectAssemblerDecoderTest` cobrem a emissão e a compatibilidade das instruções
 com a VM. Para executar esses casos:
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPassOneTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPass(One|Two)Test|ObjectPassOneTest|ObjectAssembler' --output-on-failure
 ```
 
 ## Contribuir
