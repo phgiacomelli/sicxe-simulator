@@ -1,6 +1,9 @@
 #include "LinkPassOne.hpp"
 
+#include "ObjectValidation.hpp"
+
 #include <algorithm>
+#include <limits>
 #include <unordered_set>
 #include <utility>
 
@@ -10,27 +13,6 @@ namespace {
 ObjectPosition at(ObjectPosition position, std::size_t offset) {
     position.column += offset;
     return position;
-}
-
-bool isAsciiLetter(char value) {
-    return (value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z');
-}
-
-bool isAsciiDigit(char value) {
-    return value >= '0' && value <= '9';
-}
-
-std::optional<std::size_t> invalidNameOffset(std::string_view value) {
-    if (value.empty() || !isAsciiLetter(value.front())) {
-        return 0;
-    }
-    for (std::size_t index = 1; index < value.size(); ++index) {
-        if (index >= 6 ||
-            (!isAsciiLetter(value[index]) && !isAsciiDigit(value[index]) && value[index] != '_')) {
-            return index;
-        }
-    }
-    return std::nullopt;
 }
 
 std::string formatPosition(const ObjectPosition& position) {
@@ -56,24 +38,18 @@ ObjectDiagnostic makeDuplicateSymbolDiagnostic(std::string_view name,
 } // namespace
 
 std::string GlobalSymbolTable::normalizeName(std::string_view name) {
-    std::string key{name};
-    for (char& value : key) {
-        if (value >= 'a' && value <= 'z') {
-            value = static_cast<char>(value - 'a' + 'A');
-        }
-    }
-    return key;
+    return detail::normalize(name);
 }
 
 bool GlobalSymbolTable::isValidName(std::string_view name) {
-    return !invalidNameOffset(name).has_value();
+    return !detail::invalidName(name).has_value();
 }
 
 std::optional<ObjectDiagnostic> GlobalSymbolTable::defineSection(std::string_view name,
                                                                  std::size_t moduleIndex,
                                                                  std::uint32_t baseOffset,
                                                                  ObjectPosition position) {
-    if (const auto invalid = invalidNameOffset(name)) {
+    if (const auto invalid = detail::invalidName(name)) {
         return ObjectDiagnostic{
             ObjectDiagnosticCode::InvalidName,
             at(position, *invalid),
@@ -106,11 +82,18 @@ std::optional<ObjectDiagnostic> GlobalSymbolTable::defineSymbol(std::string_view
                                                                 std::uint32_t sectionBaseOffset,
                                                                 std::uint32_t relativeOffset,
                                                                 ObjectPosition position) {
-    if (const auto invalid = invalidNameOffset(name)) {
+    if (const auto invalid = detail::invalidName(name)) {
         return ObjectDiagnostic{
             ObjectDiagnosticCode::InvalidName,
             at(position, *invalid),
             "Nome de definicao invalido.",
+        };
+    }
+    if (relativeOffset > std::numeric_limits<std::uint32_t>::max() - sectionBaseOffset) {
+        return ObjectDiagnostic{
+            ObjectDiagnosticCode::ValueOutOfRange,
+            at(position, 6),
+            "Offset global da definicao nao representavel.",
         };
     }
     const std::string key = normalizeName(name);
@@ -204,7 +187,7 @@ LinkPassOneResult LinkPassOne::run(std::span<const ObjectModule> modules) {
 
     for (std::size_t moduleIndex = 0; moduleIndex < modules.size(); ++moduleIndex) {
         const auto& module = modules[moduleIndex];
-        const auto invalidHeaderName = invalidNameOffset(module.header.name);
+        const auto invalidHeaderName = detail::invalidName(module.header.name);
         if (invalidHeaderName.has_value()) {
             result.diagnostics.push_back(ObjectDiagnostic{
                 ObjectDiagnosticCode::InvalidName,
@@ -257,7 +240,7 @@ LinkPassOneResult LinkPassOne::run(std::span<const ObjectModule> modules) {
         }
 
         for (const auto& definition : module.definitions) {
-            if (const auto invalid = invalidNameOffset(definition.name)) {
+            if (const auto invalid = detail::invalidName(definition.name)) {
                 result.diagnostics.push_back(ObjectDiagnostic{
                     ObjectDiagnosticCode::InvalidName,
                     at(definition.position, *invalid),
@@ -297,7 +280,7 @@ LinkPassOneResult LinkPassOne::run(std::span<const ObjectModule> modules) {
 
         std::unordered_set<std::string> declaredReferences;
         for (const auto& reference : module.references) {
-            if (const auto invalid = invalidNameOffset(reference.name)) {
+            if (const auto invalid = detail::invalidName(reference.name)) {
                 result.diagnostics.push_back(ObjectDiagnostic{
                     ObjectDiagnosticCode::InvalidName,
                     at(reference.position, *invalid),
@@ -320,97 +303,15 @@ LinkPassOneResult LinkPassOne::run(std::span<const ObjectModule> modules) {
             std::min<std::uint32_t>(module.header.length, ObjectAddressSpaceBytes);
         std::vector<bool> present(effectiveLength, false);
         for (const auto& text : module.text) {
-            if (text.bytes.empty() || text.bytes.size() > MaxTextRecordBytes) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::InvalidTextLength,
-                    at(text.position, 7),
-                    "Registro T exige de 1 a 30 bytes.",
-                });
-                continue;
-            }
-            if (text.offset > effectiveLength ||
-                text.bytes.size() > effectiveLength - text.offset) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::ValueOutOfRange,
-                    at(text.position, 1),
-                    "Texto fora da secao.",
-                });
-                continue;
-            }
-            bool overlapped = false;
-            for (std::size_t index = 0; index < text.bytes.size(); ++index) {
-                if (present[text.offset + index]) {
-                    overlapped = true;
-                }
-                present[text.offset + index] = true;
-            }
-            if (overlapped) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::OverlappingText,
-                    at(text.position, 1),
-                    "Registros T sobrepostos.",
-                });
+            if (auto diagnostic = detail::validateTextRecord(text, present)) {
+                result.diagnostics.push_back(std::move(*diagnostic));
             }
         }
-
+        const std::string_view localSection = invalidHeaderName ? std::string_view{} : sectionKey;
         for (const auto& modification : module.modifications) {
-            if (modification.halfBytes != 5 && modification.halfBytes != 6) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::InvalidModification,
-                    at(modification.position, 7),
-                    "Comprimento de M deve ser 05 ou 06 meios bytes.",
-                });
-                continue;
-            }
-            if (modification.sign != ModificationSign::Add &&
-                modification.sign != ModificationSign::Subtract) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::InvalidModification,
-                    at(modification.position, 9),
-                    "Sinal de modificacao invalido.",
-                });
-                continue;
-            }
-            if (modification.offset >= effectiveLength ||
-                3U > effectiveLength - modification.offset) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::ValueOutOfRange,
-                    at(modification.position, 1),
-                    "Modificacao fora da secao.",
-                });
-                continue;
-            }
-            bool covered = true;
-            for (std::uint32_t index = 0; index < 3; ++index) {
-                if (!present[modification.offset + index]) {
-                    covered = false;
-                    break;
-                }
-            }
-            if (!covered) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::MissingText,
-                    at(modification.position, 1),
-                    "Modificacao exige tres bytes presentes em T.",
-                });
-                continue;
-            }
-            if (const auto invalid = invalidNameOffset(modification.symbol)) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::InvalidName,
-                    at(modification.position, 10 + *invalid),
-                    "Nome de modificacao invalido.",
-                });
-                continue;
-            }
-            const std::string modKey = GlobalSymbolTable::normalizeName(modification.symbol);
-            const bool isSectionOrigin = !invalidHeaderName.has_value() && modKey == sectionKey;
-            if (!isSectionOrigin && !declaredReferences.contains(modKey)) {
-                result.diagnostics.push_back(ObjectDiagnostic{
-                    ObjectDiagnosticCode::UndeclaredReference,
-                    at(modification.position, 10),
-                    "Simbolo de M nao declarado em R nem igual a secao.",
-                });
+            if (auto diagnostic = detail::validateModificationRecord(
+                    modification, present, localSection, declaredReferences)) {
+                result.diagnostics.push_back(std::move(*diagnostic));
             }
         }
 

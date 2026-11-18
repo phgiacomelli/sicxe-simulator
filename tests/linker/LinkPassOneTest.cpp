@@ -410,6 +410,8 @@ TEST(LinkPassOneTest, AcceptsCombinedLengthAtOneMegabyteBoundaryAndRejectsOverfl
     const auto sec3Overflow = parseValidModule("HSec3  000000040001\nE\n", "s3_over.obj");
     const auto overLimit = LinkPassOne::run(std::array<ObjectModule, 3>{sec1, sec2, sec3Overflow});
     EXPECT_FALSE(overLimit.succeeded());
+    EXPECT_FALSE(overLimit.fitsInAddressSpace(0U));
+    EXPECT_FALSE(overLimit.resolveInitialPc(0U));
     ASSERT_EQ(overLimit.diagnostics.size(), 1U);
     EXPECT_EQ(overLimit.diagnostics[0].code, ObjectDiagnosticCode::ValueOutOfRange);
     EXPECT_EQ(overLimit.diagnostics[0].position, (ObjectPosition{"s3_over.obj", 1, 14}));
@@ -488,6 +490,8 @@ TEST(LinkPassOneTest, GathersMultipleStructuralDiagnosticsAcrossModulesInSingleR
 TEST(LinkPassOneTest, RejectsEmptyInputAndDoesNotPreserveGlobalSymbolTableStateBetweenRuns) {
     const auto emptyResult = LinkPassOne::run(std::span<const ObjectModule>{});
     EXPECT_FALSE(emptyResult.succeeded());
+    EXPECT_FALSE(emptyResult.fitsInAddressSpace(0U));
+    EXPECT_FALSE(emptyResult.resolveInitialPc(0U));
     ASSERT_EQ(emptyResult.diagnostics.size(), 1U);
     EXPECT_EQ(emptyResult.diagnostics[0].code, ObjectDiagnosticCode::MissingRecord);
 
@@ -537,6 +541,11 @@ TEST(LinkPassOneTest, GlobalSymbolTableValidatesNamesAndPreservesFirstDefinition
     ASSERT_TRUE(badSymbol.has_value());
     EXPECT_EQ(badSymbol->code, ObjectDiagnosticCode::InvalidName);
     EXPECT_EQ(badSymbol->position, (ObjectPosition{"a.obj", 2, 8}));
+
+    const auto overflow = table.defineSymbol("WRAP", 0, "MAIN", 0xFFFFFFFFU, 1, {"a.obj", 2, 2});
+    ASSERT_TRUE(overflow);
+    EXPECT_EQ(overflow->code, ObjectDiagnosticCode::ValueOutOfRange);
+    EXPECT_FALSE(table.contains("WRAP"));
 
     EXPECT_FALSE(table.defineSection("Main", 0, 0x100U, {"a.obj", 1, 1}).has_value());
     EXPECT_FALSE(

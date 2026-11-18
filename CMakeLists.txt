@@ -177,6 +177,8 @@ add_library(sicxe_linker STATIC
     src/linker/ObjectModule.hpp
     src/linker/ObjectRecords.hpp
     src/linker/ObjectRecords.cpp
+    src/linker/ObjectValidation.hpp
+    src/linker/ObjectValidation.cpp
     src/linker/LinkPassOne.hpp
     src/linker/LinkPassOne.cpp
 )

@@ -119,7 +119,7 @@ struct LinkPassOneResult {
     std::optional<LinkedEntryPoint> explicitEntry;
     std::vector<ObjectDiagnostic> diagnostics;
 
-    bool succeeded() const noexcept {
+    constexpr bool succeeded() const noexcept {
         return diagnostics.empty();
     }
 
@@ -136,7 +136,7 @@ struct LinkPassOneResult {
     std::optional<SectionLayout> findSection(std::string_view name) const;
 
     constexpr bool fitsInAddressSpace(std::uint32_t loadAddress) const noexcept {
-        if (loadAddress >= ObjectAddressSpaceBytes) {
+        if (!succeeded() || loadAddress >= ObjectAddressSpaceBytes) {
             return false;
         }
         if (totalLength > ObjectAddressSpaceBytes - loadAddress) {
