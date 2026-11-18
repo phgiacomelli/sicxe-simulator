@@ -119,6 +119,25 @@ encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState
     if (const auto* diagnostic = std::get_if<OperandDiagnostic>(&resolved))
         return failure(*diagnostic);
     const auto target = std::get<std::int64_t>(resolved);
+    return encodeResolvedMemoryInstruction(line, memory, target, baseState);
+}
+
+InstructionEncodingResult encodeResolvedMemoryInstruction(const LocatedLine& line,
+                                                          const MemoryInstructionOperand& memory,
+                                                          std::int64_t target,
+                                                          BaseState baseState) {
+    if (!line.opcode ||
+        (line.format != LocatedInstructionFormat::Format3 &&
+         line.format != LocatedInstructionFormat::Format4) ||
+        line.sizeBytes != static_cast<std::size_t>(*line.format) ||
+        line.address > MaxAddressableByte || line.sizeBytes > AddressSpaceBytes - line.address)
+        return failure(InstructionEncodingCode::LayoutMismatch,
+                       memory.value.position,
+                       "Layout de instrucao de memoria invalido.");
+    if (baseState && *baseState > MaxAddressableByte)
+        return failure(InstructionEncodingCode::InvalidBaseState,
+                       memory.value.position,
+                       "Estado de BASE fora do espaco enderecavel de 20 bits.");
     // resolveOperand applies its range to integers only; also bound symbol addresses.
     if (target < 0 || target > MaxAddressableByte) {
         return failure(InstructionEncodingCode::AddressOutOfRange,
@@ -129,9 +148,9 @@ encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState
     const std::uint8_t ni = memory.mode == InstructionAddressing::Immediate  ? 1
                             : memory.mode == InstructionAddressing::Indirect ? 2
                                                                              : 3;
-    const auto first = static_cast<std::uint8_t>(spec.opcode | ni);
+    const auto first = static_cast<std::uint8_t>(*line.opcode | ni);
     std::uint8_t flags = memory.indexed ? 0x80 : 0;
-    if (operand.form == InstructionForm::Format4) {
+    if (line.format == LocatedInstructionFormat::Format4) {
         const auto address = static_cast<std::uint32_t>(target);
         return EncodedInstruction{{first,
                                    static_cast<std::uint8_t>(flags | 0x10U | (address >> 16)),
@@ -140,8 +159,10 @@ encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState
     }
 
     std::uint32_t field = 0;
-    if (std::holds_alternative<IntegerOperand>(value)) {
-        const auto direct = validateInteger(value, Address12BitRange);
+    if (memory.kind == InstructionValueKind::Integer) {
+        const OperandValue integer = IntegerOperand{
+            target, IntegerBase::Decimal, target < 0, memory.value.text, memory.value.position};
+        const auto direct = validateInteger(integer, Address12BitRange);
         if (const auto* diagnostic = std::get_if<OperandDiagnostic>(&direct)) {
             auto error = *diagnostic;
             error.message += " Use '+' para solicitar formato 4 explicitamente.";
@@ -150,7 +171,8 @@ encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState
         field = static_cast<std::uint32_t>(std::get<std::int64_t>(direct));
     } else {
         // Widen before arithmetic: no unsigned subtraction and no 20-bit PC wrap.
-        const auto pc = static_cast<std::int64_t>(line.address) + operand.size();
+        const auto pc =
+            static_cast<std::int64_t>(line.address) + static_cast<std::int64_t>(line.sizeBytes);
         const auto displacement = target - pc;
         if (displacement >= -2048 && displacement <= 2047) {
             flags |= 0x20;
