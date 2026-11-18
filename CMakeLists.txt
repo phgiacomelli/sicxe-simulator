@@ -177,6 +177,8 @@ add_library(sicxe_linker STATIC
     src/linker/ObjectModule.hpp
     src/linker/ObjectRecords.hpp
     src/linker/ObjectRecords.cpp
+    src/linker/LinkPassOne.hpp
+    src/linker/LinkPassOne.cpp
 )
 target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 

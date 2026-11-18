@@ -30,6 +30,7 @@ enum class ObjectDiagnosticCode {
     InvalidModification,
     MissingText,
     UndeclaredReference,
+    DuplicateEntry,
 };
 
 struct ObjectDiagnostic {
