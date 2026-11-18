@@ -1,6 +1,7 @@
 #pragma once
 
 #include "InstructionCatalog.hpp"
+#include "InstructionOperand.hpp"
 #include "LocatedLine.hpp"
 #include "OperandValue.hpp"
 #include "SymbolTable.hpp"
@@ -41,6 +42,13 @@ using InstructionEncodingResult = std::variant<EncodedInstruction, InstructionEn
 
 InstructionEncodingResult
 encodeInstruction(const LocatedLine& line, const SymbolTable& symbols, BaseState baseState);
+// Shared bit encoding for a validated instruction and classified/resolved target.
+// In format 3, memory.kind distinguishes PC/BASE addressing from a direct numeric field.
+// Format 4 uses the target value directly.
+InstructionEncodingResult encodeResolvedMemoryInstruction(const LocatedLine& line,
+                                                          const MemoryInstructionOperand& memory,
+                                                          std::int64_t target,
+                                                          BaseState baseState);
 AssemblyDiagnostic toAssemblyDiagnostic(const InstructionEncodingDiagnostic& diagnostic);
 
 } // namespace assembler

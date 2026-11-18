@@ -106,6 +106,10 @@ add_library(sicxe_assembler STATIC
     src/assembler/LocatedLine.hpp
     src/assembler/ObjectOperand.cpp
     src/assembler/ObjectOperand.hpp
+    src/assembler/ObjectAssembler.cpp
+    src/assembler/ObjectAssembler.hpp
+    src/assembler/ObjectPassTwo.cpp
+    src/assembler/ObjectPassTwo.hpp
     src/assembler/ObjectPassOne.cpp
     src/assembler/ObjectPassOne.hpp
     src/assembler/PassOne.cpp
@@ -116,6 +120,7 @@ add_library(sicxe_assembler STATIC
     src/assembler/InstructionEncoder.hpp
 )
 target_include_directories(sicxe_assembler PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(sicxe_assembler PUBLIC sicxe_linker)
 
 add_library(sicxe_assembler_cli STATIC
     src/assembler/AssemblerCli.cpp
@@ -250,6 +255,7 @@ if(BUILD_TESTING)
         tests/assembler/InstructionCatalogTest.cpp
         tests/assembler/InstructionOperandTest.cpp
         tests/assembler/Format2EncoderTest.cpp
+        tests/assembler/ObjectAssemblerTest.cpp
         tests/assembler/ObjectPassOneTest.cpp
         tests/assembler/PassOneTest.cpp
         tests/assembler/DataDirectiveTest.cpp
@@ -314,6 +320,7 @@ if(BUILD_TESTING)
 
     # Only compatibility/execution tests depend on the VM; the assembler stays independent.
     add_executable(AssemblerDecoderTests
+        tests/assembler/ObjectAssemblerDecoderTest.cpp
         tests/assembler/AssemblerAcceptanceTest.cpp
         tests/assembler/Format2DecoderTest.cpp
         tests/assembler/InstructionEncoderIntegrationTest.cpp

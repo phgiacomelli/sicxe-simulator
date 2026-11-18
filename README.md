@@ -62,6 +62,10 @@ separado de passagem 1 para montagem objeto (`assembler::ObjectPassOne::run` e
 `EXTDEF`/`EXTREF`, limite de seis caracteres para seção e símbolos globais,
 expressões lineares `+`/`-` em `WORD` e referências classificadas como inteiro
 absoluto, símbolo local (com offset relativo à seção) ou símbolo externo.
+O terceiro pacote oferece `assembler::assembleObject(sourceText)` em
+`assembler/ObjectAssembler.hpp`. A API devolve um `linker::ObjectModule` com
+os registros de texto e modificação ou um `assembler::AssemblyFailure` com
+diagnósticos. A publicação de `.obj` pela linha de comando fica para a integração.
 `assembler::assemble` e os executáveis de montagem atuais permanecem inalterados.
 
 ## Compilar e executar
@@ -166,11 +170,12 @@ controlador e da interface, que rodam sem abrir uma janela.
 
 O alvo `LinkerTests` verifica parse/render de objetos e diagnósticos, sem
 depender do montador ou da VM, e `ObjectPassOneTest` (em `AssemblerTests`)
-verifica a primeira passagem em modo objeto e as declarações externas. Para
-executar apenas esses casos após o build:
+verifica a primeira passagem em modo objeto e as declarações externas. As
+suítes `ObjectAssemblerTest` e `ObjectAssemblerDecoderTest` cobrem a emissão
+e a compatibilidade das instruções com a VM. Para executar esses casos:
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|ObjectPassOneTest' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
 ```
 
 ## Contribuir
