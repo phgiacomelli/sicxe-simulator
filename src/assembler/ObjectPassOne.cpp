@@ -4,7 +4,6 @@
 #include "DataDirective.hpp"
 #include "OperandValue.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -376,13 +375,11 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
 
     for (const auto& line : parsedLines) {
         if (line.kind == SourceLineKind::Blank || line.kind == SourceLineKind::Comment) {
-            const auto clampedAddress =
-                static_cast<std::uint32_t>(std::min(locationCounter, MaxMemoryAddress));
             result.lines.push_back(ObjectLocatedLine{
                 LocatedLine{
                     line,
                     LocatedLineCategory::Comment,
-                    clampedAddress,
+                    static_cast<std::uint32_t>(locationCounter),
                     0,
                     {},
                     false,
@@ -785,7 +782,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                     LocatedLine{
                         line,
                         LocatedLineCategory::Directive,
-                        static_cast<std::uint32_t>(std::min(locationCounter, MaxMemoryAddress)),
+                        static_cast<std::uint32_t>(locationCounter),
                         0,
                         std::string{mnemonic},
                         false,
@@ -874,7 +871,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                     LocatedLine{
                         line,
                         LocatedLineCategory::Directive,
-                        static_cast<std::uint32_t>(std::min(locationCounter, MaxMemoryAddress)),
+                        static_cast<std::uint32_t>(locationCounter),
                         0,
                         std::string{mnemonic},
                         false,
@@ -921,7 +918,6 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                     }
                 }
 
-                std::optional<ObjectBaseOperand> resolvedBaseOperand;
                 const std::size_t currentLineIndex = result.lines.size();
 
                 if (*directive == ObjectDirectiveKind::NoBase) {
@@ -971,26 +967,19 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                             });
                         } else {
                             const auto& baseValue = std::get<OperandValue>(parsedBase);
-                            if (const auto* integer = std::get_if<IntegerOperand>(&baseValue)) {
-                                const auto validated =
-                                    validateInteger(baseValue, Address20BitRange);
-                                if (const auto* diag = std::get_if<OperandDiagnostic>(&validated)) {
-                                    result.diagnostics.push_back(ObjectPassOneDiagnostic{
-                                        ObjectPassOneDiagnosticCode::InvalidDirectiveOperand,
-                                        diag->position,
-                                        diag->message,
-                                        std::nullopt,
-                                        *diag,
-                                    });
-                                } else {
-                                    resolvedBaseOperand = *integer;
-                                }
-                            } else if (const auto* symbol =
-                                           std::get_if<SymbolOperand>(&baseValue)) {
+                            if (const auto* symbol = std::get_if<SymbolOperand>(&baseValue)) {
                                 pendingOrder.push_back(PendingResolutionEntry{
                                     PendingResolutionKind::Base, pendingBases.size()});
                                 pendingBases.push_back(
                                     PendingBaseSymbol{currentLineIndex, *symbol});
+                            } else {
+                                result.diagnostics.push_back(ObjectPassOneDiagnostic{
+                                    ObjectPassOneDiagnosticCode::InvalidDirectiveOperand,
+                                    trimmedBase.position,
+                                    "Diretiva BASE exige um simbolo local no modo objeto.",
+                                    std::nullopt,
+                                    std::nullopt,
+                                });
                             }
                         }
                     }
@@ -1000,7 +989,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                     LocatedLine{
                         line,
                         LocatedLineCategory::Directive,
-                        static_cast<std::uint32_t>(std::min(locationCounter, MaxMemoryAddress)),
+                        static_cast<std::uint32_t>(locationCounter),
                         0,
                         std::string{mnemonic},
                         false,
@@ -1013,7 +1002,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                     std::nullopt,
                     std::nullopt,
                     std::nullopt,
-                    std::move(resolvedBaseOperand),
+                    std::nullopt,
                     {},
                     {},
                 });
@@ -1369,6 +1358,8 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
     }
 
     const auto startAddr32 = static_cast<std::uint32_t>(startAddress);
+    const auto programLength = static_cast<std::uint32_t>(
+        locationCounter >= startAddress ? locationCounter - startAddress : 0ULL);
     const auto computeOffset = [startAddr32](std::uint32_t addr) noexcept -> std::uint32_t {
         return addr >= startAddr32 ? (addr - startAddr32) : 0U;
     };
@@ -1379,12 +1370,23 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                 continue;
             }
             if (const auto resolved = symbols.find(exp.name)) {
+                const auto offset = computeOffset(resolved->address);
+                if (offset >= programLength) {
+                    result.diagnostics.push_back(ObjectPassOneDiagnostic{
+                        ObjectPassOneDiagnosticCode::AddressOutOfRange,
+                        exp.declaration,
+                        "Simbolo exportado '" + exp.source + "' aponta para fora da secao.",
+                        std::nullopt,
+                        std::nullopt,
+                    });
+                    continue;
+                }
                 ExportedSymbol exported{
                     exp.name,
                     exp.source,
                     exp.declaration,
                     resolved->address,
-                    computeOffset(resolved->address),
+                    offset,
                     resolved->definition,
                 };
                 if (exp.lineIndex < result.lines.size()) {
@@ -1571,11 +1573,12 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
             } else {
                 symbols.reference(endEntrySymbol->source, endEntrySymbol->position);
                 if (const auto resolved = symbols.find(endEntrySymbol->name)) {
-                    if (resolved->address > MaxMemoryAddress) {
+                    const auto offset = computeOffset(resolved->address);
+                    if (offset >= programLength) {
                         result.diagnostics.push_back(ObjectPassOneDiagnostic{
                             ObjectPassOneDiagnosticCode::InvalidEndOperand,
                             endEntrySymbol->position,
-                            "Endereco de entrada em END fora de 0x00000..0xFFFFF.",
+                            "Endereco de entrada em END fora da secao.",
                             std::nullopt,
                             std::nullopt,
                         });
@@ -1586,7 +1589,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
                             endEntrySymbol->source,
                             endEntrySymbol->position,
                             resolved->address,
-                            computeOffset(resolved->address),
+                            offset,
                             resolved->definition,
                         };
                     }
@@ -1609,8 +1612,7 @@ ObjectPassOneResult ObjectPassOne::run(std::span<const SourceLine> parsedLines) 
 
     result.startAddress = startAddr32;
     result.initialPc = static_cast<std::uint32_t>(initialPc);
-    result.programLength = static_cast<std::uint32_t>(
-        locationCounter >= startAddress ? (locationCounter - startAddress) : 0ULL);
+    result.programLength = programLength;
     if (sectionHeader.has_value()) {
         sectionHeader->length = result.programLength;
         result.section = *sectionHeader;

@@ -687,4 +687,57 @@ TEST(ObjectPassOneTest, OwnsAllStringsAndKeepsSuccessiveRunsIndependent) {
     EXPECT_EQ(second.diagnostics[1].code, ObjectPassOneDiagnosticCode::UndefinedSymbol);
 }
 
+TEST(ObjectPassOneTest, RejectsExportsAndEntriesAtTheExclusiveEndOfTheSection) {
+    const auto result =
+        ObjectPassOne::run("MAIN START 0x100\n EXTDEF TAIL\n BYTE X'01'\nTAIL END TAIL\n");
+    ASSERT_FALSE(result.succeeded());
+    ASSERT_EQ(result.diagnostics.size(), 2U);
+    EXPECT_EQ(result.diagnostics[0].code, ObjectPassOneDiagnosticCode::AddressOutOfRange);
+    EXPECT_EQ(result.diagnostics[0].position, (SourcePosition{2, 9}));
+    EXPECT_EQ(result.diagnostics[1].code, ObjectPassOneDiagnosticCode::InvalidEndOperand);
+    EXPECT_EQ(result.diagnostics[1].position, (SourcePosition{4, 10}));
+    EXPECT_TRUE(result.exports.empty());
+    EXPECT_FALSE(result.entry);
+    EXPECT_TRUE(ObjectPassOne::run("MAIN START 0\n END\n").succeeded());
+    EXPECT_FALSE(ObjectPassOne::run("MAIN START 0\n END MAIN\n").succeeded());
+    EXPECT_TRUE(ObjectPassOne::run("MAIN START 0\n BYTE X'01'\nTAIL END\n").succeeded());
+}
+
+TEST(ObjectPassOneTest, RequiresARelocatableLocalBaseInObjectMode) {
+    const auto source = "MAIN START 0\n BASE 0x1000\n RSUB\n END MAIN\n";
+    const auto result = ObjectPassOne::run(source);
+    ASSERT_FALSE(result.succeeded());
+    ASSERT_EQ(result.diagnostics.size(), 1U);
+    EXPECT_EQ(result.diagnostics.front().code,
+              ObjectPassOneDiagnosticCode::InvalidDirectiveOperand);
+    EXPECT_EQ(result.diagnostics.front().position, (SourcePosition{2, 7}));
+    EXPECT_TRUE(std::holds_alternative<AssemblySuccess>(assemble(source)));
+}
+
+TEST(ObjectPassOneTest, WordSubtractionAcceptsTheFullPositiveLiteralRange) {
+    const auto result = ObjectPassOne::run("MAIN START 0\n WORD 0xFFFFFF-0xFFFFFF\n END\n");
+    ASSERT_TRUE(result.succeeded());
+    ASSERT_TRUE(result.lines[1].wordExpression);
+    EXPECT_EQ(result.lines[1].wordExpression->evaluateInitialAddend(), 0);
+    ASSERT_EQ(result.lines[1].wordExpression->terms.size(), 2U);
+    const auto& subtrahend = result.lines[1].wordExpression->terms[1];
+    EXPECT_EQ(subtrahend.sign, ObjectTermSign::Subtract);
+    EXPECT_EQ(std::get<IntegerOperand>(subtrahend.value).value, 0xFFFFFF);
+    EXPECT_FALSE(ObjectPassOne::run("MAIN START 0\n WORD 1-0x1000000\n END\n").succeeded());
+}
+
+TEST(ObjectPassOneTest, KeepsTheOnePastEndAddressForLinesWithoutBytes) {
+    const auto result = ObjectPassOne::run(
+        "MAIN START 0xFFFFF\n BYTE X'01'\n. fim\n EXTREF OTHER\n NOBASE\n END MAIN\n");
+    ASSERT_TRUE(result.succeeded());
+    ASSERT_EQ(result.lines.size(), 6U);
+    EXPECT_EQ(result.programLength, 1U);
+    for (std::size_t index = 2; index < result.lines.size(); ++index) {
+        EXPECT_EQ(result.lines[index].address(), 0x100000U);
+        EXPECT_EQ(result.lines[index].offset, 1U);
+    }
+    ASSERT_TRUE(result.entry);
+    EXPECT_EQ(result.entry->offset, 0U);
+}
+
 } // namespace

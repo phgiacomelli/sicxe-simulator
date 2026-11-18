@@ -1,6 +1,5 @@
 #include "ObjectOperand.hpp"
 
-#include <limits>
 #include <utility>
 
 namespace assembler {
@@ -14,21 +13,6 @@ bool isAsciiDigit(char character) {
     return character >= '0' && character <= '9';
 }
 
-int parseDigit(char character, IntegerBase base) {
-    if (character >= '0' && character <= '9') {
-        return character - '0';
-    }
-    if (base == IntegerBase::Hexadecimal) {
-        if (character >= 'a' && character <= 'f') {
-            return character - 'a' + 10;
-        }
-        if (character >= 'A' && character <= 'F') {
-            return character - 'A' + 10;
-        }
-    }
-    return -1;
-}
-
 bool isUnsupportedOperatorOrDelimiter(char character) {
     return character == '*' || character == '/' || character == '(' || character == ')' ||
            character == '=';
@@ -39,82 +23,6 @@ OperandDiagnostic makeDiagnostic(OperandDiagnosticCode code,
                                  SourcePosition position,
                                  std::string message) {
     return OperandDiagnostic{code, std::string{token}, position, std::move(message)};
-}
-
-std::variant<IntegerOperand, OperandDiagnostic> parseUnsignedTermInteger(std::string_view rawTerm,
-                                                                         std::string_view signedRaw,
-                                                                         ObjectTermSign sign,
-                                                                         SourcePosition termPos,
-                                                                         SourcePosition signedPos) {
-    std::string_view digits = rawTerm;
-    IntegerBase base = IntegerBase::Decimal;
-    if (digits.size() >= 2 && digits[0] == '0' && (digits[1] == 'x' || digits[1] == 'X')) {
-        base = IntegerBase::Hexadecimal;
-        digits.remove_prefix(2);
-    }
-
-    if (digits.empty()) {
-        return makeDiagnostic(OperandDiagnosticCode::InvalidInteger,
-                              signedRaw,
-                              signedPos,
-                              "Inteiro '" + std::string{signedRaw} + "' invalido em WORD.");
-    }
-
-    for (const char character : digits) {
-        if (parseDigit(character, base) < 0) {
-            return makeDiagnostic(OperandDiagnosticCode::InvalidInteger,
-                                  signedRaw,
-                                  signedPos,
-                                  "Inteiro '" + std::string{signedRaw} +
-                                      "' contem digito invalido.");
-        }
-    }
-
-    const std::uint64_t radix = base == IntegerBase::Hexadecimal ? 16ULL : 10ULL;
-    const std::uint64_t maxPositive =
-        static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
-    const bool negative = sign == ObjectTermSign::Subtract;
-    const std::uint64_t limit = negative ? (maxPositive + 1ULL) : maxPositive;
-
-    std::uint64_t magnitude = 0;
-    for (const char character : digits) {
-        const auto digit = static_cast<std::uint64_t>(parseDigit(character, base));
-        if (magnitude > (limit - digit) / radix) {
-            return makeDiagnostic(OperandDiagnosticCode::IntegerOverflow,
-                                  signedRaw,
-                                  signedPos,
-                                  "Inteiro '" + std::string{signedRaw} +
-                                      "' excede o limite representavel.");
-        }
-        magnitude = magnitude * radix + digit;
-    }
-
-    std::int64_t signedValue = 0;
-    if (negative) {
-        if (magnitude == maxPositive + 1ULL) {
-            signedValue = std::numeric_limits<std::int64_t>::min();
-        } else {
-            signedValue = -static_cast<std::int64_t>(magnitude);
-        }
-    } else {
-        signedValue = static_cast<std::int64_t>(magnitude);
-    }
-
-    if (signedValue < Word24BitRange.min || signedValue > Word24BitRange.max) {
-        return makeDiagnostic(OperandDiagnosticCode::ValueOutOfRange,
-                              signedRaw,
-                              signedPos,
-                              "Inteiro '" + std::string{signedRaw} +
-                                  "' fora da faixa permitida de 24 bits para WORD.");
-    }
-
-    return IntegerOperand{
-        static_cast<std::int64_t>(magnitude),
-        base,
-        negative,
-        std::string{rawTerm},
-        termPos,
-    };
 }
 
 } // namespace
@@ -222,15 +130,26 @@ ObjectWordParseResult parseObjectWordExpression(std::string_view text, SourcePos
         const std::string_view signedRaw = trimmed.substr(signedStart, cursor - signedStart);
 
         if (isAsciiDigit(rawTerm.front())) {
-            const auto parsedInt =
-                parseUnsignedTermInteger(rawTerm, signedRaw, sign, termPos, signedPos);
-            if (const auto* diagnostic = std::get_if<OperandDiagnostic>(&parsedInt)) {
+            // The first sign can belong to a literal. Later signs are binary operators.
+            const auto parsed =
+                parseValue(firstTerm ? signedRaw : rawTerm, firstTerm ? signedPos : termPos);
+            if (const auto* diagnostic = std::get_if<OperandDiagnostic>(&parsed)) {
                 return *diagnostic;
             }
+            const auto& value = std::get<OperandValue>(parsed);
+            const auto validated = validateInteger(value, Word24BitRange);
+            if (const auto* diagnostic = std::get_if<OperandDiagnostic>(&validated)) {
+                return *diagnostic;
+            }
+            const auto& integer = std::get<IntegerOperand>(value);
             expression.terms.push_back(ParsedWordTerm{
                 sign,
                 signedPos,
-                OperandValue{std::get<IntegerOperand>(parsedInt)},
+                IntegerOperand{integer.negative ? -integer.value : integer.value,
+                               integer.base,
+                               false,
+                               std::string{rawTerm},
+                               termPos},
             });
         } else {
             if (!SymbolTable::isValidIdentifier(rawTerm)) {
