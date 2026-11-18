@@ -104,6 +104,10 @@ add_library(sicxe_assembler STATIC
     src/assembler/Format2Encoder.cpp
     src/assembler/Format2Encoder.hpp
     src/assembler/LocatedLine.hpp
+    src/assembler/ObjectOperand.cpp
+    src/assembler/ObjectOperand.hpp
+    src/assembler/ObjectPassOne.cpp
+    src/assembler/ObjectPassOne.hpp
     src/assembler/PassOne.cpp
     src/assembler/PassOne.hpp
     src/assembler/DataDirective.cpp
@@ -246,6 +250,7 @@ if(BUILD_TESTING)
         tests/assembler/InstructionCatalogTest.cpp
         tests/assembler/InstructionOperandTest.cpp
         tests/assembler/Format2EncoderTest.cpp
+        tests/assembler/ObjectPassOneTest.cpp
         tests/assembler/PassOneTest.cpp
         tests/assembler/DataDirectiveTest.cpp
         tests/assembler/InstructionEncoderTest.cpp

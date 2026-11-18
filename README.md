@@ -56,8 +56,13 @@ bytes e `M` usa campos de 5/6 meios bytes. A forma de `M` sem nome é aceita
 como relocação positiva pela seção e emitida na forma nomeada.
 
 A biblioteca não abre arquivos, monta fonte, resolve símbolos globais ou
-aplica relocação. Ainda não há executável de ligação nem modo objeto nas
-ferramentas de montagem; as interfaces e saídas atuais permanecem inalteradas.
+aplica relocação. No segundo pacote, `sicxe_assembler` acrescenta um modo
+separado de passagem 1 para montagem objeto (`assembler::ObjectPassOne::run` e
+`assembler::parseObjectWordExpression`), com seção obrigatória em `START`,
+`EXTDEF`/`EXTREF`, limite de seis caracteres para seção e símbolos globais,
+expressões lineares `+`/`-` em `WORD` e referências classificadas como inteiro
+absoluto, símbolo local (com offset relativo à seção) ou símbolo externo.
+`assembler::assemble` e os executáveis de montagem atuais permanecem inalterados.
 
 ## Compilar e executar
 
@@ -160,10 +165,12 @@ incluindo os dois executáveis de montagem. Na configuração com Qt, há testes
 controlador e da interface, que rodam sem abrir uma janela.
 
 O alvo `LinkerTests` verifica parse/render de objetos e diagnósticos, sem
-depender do montador ou da VM. Para executar apenas esses casos após o build:
+depender do montador ou da VM, e `ObjectPassOneTest` (em `AssemblerTests`)
+verifica a primeira passagem em modo objeto e as declarações externas. Para
+executar apenas esses casos após o build:
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|ObjectPassOneTest' --output-on-failure
 ```
 
 ## Contribuir
