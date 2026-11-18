@@ -177,6 +177,10 @@ add_library(sicxe_linker STATIC
     src/linker/ObjectModule.hpp
     src/linker/ObjectRecords.hpp
     src/linker/ObjectRecords.cpp
+    src/linker/ObjectValidation.hpp
+    src/linker/ObjectValidation.cpp
+    src/linker/LinkPassOne.hpp
+    src/linker/LinkPassOne.cpp
 )
 target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -265,7 +269,10 @@ if(BUILD_TESTING)
     target_link_libraries(AssemblerTests PRIVATE sicxe_assembler GTest::gtest_main)
     gtest_discover_tests(AssemblerTests NO_PRETTY_VALUES)
 
-    add_executable(LinkerTests tests/linker/ObjectRecordsTest.cpp)
+    add_executable(LinkerTests
+        tests/linker/ObjectRecordsTest.cpp
+        tests/linker/LinkPassOneTest.cpp
+    )
     set_target_properties(LinkerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
     gtest_discover_tests(LinkerTests NO_PRETTY_VALUES)
