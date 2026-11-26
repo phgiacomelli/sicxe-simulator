@@ -1,7 +1,9 @@
 #include "LinkPassTwo.hpp"
 
 #include "ObjectValidation.hpp"
+#include "RelocationField.hpp"
 
+#include <array>
 #include <map>
 #include <unordered_set>
 #include <utility>
@@ -10,34 +12,6 @@ namespace linker {
 namespace {
 
 using FieldKey = std::pair<std::uint32_t, std::uint8_t>;
-
-std::uint32_t readField(const std::vector<std::optional<std::uint8_t>>& text,
-                        std::uint32_t offset,
-                        std::uint8_t halfBytes) {
-    const auto first = *text[offset];
-    const auto second = *text[offset + 1U];
-    const auto third = *text[offset + 2U];
-    if (halfBytes == 5U) {
-        return (static_cast<std::uint32_t>(first & 0x0FU) << 16U) |
-               (static_cast<std::uint32_t>(second) << 8U) | third;
-    }
-    return (static_cast<std::uint32_t>(first) << 16U) | (static_cast<std::uint32_t>(second) << 8U) |
-           third;
-}
-
-void writeField(std::vector<std::optional<std::uint8_t>>& text,
-                std::uint32_t offset,
-                std::uint8_t halfBytes,
-                std::uint32_t value) {
-    const auto first = *text[offset];
-    if (halfBytes == 5U) {
-        text[offset] = static_cast<std::uint8_t>((first & 0xF0U) | ((value >> 16U) & 0x0FU));
-    } else {
-        text[offset] = static_cast<std::uint8_t>((value >> 16U) & 0xFFU);
-    }
-    text[offset + 1U] = static_cast<std::uint8_t>((value >> 8U) & 0xFFU);
-    text[offset + 2U] = static_cast<std::uint8_t>(value & 0xFFU);
-}
 
 ObjectDiagnostic
 makeDiagnostic(ObjectDiagnosticCode code, const ObjectPosition& position, std::string message) {
@@ -148,12 +122,18 @@ LinkPassTwoResult LinkPassTwo::run(std::span<const ObjectModule> modules,
             if (!valid)
                 continue;
 
-            const std::uint32_t mask = width == 5U ? 0xFFFFFU : 0xFFFFFFU;
-            const auto addend =
-                static_cast<std::int64_t>(readField(intermediate.text, offset, width));
+            const auto fieldWidth = static_cast<RelocationWidth>(width);
+            const auto mask = relocationMask(fieldWidth);
+            std::array field{*intermediate.text[offset],
+                             *intermediate.text[offset + 1U],
+                             *intermediate.text[offset + 2U]};
+            const auto addend = static_cast<std::int64_t>(readRelocationField(field, fieldWidth));
             const auto valueBeforeLoad = addend + knownContribution;
             const auto patched = static_cast<std::uint32_t>(valueBeforeLoad) & mask;
-            writeField(intermediate.text, offset, width, patched);
+            writeRelocationField(field, fieldWidth, patched);
+            for (std::size_t index = 0; index < field.size(); ++index) {
+                intermediate.text[offset + index] = field[index];
+            }
             const bool needsAddressCheck =
                 width == 5U && (valueBeforeLoad < 0 || valueBeforeLoad > mask);
             if (coefficient != 0 || needsAddressCheck) {
