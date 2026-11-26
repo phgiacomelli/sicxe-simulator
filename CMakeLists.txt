@@ -278,6 +278,7 @@ if(BUILD_TESTING)
         tests/linker/ObjectRecordsTest.cpp
         tests/linker/LinkPassOneTest.cpp
         tests/linker/LinkPassTwoTest.cpp
+        tests/linker/LinkerTest.cpp
     )
     set_target_properties(LinkerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
