@@ -183,6 +183,9 @@ add_library(sicxe_linker STATIC
     src/linker/LinkPassOne.cpp
     src/linker/LinkPassTwo.hpp
     src/linker/LinkPassTwo.cpp
+    src/linker/Linker.hpp
+    src/linker/Linker.cpp
+    src/linker/RelocationField.hpp
 )
 target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -275,6 +278,7 @@ if(BUILD_TESTING)
         tests/linker/ObjectRecordsTest.cpp
         tests/linker/LinkPassOneTest.cpp
         tests/linker/LinkPassTwoTest.cpp
+        tests/linker/LinkerTest.cpp
     )
     set_target_properties(LinkerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
