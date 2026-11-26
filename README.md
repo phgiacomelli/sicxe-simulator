@@ -48,9 +48,22 @@ A primeira posiciona as seções na ordem recebida, calcula o ponto de entrada
 e constrói a tabela de símbolos globais. A segunda combina o código e os
 dados, preserva as áreas reservadas e resolve as referências externas.
 
-O resultado mantém os ajustes que dependem do endereço de carga. As duas
-passagens estão disponíveis como biblioteca. A relocação final e a interface
-de linha de comando são as próximas etapas.
+A biblioteca `sicxe_linker` expõe `linker::link(modules, mode)`, que recebe
+módulos objeto na ordem de ligação e devolve o resultado em memória.
+
+- `AbsoluteLinkMode{loadAddress}` aplica a relocação final, preenche as áreas
+  reservadas com zeros e entrega os bytes, o endereço de carga e o PC inicial.
+  A carga precisa caber no espaço de 20 bits e a imagem precisa ter pelo menos
+  um byte para ser carregada na VM.
+- `RelocatableLinkMode{}` entrega um módulo objeto combinado e seus registros
+  `H/T/M/E` serializados. O objeto preserva os espaços reservados e os
+  ajustes que dependem do endereço de carga. Ele pode ser ligado novamente
+  em modo absoluto.
+
+A saída relocável exige que o valor de formato 4 caiba em 20 bits antes da
+carga. A saída absoluta verifica a faixa depois de aplicar a carga. Valores
+`WORD` usam aritmética de 24 bits. Os dois modos devolvem diagnósticos em caso
+de falha. A interface de linha de comando para ligação está em desenvolvimento.
 
 ## Compilar e executar
 
@@ -152,15 +165,15 @@ cobrem a máquina virtual, o montador, o motor de macros e a integração final,
 incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
 controlador e da interface, que rodam sem abrir uma janela.
 
-O alvo `LinkerTests` verifica parse/render de objetos, as duas passagens do
-ligador (`LinkPassOneTest` e `LinkPassTwoTest`) e diagnósticos, sem depender do montador ou da VM,
-e `ObjectPassOneTest` (em `AssemblerTests`) verifica a primeira passagem em modo
-objeto e as declarações externas. As suítes `ObjectAssemblerTest` e
+O alvo `LinkerTests` verifica leitura e escrita de objetos, as duas passagens,
+os diagnósticos e a equivalência entre a ligação direta e a relocação do
+objeto combinado. `ObjectPassOneTest` (em `AssemblerTests`) verifica a primeira
+passagem em modo objeto e as declarações externas. As suítes `ObjectAssemblerTest` e
 `ObjectAssemblerDecoderTest` cobrem a emissão e a compatibilidade das instruções
 com a VM. Para executar esses casos:
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPass(One|Two)Test|ObjectPassOneTest|ObjectAssembler' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPass(One|Two)Test|LinkerTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
 ```
 
 ## Contribuir
