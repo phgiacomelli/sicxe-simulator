@@ -291,6 +291,23 @@ if(BUILD_TESTING)
     target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
     gtest_discover_tests(LinkerTests NO_PRETTY_VALUES)
 
+    add_executable(LinkedImageAcceptance tests/linker/LinkedImageAcceptance.cpp)
+    set_target_properties(LinkedImageAcceptance PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(LinkedImageAcceptance PRIVATE SICXECore sicxe_input)
+    add_test(NAME LinkerCliAcceptance COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEObjectAssembler>
+        -DLINKER=$<TARGET_FILE:SICXELinker>
+        -DCHECK_IMAGE=$<TARGET_FILE:LinkedImageAcceptance>
+        -DFIXTURES=${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/fixtures
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/linker-cli-acceptance
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/LinkerCliAcceptance.cmake)
+    add_test(NAME LinkerCliFailures COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEObjectAssembler>
+        -DLINKER=$<TARGET_FILE:SICXELinker>
+        -DFIXTURES=${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/fixtures
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/linker-cli-failures
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/LinkerCliFailures.cmake)
+
     add_executable(MacroTests
         tests/macros/SourceScannerTest.cpp
         tests/macros/MacroContractTest.cpp
