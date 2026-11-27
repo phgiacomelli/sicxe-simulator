@@ -189,6 +189,13 @@ add_library(sicxe_linker STATIC
 )
 target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+add_library(sicxe_linker_cli_io STATIC src/cli/LinkerCliIO.cpp src/cli/LinkerCliIO.hpp)
+target_include_directories(sicxe_linker_cli_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_executable(SICXEObjectAssembler src/cli/ObjectAssemblerMain.cpp)
+target_link_libraries(SICXEObjectAssembler PRIVATE sicxe_assembler sicxe_linker_cli_io)
+add_executable(SICXELinker src/cli/LinkerMain.cpp)
+target_link_libraries(SICXELinker PRIVATE sicxe_linker sicxe_linker_cli_io)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
@@ -283,6 +290,23 @@ if(BUILD_TESTING)
     set_target_properties(LinkerTests PROPERTIES AUTOMOC OFF AUTOUIC OFF)
     target_link_libraries(LinkerTests PRIVATE sicxe_linker GTest::gtest_main)
     gtest_discover_tests(LinkerTests NO_PRETTY_VALUES)
+
+    add_executable(LinkedImageAcceptance tests/linker/LinkedImageAcceptance.cpp)
+    set_target_properties(LinkedImageAcceptance PROPERTIES AUTOMOC OFF AUTOUIC OFF)
+    target_link_libraries(LinkedImageAcceptance PRIVATE SICXECore sicxe_input)
+    add_test(NAME LinkerCliAcceptance COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEObjectAssembler>
+        -DLINKER=$<TARGET_FILE:SICXELinker>
+        -DCHECK_IMAGE=$<TARGET_FILE:LinkedImageAcceptance>
+        -DFIXTURES=${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/fixtures
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/linker-cli-acceptance
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/LinkerCliAcceptance.cmake)
+    add_test(NAME LinkerCliFailures COMMAND ${CMAKE_COMMAND}
+        -DASSEMBLER=$<TARGET_FILE:SICXEObjectAssembler>
+        -DLINKER=$<TARGET_FILE:SICXELinker>
+        -DFIXTURES=${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/fixtures
+        -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/linker-cli-failures
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/tests/linker/LinkerCliFailures.cmake)
 
     add_executable(MacroTests
         tests/macros/SourceScannerTest.cpp
