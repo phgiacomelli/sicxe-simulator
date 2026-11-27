@@ -189,6 +189,13 @@ add_library(sicxe_linker STATIC
 )
 target_include_directories(sicxe_linker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
+add_library(sicxe_linker_cli_io STATIC src/cli/LinkerCliIO.cpp src/cli/LinkerCliIO.hpp)
+target_include_directories(sicxe_linker_cli_io PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+add_executable(SICXEObjectAssembler src/cli/ObjectAssemblerMain.cpp)
+target_link_libraries(SICXEObjectAssembler PRIVATE sicxe_assembler sicxe_linker_cli_io)
+add_executable(SICXELinker src/cli/LinkerMain.cpp)
+target_link_libraries(SICXELinker PRIVATE sicxe_linker sicxe_linker_cli_io)
+
 if(SICXE_BUILD_QT)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
     qt_standard_project_setup()
