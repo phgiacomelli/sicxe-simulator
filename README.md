@@ -5,7 +5,7 @@
 
 Simulador da arquitetura SIC/XE desenvolvido em C++20 para a disciplina de
 Programação de Sistemas. O projeto reúne uma máquina virtual com interface
-gráfica, um montador e um processador de macros.
+gráfica, um montador, um processador de macros e um ligador.
 
 ## Etapas do projeto
 
@@ -34,16 +34,13 @@ endereços fixos e pode ser carregado na máquina virtual.
 Integrado ao montador pelo executável `SICXEMacroAssembler`. Processa macros
 em uma passagem antes da montagem, com parâmetros posicionais, rótulo formal,
 redefinições, definições/chamadas aninhadas e rótulos locais `.SER`.
-Gera `MASMAPRG.ASM` e entrega exatamente esse texto ao montador existente,
-que produz `.bin` e `.lst`. A VM continua recebendo somente bytes.
-
-Não há argumentos por palavra-chave/defaults, expressões de tempo de macro,
-linker, loader de objeto ou relocação. `SICXEAssembler` continua disponível
+Gera `MASMAPRG.ASM` e entrega exatamente esse texto ao montador em modo
+absoluto, que produz `.bin` e `.lst`. `SICXEAssembler` continua disponível
 para montagem direta, sem expansão.
 
 ### 4. Ligador
 
-Em desenvolvimento. O ligador reúne módulos objeto SIC/XE em duas passagens.
+O ligador reúne módulos objeto SIC/XE em duas passagens.
 A primeira posiciona as seções na ordem recebida, calcula o ponto de entrada
 e constrói a tabela de símbolos globais. A segunda combina o código e os
 dados, preserva as áreas reservadas e resolve as referências externas.
@@ -63,7 +60,7 @@ módulos objeto na ordem de ligação e devolve o resultado em memória.
 A saída relocável exige que o valor de formato 4 caiba em 20 bits antes da
 carga. A saída absoluta verifica a faixa depois de aplicar a carga. Valores
 `WORD` usam aritmética de 24 bits. Os dois modos devolvem diagnósticos em caso
-de falha. A interface de linha de comando para ligação está em desenvolvimento.
+de falha.
 
 ## Compilar e executar
 
@@ -152,6 +149,38 @@ origem na fonte original e cadeia de chamadas, quando disponíveis. A origem
 diretamente à fonte original. Nenhum erro de montagem publica binário/listagem
 parciais de sucesso.
 
+## Montar e ligar módulos objeto
+
+`SICXEObjectAssembler` monta um fonte por vez em formato objeto, com suporte a
+`EXTDEF` e `EXTREF`. Sem `-o`, usa o nome do fonte com extensão `.obj` no mesmo
+diretório. `SICXELinker` recebe um ou mais módulos em ordem de ligação.
+
+```bash
+./build/SICXEObjectAssembler tests/linker/fixtures/main.asm -o build/main.obj
+./build/SICXEObjectAssembler tests/linker/fixtures/twice.asm -o build/twice.obj
+./build/SICXELinker --absolute 0x100 build/main.obj build/twice.obj -o build/linked.bin
+```
+
+`--absolute` aceita o endereço de carga em decimal ou com prefixo `0x` para
+hexadecimal. O comando grava o `.bin` e imprime o endereço de carga e o PC
+inicial. Para testar o exemplo na VM, informe `100` em ambos os campos
+hexadecimais. Após cinco passos, `A` e a palavra no endereço `113` contêm
+`00000E` em hexadecimal, ou 14 em decimal. O programa chega ao laço final.
+
+`--relocatable` grava um `.obj` combinado para ligação posterior. Os comandos
+abaixo produzem os mesmos bytes e PC inicial da ligação direta do exemplo.
+
+```bash
+./build/SICXELinker --relocatable build/main.obj build/twice.obj -o build/linked.obj
+./build/SICXELinker --absolute 0x100 build/linked.obj -o build/from-object.bin
+```
+
+Sem `-o`, o ligador usa `linked.bin` ou `linked.obj` no diretório de trabalho,
+conforme o modo. As duas ferramentas aceitam `--output` e `--help` (`-h`).
+Retornam `0` em caso de sucesso ou ajuda, `1` em caso de falha de processamento
+ou de arquivo e `2` para argumentos inválidos. Escolha destinos novos em
+diretórios existentes que permitam criar hard links.
+
 ## Testes
 
 Depois de compilar, execute:
@@ -161,19 +190,21 @@ ctest --test-dir build --output-on-failure
 ```
 
 Se usou a configuração sem Qt, substitua `build` por `build-core`. Os testes
-cobrem a máquina virtual, o montador, o motor de macros e a integração final,
-incluindo os dois executáveis de montagem. Na configuração com Qt, há testes do
-controlador e da interface, que rodam sem abrir uma janela.
+cobrem a máquina virtual, o montador, o motor de macros, o ligador e a integração
+entre os executáveis. Na configuração com Qt, há testes do controlador e da
+interface, que rodam sem abrir uma janela.
 
 O alvo `LinkerTests` verifica leitura e escrita de objetos, as duas passagens,
 os diagnósticos e a equivalência entre a ligação direta e a relocação do
 objeto combinado. `ObjectPassOneTest` (em `AssemblerTests`) verifica a primeira
 passagem em modo objeto e as declarações externas. As suítes `ObjectAssemblerTest` e
 `ObjectAssemblerDecoderTest` cobrem a emissão e a compatibilidade das instruções
-com a VM. Para executar esses casos:
+com a VM. Os testes `LinkerCliAcceptance` e `LinkerCliFailures` exercitam os
+comandos com arquivos reais, inclusive a carga e a execução da imagem na VM.
+O filtro abaixo seleciona esses casos.
 
 ```bash
-ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPass(One|Two)Test|LinkerTest|ObjectPassOneTest|ObjectAssembler' --output-on-failure
+ctest --test-dir build -R 'ObjectRecordsTest|MalformedObjectTest|LinkPass(One|Two)Test|LinkerTest|ObjectPassOneTest|ObjectAssembler|LinkerCli' --output-on-failure
 ```
 
 ## Contribuir
